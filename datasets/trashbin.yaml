@@ -1,0 +1,9 @@
+# 由 scripts/pipeline/stage3_arbitrate.py --single-class 自动生成
+# 单物件数据集：street_obstacle
+path: C:/Users/user/PycharmProjects/Accessible Visual Guidance/data/dataset_trashbin_demo
+train: C:/Users/user/PycharmProjects/Accessible Visual Guidance/data/auto/trashbin/final/train.txt
+val: C:/Users/user/PycharmProjects/Accessible Visual Guidance/data/auto/trashbin/final/train.txt
+
+nc: 1
+names:
+  0: street_obstacle

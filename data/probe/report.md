@@ -12,19 +12,19 @@
 
 ## 结论表（按最佳 prompt）
 
-| 物件 | 图片数 | 最佳检出率 | 平均置信度 | 最佳 prompt | 判定 |
-|---|---|---|---|---|---|
-| 红绿灯 (traffic_light) | 32 | **0.94** | 0.686 | `a traffic signal` | ✅ 零样本可用 |
-| 长椅 (bench) | 40 | **0.88** | 0.681 | `a bench` | ✅ 零样本可用 |
-| 邮筒 (post_box) | 40 | **0.82** | 0.594 | `a post box` | ✅ 零样本可用 |
-| 消防栓 (fire_hydrant) | 7 | **0.71** | 0.639 | `a red fire hydrant` | ✅ 零样本可用 |
-| 花槽 (planter) | 40 | **0.70** | 0.457 | `a potted plant` | ✅ 零样本可用 |
-| 垃圾桶 (trash_bin) | 23 | **0.61** | 0.454 | `a rubbish bin` | ✅ 零样本可用 |
-| 店铺招牌 (shop_sign) | 40 | **0.55** | 0.315 | `a shop signboard` | ⚠️ 需微调 |
-| 电话亭 (phone_booth) | 39 | **0.21** | 0.140 | `a telephone booth` | ❌ 弱（需大量实拍） |
-| 自动扶梯 (escalator) | 27 | **0.15** | 0.069 | `an escalator entrance` | ❌ 弱（需大量实拍） |
-| 触觉引路带 (tactile_paving) | 35 | **0.03** | 0.036 | `tactile paving on a sidewalk` | ❌ **零样本完全失效**（置信度≈噪声） |
-| 行人天桥 (footbridge) | 40 | **0.03** | 0.032 | `footbridge entrance` | ❌ **零样本完全失效**（置信度≈噪声） |
+| 物件                     | 图片数 | 最佳检出率    | 平均置信度 | 最佳 prompt                      | 判定                    |
+| ---------------------- | --- | -------- | ----- | ------------------------------ | --------------------- |
+| 红绿灯 (traffic_light)    | 32  | **0.94** | 0.686 | `a traffic signal`             | ✅ 零样本可用               |
+| 长椅 (bench)             | 40  | **0.88** | 0.681 | `a bench`                      | ✅ 零样本可用               |
+| 邮筒 (post_box)          | 40  | **0.82** | 0.594 | `a post box`                   | ✅ 零样本可用               |
+| 消防栓 (fire_hydrant)     | 7   | **0.71** | 0.639 | `a red fire hydrant`           | ✅ 零样本可用               |
+| 花槽 (planter)           | 40  | **0.70** | 0.457 | `a potted plant`               | ✅ 零样本可用               |
+| 垃圾桶 (trash_bin)        | 23  | **0.61** | 0.454 | `a rubbish bin`                | ✅ 零样本可用               |
+| 店铺招牌 (shop_sign)       | 40  | **0.55** | 0.315 | `a shop signboard`             | ⚠️ 需微调                |
+| 电话亭 (phone_booth)      | 39  | **0.21** | 0.140 | `a telephone booth`            | ❌ 弱（需大量实拍）            |
+| 自动扶梯 (escalator)       | 27  | **0.15** | 0.069 | `an escalator entrance`        | ❌ 弱（需大量实拍）            |
+| 触觉引路带 (tactile_paving) | 35  | **0.03** | 0.036 | `tactile paving on a sidewalk` | ❌ **零样本完全失效**（置信度≈噪声） |
+| 行人天桥 (footbridge)      | 40  | **0.03** | 0.032 | `footbridge entrance`          | ❌ **零样本完全失效**（置信度≈噪声） |
 
 ## 各 prompt 变体明细
 

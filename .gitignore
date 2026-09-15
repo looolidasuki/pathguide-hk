@@ -42,6 +42,11 @@ data/eval/**
 !data/auto/.gitkeep
 !data/eval/.gitkeep
 
+# 自动预标产出的训练数据集（由 auto_annotate.py --dataset 生成）
+data/dataset_*_demo/**
+data/dataset_*/images/**
+data/dataset_*/labels/**
+
 # 由源码 zip 手动安装的 CLIP 源码（见 scripts/env_setup.py 注释）
 vendor/
 
