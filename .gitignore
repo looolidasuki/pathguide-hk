@@ -24,6 +24,18 @@ data/dataset/_smoke/*/**
 data/logos/*/**
 !data/**/.gitkeep
 
+# 探测（spike）素材：Commons 图片是 CC 授权的第三方资源，不入库。
+# 保留结论文档与脚本；图像与署名清单可按 fetch_commons.py 重新拉取。
+data/probe/hk/**
+data/probe/hk_onsite/**
+data/probe/report.json
+!data/probe/**/.gitkeep
+!data/probe/FINDINGS.md
+!data/probe/README.md
+
+# 由源码 zip 手动安装的 CLIP 源码（见 scripts/env_setup.py 注释）
+vendor/
+
 # 由流水线重新生成的派生产物（且当前内容来自合成数据，不应入库）
 data/dataset/manifest.csv
 data/dataset/split.json
@@ -57,6 +69,16 @@ weights/
 Accessible Visual Guidance Note/.obsidian/workspace*.json
 Accessible Visual Guidance Note/.obsidian/cache/
 .trash/
+
+# 密钥文件（绝不入库）
+.env.secret.ps1
+.env.local
+.env.*.local
+*.secret
+credentials.json
+service-account*.json
+# 注：仓库内的 .env.ps1 已改为不含密钥且可安全提交的版本；
+#     若你本地在 .env.ps1 里直接写了 key，请改用 .env.secret.ps1。
 
 # 临时
 *.tmp
