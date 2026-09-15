@@ -1,0 +1,12 @@
+# 统一以 LF 存储，避免在 Windows 上 git 反复重写工作区文件
+* text=auto eol=lf
+
+# 二进制资产不做换行符转换
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.pt binary
+*.onnx binary
+*.tflite binary
+*.mp4 binary
+*.mov binary

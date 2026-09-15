@@ -1,0 +1,12 @@
+# 核心训练依赖
+# 注意：torch/torchvision 必须从 CUDA 12.8 索引单独安装（RTX 50 系为 Blackwell sm_120）
+#   uv pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+ultralytics>=8.3,<8.4
+opencv-python>=4.9
+imagehash>=4.3
+Pillow>=10.0
+pandas>=2.0
+pyyaml>=6.0
+pytest>=8.0
+onnx>=1.16
+onnxruntime>=1.18

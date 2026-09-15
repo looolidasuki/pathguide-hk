@@ -5,6 +5,11 @@ __pycache__/
 venv/
 .pytest_cache/
 
+# 包管理与构建缓存（uv 缓存重定向到工作区内，避免沙箱外的写入限制）
+.uv-cache/
+build/
+dist/
+
 # 数据（体积大，不入库；raw/ 与 dataset/ 由外部备份盘维护）
 data/raw/**
 data/frames/**
@@ -26,6 +31,13 @@ weights/
 .idea/
 .vscode/
 *.iml
+
+# Obsidian：忽略机器相关的界面与工作区状态，保留笔记正文与核心配置
+# 仓库根曾被当作 vault 打开，留下了一套冗余配置，一并忽略
+/.obsidian/
+Accessible Visual Guidance Note/.obsidian/workspace*.json
+Accessible Visual Guidance Note/.obsidian/cache/
+.trash/
 
 # 临时
 *.tmp
