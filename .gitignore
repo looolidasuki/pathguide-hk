@@ -9,6 +9,9 @@ venv/
 .uv-cache/
 .ultralytics-config/
 .mpl-cache/
+# transformers trust_remote_code 下载的模型代码（可重新下载，不入库）
+.hf/
+.tmp/
 build/
 dist/
 
@@ -32,6 +35,12 @@ data/probe/report.json
 !data/probe/**/.gitkeep
 !data/probe/FINDINGS.md
 !data/probe/README.md
+
+# 自动预标的中间产物与评估输出（体量大、可重跑生成）
+data/auto/**
+data/eval/**
+!data/auto/.gitkeep
+!data/eval/.gitkeep
 
 # 由源码 zip 手动安装的 CLIP 源码（见 scripts/env_setup.py 注释）
 vendor/
