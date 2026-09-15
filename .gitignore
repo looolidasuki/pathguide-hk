@@ -13,13 +13,15 @@ build/
 dist/
 
 # 数据（体积大，不入库；raw/ 与 dataset/ 由外部备份盘维护）
-data/raw/**
-data/frames/**
-data/dataset/images/**
-data/dataset/labels/**
-data/dataset/_duplicates/**
-data/dataset/_smoke/**
-data/logos/**
+# 注意：用 `dir/*` 而非 `dir/**`，否则父目录被整体排除后，
+#       `!.../.gitkeep` 无法重新包含其中的文件（git 的目录排除优先规则）。
+data/raw/*/**
+data/frames/*/**
+data/dataset/images/*/**
+data/dataset/labels/*/**
+data/dataset/_duplicates/*/**
+data/dataset/_smoke/*/**
+data/logos/*/**
 !data/**/.gitkeep
 
 # 由流水线重新生成的派生产物（且当前内容来自合成数据，不应入库）
@@ -30,7 +32,7 @@ data/dataset/train.txt
 data/dataset/val.txt
 data/dataset/test.txt
 data/dataset/route_B.txt
-data/dataset/*.cache
+data/dataset/**/*.cache
 datasets/pathguide.yaml
 
 # Ultralytics 误写在仓库根的缓存
