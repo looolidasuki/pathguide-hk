@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# 数据（体积大，不入库；raw/ 与 dataset/ 由外部备份盘维护）
+data/raw/**
+data/frames/**
+data/dataset/images/**
+data/dataset/labels/**
+data/dataset/_duplicates/**
+data/dataset/_smoke/**
+data/logos/**
+!data/**/.gitkeep
+
+# 训练产物与模型权重
+runs/**
+weights/
+*.pt
+*.onnx
+*.tflite
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 临时
+*.tmp
+~$*
