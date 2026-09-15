@@ -16,7 +16,7 @@
 
 以下约束对**每一个** Task 生效，不再逐条重复：
 
-1. **运行环境**：Windows + 本机 NVIDIA 显卡。所有训练/导出命令必须在 `conda activate pathguide` 后执行。
+1. **运行环境**：Windows + 本机 NVIDIA 显卡（RTX 5070 / sm_120 / 11.91 GB）。所有训练/导出命令必须先执行 `. .\.env.ps1` 激活虚拟环境。**不使用 conda**（本机未安装），改用 uv + venv + Python 3.12。
 2. **Windows 多进程**：任何使用 DataLoader 多进程的入口脚本必须置于 `if __name__ == "__main__":` 保护内。`workers` 起始值为 **2**，出现卡死或共享内存错误时降为 **0**。
 3. **路径**：仓库内一律使用 `__file__` 推导的绝对路径（`Path(__file__).resolve().parents[N]`），禁止硬编码盘符，禁止依赖当前工作目录。Python 代码中路径统一用 `pathlib.Path`，仅在传给 cv2 时转为 `str`。
 4. **图像读取**：必须用 `cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)` 而非 `cv2.imread`，以支持中文路径。
@@ -236,13 +236,34 @@ onnx>=1.16
 onnxruntime>=1.18
 ```
 
-- [ ] **Step 6: 创建并验证 conda 环境**
+- [ ] **Step 6: 创建并验证环境（uv + venv，实际采用方案）**
 
-```bash
-conda create -n pathguide python=3.11 -y
-conda activate pathguide
-pip install -r requirements.txt
+> **与原计划的偏差说明：** 原计划使用 conda，但本机未安装 conda，且系统默认 Python 为 **3.14.4**
+> ——PyTorch 尚无 3.14 的 wheel。实测改用 **uv + venv + Python 3.12.3**（`py -0p` 已存在该解释器）。
+>
+> 另一处偏差：uv 默认缓存在 `%LOCALAPPDATA%\uv\cache`，被文件沙箱拒绝写入。
+> 因此必须把 `UV_CACHE_DIR` 指向工作区内（见 `.env.ps1`）。
+
+```powershell
+# 激活环境（已封装为脚本）
+. .\.env.ps1
 ```
+
+该脚本等价于：
+
+```powershell
+uv venv --python 3.12 .venv
+$env:UV_CACHE_DIR = "$PWD\.uv-cache"
+
+# RTX 50 系为 Blackwell (sm_120)，必须用 CUDA 12.8+ 的 PyTorch 构建
+uv pip install --python .venv\Scripts\python.exe torch torchvision `
+  --index-url https://download.pytorch.org/whl/cu128
+
+uv pip install --python .venv\Scripts\python.exe -r requirements.txt
+```
+
+**实测结果（2026-09-15）：** `torch 2.11.0+cu128` / `torchvision 0.26.0+cu128` / CUDA 12.8 /
+RTX 5070 / sm_120 / 11.91 GB 显存 / GPU 矩阵乘法通过。
 
 - [ ] **Step 7: 写 `scripts/env_check.py`**
 

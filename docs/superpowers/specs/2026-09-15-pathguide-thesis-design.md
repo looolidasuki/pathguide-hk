@@ -281,6 +281,21 @@ YOLOv8n 主检测器（16 类）
 
 > **对策：`check_labels.py` 产出类别分布、框尺寸/长宽比直方图、越界框、空标签、极小框（<4 px）报告，作为训练前置门禁。**
 
+**决定四（实测发现，必须遵守）：标签必须镜像图像的目录结构。**
+
+Ultralytics 的 `img2label_paths()` 把路径中的 `\images\` **替换**为 `\labels\`，**保留其余层级**：
+
+```
+data/dataset/images/<source_folder>/<name>.jpg
+data/dataset/labels/<source_folder>/<name>.txt     ← 必须镜像
+```
+
+**若把标签扁平放在 `labels/` 根下，全部标签都会被判定为"找不到"**，训练与评测的实例数变成 0，指标全为 0 且不报错。**这是实测中真实踩到的坑，代价是数轮排查。**
+
+推论（同样必须遵守）：
+- `manifest.csv` 必须记录**相对 `images/` 的路径**（含子目录），不能只记文件名——否则不同来源的同名帧（多机位 `IMG_0001.jpg`）会互相覆盖标签，且分组泄漏校验失效。
+- 划分清单（`train.txt` 等）必须写**绝对原生路径**：Ultralytics 从 CWD 解析相对路径，且 `img2label_paths()` 在 Windows 上用 `os.sep` 匹配反斜杠，正斜杠路径同样无法匹配。
+
 ### 6.3 目录结构（全流程单一事实源）
 
 ```
@@ -290,9 +305,9 @@ pathguide/
 │  ├─ raw/route_B/<date_point>/
 │  ├─ frames/                            # 视频抽帧中间产物
 │  ├─ dataset/                           # ★ 唯一事实源
-│  │  ├─ images/                         # 全部去重后图像
-│  │  ├─ labels/                         # YOLO txt（与图像同名）
-│  │  ├─ manifest.csv                    # image_name, source_folder, route, capture, has_positive
+│  │  ├─ images/<source_folder>/         # 全部去重后图像
+│  │  ├─ labels/<source_folder>/         # ★ 必须镜像 images 的子目录层级
+│  │  ├─ manifest.csv                    # image_rel, source_folder, route, capture, has_positive
 │  │  ├─ split.json                      # {"train": [...], "val": [...], "test": [...]}
 │  │  └─ dataset_report.md               # check_labels.py 产出
 │  ├─ golden/                            # 500 张人工精标集
@@ -451,6 +466,29 @@ if (verticalFacilityUncertain(history, windowSize: 5)) {
 | logo 误报 | 错误引导（最危险） | 4 条规则 + `unknown` 类 | 误报率 > 5% |
 | Windows 显卡显存不足 | 训练中断 | `batch` 降级至 8/4，`workers=2`→`0` | CUDA OOM |
 | 证据不足（对照实验缺失） | 论文创新点无法支撑 | 冻结 200 张纯人工基线 | 基线集被用于训练 |
+| **标签目录未镜像 images** | **训练/评测实例数为 0，指标全 0 且不报错** | 见 §6.2 决定四；`scripts/check_labels.py` 与 `manifest.csv` 均按镜像结构解析 | 评测 Instances = 0 |
+| 受限环境命名管道不可用 | DataLoader 多进程与 Ultralytics 标签缓存失败 | 见 §14 | `PermissionError: [WinError 5]` |
+
+---
+
+## 14. 受限执行环境适配（实测）
+
+在受文件沙箱约束的执行环境中（例如 AI 代理会话），有三处必须适配，否则流水线无法运行：
+
+| 冲突 | 现象 | 处理 |
+|---|---|---|
+| Ultralytics 配置目录 | `PermissionError: [WinError 5] ...\AppData\Roaming\Ultralytics` | 设 `YOLO_CONFIG_DIR` 指向工作区内 |
+| matplotlib 缓存目录 | 同类权限错误 | 设 `MPLCONFIGDIR` 指向工作区内 |
+| **命名管道不可用** | `ThreadPool` / DataLoader 多进程抛 `PermissionError: [WinError 5]`（`CreateFile` 命名管道） | ① DataLoader 用 `workers=0`；② `scripts/env_setup.py` 把 Ultralytics 的 `cache_labels` 替换为顺序实现 |
+| TFLite 导出 | 进程挂起且无输出 | **无法在此类环境中完成**，须在普通终端执行 `scripts/export_model.py` |
+
+**关于 `cache_labels` 补丁的实现约束（实测得出）：**
+- `cache_labels` 定义在 `ultralytics.data.dataset.YOLODataset`（非基类）。
+- `verify_image_label(args: tuple) -> list` 接受**单个元组**，返回 **10 元素**（成功与失败路径均为 10 元素），失败时 `result[0]` 为 `None`。
+- 缓存字典必须含 `labels / hash / results / msgs / version`，应调用官方 `save_dataset_cache_file`，否则 `get_labels()` 抛 `KeyError('version')`。
+- `"im_file"` 必须是 **str**（下游 `load_image()` 会调用 `.endswith(...)`），传 `Path` 会抛 `AttributeError`。
+
+**重要提示：** 上述适配只是**为了能在受限环境中验证流水线**。在普通终端中运行时，`workers` 应恢复为 4–8 以获得正常训练速度，且不需要 `cache_labels` 补丁（`env_setup.py` 会先探测 `ThreadPool` 是否可用，仅在不可用时才打补丁）。
 
 ---
 

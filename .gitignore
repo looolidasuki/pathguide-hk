@@ -5,8 +5,10 @@ __pycache__/
 venv/
 .pytest_cache/
 
-# 包管理与构建缓存（uv 缓存重定向到工作区内，避免沙箱外的写入限制）
+# 包管理与构建缓存（均重定向到工作区内，避免沙箱外的写入限制）
 .uv-cache/
+.ultralytics-config/
+.mpl-cache/
 build/
 dist/
 
@@ -19,6 +21,21 @@ data/dataset/_duplicates/**
 data/dataset/_smoke/**
 data/logos/**
 !data/**/.gitkeep
+
+# 由流水线重新生成的派生产物（且当前内容来自合成数据，不应入库）
+data/dataset/manifest.csv
+data/dataset/split.json
+data/dataset/dataset_report.md
+data/dataset/train.txt
+data/dataset/val.txt
+data/dataset/test.txt
+data/dataset/route_B.txt
+data/dataset/*.cache
+datasets/pathguide.yaml
+
+# Ultralytics 误写在仓库根的缓存
+/images.cache*
+/Ultralytics/
 
 # 训练产物与模型权重
 runs/**
