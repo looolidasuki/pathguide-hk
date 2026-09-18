@@ -66,20 +66,25 @@ def area(bbox: list[float]) -> float:
 
 
 def build_priority(tax: LabelTaxonomy) -> dict[int, int]:
-    """冲突时哪一类优先保留。数值小者优先。
+    """冲突时哪一类优先保留。数值小者优先，相等则按置信度决胜。
 
-    依据：具体设施优先于伞类。玻璃门/扶梯等比「路边障碍」更具体、更有信息量，
-    因此伞类 street_obstacle 优先级最低（数值最大）。
+    v1 里靠「伞类垫底」区分优先级（street_obstacle 曾盖着垃圾桶/护柱/雪糕筒）。
+    v2 删掉伞类后各类都是具体物件，**不再有系统性优先级差异**，因此默认同级。
+    仅保留两类特例：
+      - `ambiguous_vertical`（训练专用类）优先级最低——它是「分不清」的兜底，
+        不该抢走具体类别的框。
+      - `pedestrian` 降一档——它是移动障碍，与静止设施重叠时优先保留设施框，
+        因为设施位置稳定、对导航更有用。
     """
     prio: dict[int, int] = {}
     for c in tax.classes:
         explicit = c.get("arbitration_priority")
         if explicit is not None:
             prio[c["id"]] = int(explicit)
-        elif c["name_en"] == "street_obstacle":
-            prio[c["id"]] = 90          # 伞类垫底
         elif c["name_en"] == "ambiguous_vertical":
-            prio[c["id"]] = 95          # 训练专用类，优先级最低
+            prio[c["id"]] = 95
+        elif c["name_en"] == "pedestrian":
+            prio[c["id"]] = 20
         else:
             prio[c["id"]] = 10
     return prio

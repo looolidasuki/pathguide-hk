@@ -21,9 +21,17 @@ IMAGES_DIR = DATASET_DIR / "images"
 LABELS_DIR = DATASET_DIR / "labels"
 SMOKE_DIR = REPO_ROOT / "data" / "_smoke"
 SMOKE_YAML = REPO_ROOT / "datasets" / "smoke.yaml"
+CLASSES_PATH = REPO_ROOT / "configs" / "classes.json"
 N_SAMPLES = 20
-N_CLASSES = 16
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".JPG", ".JPEG", ".PNG"}
+
+
+def n_classes() -> int:
+    """类别数从 classes.json 读取——不硬编码，否则类别表一改这里就静默失真。"""
+    import json
+
+    with CLASSES_PATH.open(encoding="utf-8") as f:
+        return len(json.load(f)["classes"])
 
 
 def collect_labelled_pairs() -> list[tuple[Path, Path]]:
@@ -33,7 +41,8 @@ def collect_labelled_pairs() -> list[tuple[Path, Path]]:
     for img in IMAGES_DIR.rglob("*"):
         if not img.is_file() or img.suffix not in IMAGE_EXTS:
             continue
-        label = LABELS_DIR / f"{img.stem}.txt"
+        # 标签**镜像** images 的子目录结构：images/<源>/a.jpg -> labels/<源>/a.txt
+        label = (LABELS_DIR / img.relative_to(IMAGES_DIR)).with_suffix(".txt")
         if label.exists():
             pairs.append((img, label))
     return pairs
@@ -53,13 +62,14 @@ def build_smoke_dataset(pairs: list[tuple[Path, Path]], seed: int = 42) -> Path:
         shutil.copy2(img, SMOKE_DIR / "images" / f"{sub}_{img.name}")
         shutil.copy2(label, SMOKE_DIR / "labels" / f"{sub}_{img.stem}.txt")
 
+    nc = n_classes()
     SMOKE_YAML.write_text(
         "# 冒烟测试用，自动生成，勿手工编辑\n"
         f"path: {SMOKE_DIR.as_posix()}\n"
         "train: images\n"
         "val: images\n\n"
-        f"nc: {N_CLASSES}\n"
-        "names:\n" + "\n".join(f"  {i}: c{i}" for i in range(N_CLASSES)) + "\n",
+        f"nc: {nc}\n"
+        "names:\n" + "\n".join(f"  {i}: c{i}" for i in range(nc)) + "\n",
         encoding="utf-8",
     )
     return SMOKE_YAML

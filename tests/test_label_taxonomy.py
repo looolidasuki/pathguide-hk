@@ -42,14 +42,15 @@ def test_exact_alias_match(tax):
     assert tax.lookup("pedestrian") == 6
 
 
-def test_rubbish_bin_maps_to_street_obstacle(tax):
-    """垃圾桶是本项目的目标物件之一，必须有明确归类。"""
-    for t in ("rubbish bin", "trash bin", "litter bin", "garbage can", "waste bin", "dustbin"):
+def test_rubbish_bin_maps_to_its_own_class(tax):
+    """v2 起垃圾桶是独立类别 bin(7)，不再是伞类 street_obstacle 的一部分。"""
+    for t in ("rubbish bin", "trash bin", "litter bin", "garbage can", "waste bin", "dustbin", "bin"):
         assert tax.lookup(t) == 7, t
+    assert tax.name(7) == "bin"
 
 
 def test_bench_is_unknown_not_misclassified(tax):
-    # 「bench」在别名表里没有对应类，应判为未知而非错误归类
+    # 「bench」不在类别表里（属 B 档），应判为未知而非错误归类
     assert tax.lookup("a bench") is None
 
 
@@ -65,8 +66,8 @@ def test_name_en_with_underscores_maps_to_itself(tax):
 
 
 def test_tactile_paving_variants(tax):
-    assert tax.lookup("yellow tactile paving") == 10
-    assert tax.lookup("blind guide path") == 10
+    assert tax.lookup("yellow tactile paving") == 15
+    assert tax.lookup("blind guide path") == 15
 
 
 def test_ambiguous_glass_door_returns_none(tax):
@@ -75,19 +76,19 @@ def test_ambiguous_glass_door_returns_none(tax):
     猜错会污染数据集且训练时不报错——这是刻意的保守设计。
     """
     assert tax.lookup("glass door") is None
-    assert tax.is_ambiguous("glass door") == [9, 14]
+    assert tax.is_ambiguous("glass door") == [17, 21]
 
 
 def test_ambiguous_escalator_returns_none(tax):
     assert tax.lookup("escalator") is None
-    assert tax.is_ambiguous("escalator") == [2, 13]
+    assert tax.is_ambiguous("escalator") == [2, 19]
 
 
 def test_disambiguated_forms_still_work(tax):
     """带限定词的说法应能明确归类。"""
-    assert tax.lookup("indoor glass door") == 14
+    assert tax.lookup("indoor glass door") == 21
     assert tax.lookup("outdoor escalator") == 2
-    assert tax.lookup("mall escalator") == 13
+    assert tax.lookup("mall escalator") == 19
 
 
 def test_empty_string_is_unknown(tax):
@@ -101,7 +102,7 @@ def test_nonsense_is_unknown(tax):
 
 
 def test_ambiguous_vertical_is_marked_never_from_vlm(tax):
-    assert any(c.get("never_from_vlm") for c in tax.classes if c["id"] == 15)
+    assert any(c.get("never_from_vlm") for c in tax.classes if c["id"] == 23)
 
 
 # ---- VLM 验证提问词（踩过的最贵的坑）----
@@ -112,21 +113,12 @@ def test_verify_query_uses_specific_object_name_not_umbrella_class(tax):
     实测：垃圾桶 52 个候选框，用伞类名 'street_obstacle' 提问只确认 48%，
     换成 'bin' 确认 100%。用类别名问会把一半正确框判成误检。
     """
-    q = tax.verify_query(7)  # street_obstacle
-    assert q is not None
-    assert q != "street_obstacle", "不得使用伞类名作为验证提问词"
-    assert q in {"bin", "rubbish bin", "trash bin", "litter bin"}
-
-
-def test_verify_query_never_returns_the_class_name_for_umbrella_classes(tax):
-    """对名称本身就很笼统的类别，提问词必须是具体物件。"""
-    for cid in (7,):  # street_obstacle 是唯一的伞类
-        assert tax.verify_query(cid) != tax.name(cid)
+    assert tax.verify_query(7) == "bin"
 
 
 def test_verify_query_is_none_for_ambiguous_vertical(tax):
     """该类的定义就是「无法判定」，让 VLM 验证自相矛盾，必须返回 None。"""
-    assert tax.verify_query(15) is None
+    assert tax.verify_query(23) is None
 
 
 def test_verify_query_present_for_all_verifiable_classes(tax):
@@ -141,7 +133,7 @@ def test_verify_query_present_for_all_verifiable_classes(tax):
 def test_verify_query_escalator_variants_are_disambiguated(tax):
     """扶梯的户外/室内对必须用带限定词的说法，否则两者无法区分。"""
     assert "outdoor" in tax.verify_query(2)
-    assert "indoor" in tax.verify_query(13)
+    assert "indoor" in tax.verify_query(19)
 
 
 # ---- prompt 映射 ----

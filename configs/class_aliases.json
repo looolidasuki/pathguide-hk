@@ -1,383 +1,193 @@
 {
-  "version": 1,
-  "note": "跨模型文本标签的归一表。YOLO-World 与 LocateAnything 输出的都是自由文本，必须归一到 configs/classes.json 的类别 id，否则两个模型的框无法比较。新增说法时只改这里。",
-  "classes": [
-    {
-      "id": 0,
-      "name_en": "footbridge_entrance",
-      "name_zh": "天橋入口",
-      "verify_query": "footbridge entrance",
-      "yolo_world_prompts": [
-        "footbridge entrance",
-        "pedestrian bridge entrance",
-        "bridge entrance",
-        "footbridge stairway entrance",
-        "entrance of a footbridge"
-      ],
-      "la_aliases": [
-        "footbridge entrance",
-        "bridge entrance",
-        "pedestrian bridge entrance",
-        "footbridge",
-        "pedestrian bridge",
-        "bridge stairs",
-        "staircase"
-      ]
-    },
-    {
-      "id": 1,
-      "name_en": "stairs",
-      "name_zh": "樓梯",
-      "verify_query": "stairs",
-      "yolo_world_prompts": [
-        "stairs",
-        "a staircase",
-        "steps of stairs",
-        "outdoor stairs"
-      ],
-      "la_aliases": [
-        "stairs",
-        "staircase",
-        "stairway",
-        "steps",
-        "stair",
-        "steps of stairs"
-      ]
-    },
-    {
-      "id": 2,
-      "name_en": "escalator_outdoor",
-      "name_zh": "戶外扶梯",
-      "verify_query": "outdoor escalator",
-      "yolo_world_prompts": [
-        "escalator",
-        "an outdoor escalator",
-        "outdoor escalator"
-      ],
-      "la_aliases": [
-        "escalator",
-        "outdoor escalator",
-        "moving staircase",
-        "escalators"
-      ]
-    },
-    {
-      "id": 3,
-      "name_en": "elevator",
-      "name_zh": "升降機",
-      "verify_query": "elevator",
-      "yolo_world_prompts": [
-        "elevator",
-        "lift",
-        "elevator door",
-        "lift door"
-      ],
-      "la_aliases": [
-        "elevator",
-        "lift",
-        "elevator door",
-        "lift door",
-        "elevator doors"
-      ]
-    },
-    {
-      "id": 4,
-      "name_en": "ramp",
-      "name_zh": "斜道",
-      "verify_query": "ramp",
-      "yolo_world_prompts": [
-        "ramp",
-        "a wheelchair ramp",
-        "accessibility ramp",
-        "sloped walkway"
-      ],
-      "la_aliases": [
-        "ramp",
-        "wheelchair ramp",
-        "access ramp",
-        "slope",
-        "sloped walkway",
-        "ramps"
-      ]
-    },
-    {
-      "id": 5,
-      "name_en": "footbridge_railing",
-      "name_zh": "天橋欄杆",
-      "verify_query": "railing",
-      "yolo_world_prompts": [
-        "railing",
-        "handrail",
-        "metal railing",
-        "fence railing"
-      ],
-      "la_aliases": [
-        "railing",
-        "railings",
-        "handrail",
-        "handrails",
-        "metal railing",
-        "fence",
-        "guard rail"
-      ]
-    },
-    {
-      "id": 6,
-      "name_en": "pedestrian",
-      "name_zh": "行人",
-      "verify_query": "pedestrian",
-      "yolo_world_prompts": [
-        "pedestrian",
-        "person walking",
-        "person",
-        "people"
-      ],
-      "la_aliases": [
-        "pedestrian",
-        "pedestrians",
-        "person",
-        "people",
-        "man",
-        "woman",
-        "human",
-        "walker",
-        "walking person"
-      ]
-    },
-    {
-      "id": 7,
-      "name_en": "street_obstacle",
-      "name_zh": "路邊障礙",
-      "verify_query": "bin",
-      "yolo_world_prompts": [
-        "traffic cone",
-        "construction barrier",
-        "bollard",
-        "street obstacle",
-        "barrier",
-        "rubbish bin",
-        "trash bin",
-        "litter bin",
-        "garbage can"
-      ],
-      "la_aliases": [
-        "traffic cone",
-        "cone",
-        "bollard",
-        "bollards",
-        "barrier",
-        "construction barrier",
-        "obstacle",
-        "street obstacle",
-        "roadblock",
-        "rubbish bin",
-        "rubbish bins",
-        "trash bin",
-        "trash can",
-        "trash bins",
-        "garbage can",
-        "garbage bin",
-        "litter bin",
-        "waste bin",
-        "waste basket",
-        "dustbin",
-        "bin",
-        "bins",
-        "post",
-        "pole"
-      ]
-    },
-    {
-      "id": 8,
-      "name_en": "step",
-      "name_zh": "台階",
-      "verify_query": "step",
-      "yolo_world_prompts": [
-        "a step",
-        "curb",
-        "curbstone",
-        "single step",
-        "kerb"
-      ],
-      "la_aliases": [
-        "step",
-        "steps",
-        "curb",
-        "kerb",
-        "curbstone",
-        "single step",
-        "pavement edge"
-      ]
-    },
-    {
-      "id": 9,
-      "name_en": "glass_door",
-      "name_zh": "玻璃門",
-      "verify_query": "glass door",
-      "yolo_world_prompts": [
-        "glass door",
-        "a glass entrance door",
-        "transparent door"
-      ],
-      "la_aliases": [
-        "glass door",
-        "glass doors",
-        "transparent door",
-        "glass entrance"
-      ]
-    },
-    {
-      "id": 10,
-      "name_en": "tactile_paving",
-      "name_zh": "盲道",
-      "verify_query": "tactile paving",
-      "yolo_world_prompts": [
-        "tactile paving",
-        "yellow tactile paving",
-        "guide path for the blind",
-        "tactile guide path",
-        "truncated domes"
-      ],
-      "la_aliases": [
-        "tactile paving",
-        "tactile paving on a sidewalk",
-        "blind guide path",
-        "guide path",
-        "yellow tactile paving",
-        "truncated domes",
-        "tactile floor",
-        "tactile strip"
-      ]
-    },
-    {
-      "id": 11,
-      "name_en": "zebra_crossing",
-      "name_zh": "斑馬線",
-      "verify_query": "zebra crossing",
-      "yolo_world_prompts": [
-        "zebra crossing",
-        "pedestrian crossing",
-        "crosswalk"
-      ],
-      "la_aliases": [
-        "zebra crossing",
-        "crosswalk",
-        "pedestrian crossing",
-        "crossing",
-        "crosswalk stripes"
-      ]
-    },
-    {
-      "id": 12,
-      "name_en": "shop_front",
-      "name_zh": "店鋪門面",
-      "verify_query": "shop front",
-      "yolo_world_prompts": [
-        "shop front",
-        "storefront",
-        "shop facade",
-        "store entrance"
-      ],
-      "la_aliases": [
-        "shop front",
-        "storefront",
-        "shop facade",
-        "store front",
-        "shop",
-        "store",
-        "shop entrance",
-        "store entrance"
-      ]
-    },
-    {
-      "id": 13,
-      "name_en": "escalator_indoor",
-      "name_zh": "商場扶梯",
-      "verify_query": "indoor escalator",
-      "yolo_world_prompts": [
-        "indoor escalator",
-        "mall escalator",
-        "escalator inside a building"
-      ],
-      "la_aliases": [
-        "indoor escalator",
-        "mall escalator",
-        "escalator in a mall",
-        "shopping mall escalator",
-        "escalator"
-      ]
-    },
-    {
-      "id": 14,
-      "name_en": "glass_door_indoor",
-      "name_zh": "商場玻璃門",
-      "verify_query": "indoor glass door",
-      "yolo_world_prompts": [
-        "glass door inside a mall",
-        "indoor glass door",
-        "glass entrance of a shop"
-      ],
-      "la_aliases": [
-        "indoor glass door",
-        "glass door inside a mall",
-        "mall glass door",
-        "glass entrance",
-        "glass door"
-      ]
-    },
-    {
-      "id": 15,
-      "name_en": "ambiguous_vertical",
-      "name_zh": "垂直設施不明",
-      "verify_query": null,
-      "yolo_world_prompts": [
-        "stairs or escalator",
-        "vertical access of unclear type"
-      ],
-      "la_aliases": [
-        "stairs or escalator",
-        "unclear stairs or escalator",
-        "vertical access",
-        "ambiguous vertical facility"
-      ],
-      "never_from_vlm": true
-    }
-  ],
+  "version": 2,
+  "note": "跨模型文本标签的归一表。YOLO-World / LocateAnything / Grounding DINO 输出的都是自由文本，必须归一到 configs/classes.json 的类别 id，否则模型间的框无法比较。新增说法时只改这里。",
   "matching": {
-    "note": "归一算法：先精确匹配别名（去复数字尾），再退化到词集合包含关系，最后用相似度阈值。低于阈值判为未知，不强行归类——强行归类会产生错误标注。",
+    "note": "归一顺序：精确别名 -> 词集合 Jaccard -> 字符相似度。低于阈值返回「未判定」而非强行归类——强行归类会产生错误标注，且训练时不报错。",
     "token_overlap_threshold": 0.6,
     "similarity_threshold": 0.72,
-    "verify_query_note": "★ 各 class 的 verify_query 字段是 VLM 裁剪验证时用的提问词。**必须用具体物件名，不能用笼统的类别名。** 实测（垃圾桶 52 个候选框）：用伞类名 'street_obstacle' 提问只确认 48%，换成 'rubbish bin' 确认 96%、'bin' 确认 100%。用类别名去问等于把一半正确框判成误检——这是本项目踩过的最贵的坑。",
+    "verify_query_note": "★ verify_query 是 VLM 裁剪验证时的提问词。**必须用具体物件名，不能用笼统类别名。** 实测（垃圾桶 52 个候选框）：用伞类名 street_obstacle 提问只确认 48%，换成 bin 确认 100%。",
+    "gdin_note": "★ gdin_threshold 是 Grounding DINO 的**每类阈值**。实测各类分值分布差异极大：盲道 0.40 仍 36/36，楼梯 0.35 只剩 8/36，坡道最高分仅 0.35。统一阈值必然误检与漏检并存。",
+    "gdin_prompt_note": "★★ Grounding DINO **每次只能发一个 prompt**。实测每组发 6 个 prompt 时产生 ##cala stairs / estor 等破损标签，且 estor 被错误映射成 shop_front。单 prompt 后异常降至 12/792。prompt 必须小写 + 句号结尾。",
     "ambiguous_aliases": {
-      "note": "这些说法**无法从文本判断**属于同名的户外类还是室内类（玻璃门 9/14、扶梯 2/13）。仅凭文字归类等于抛硬币，因此一律返回未决，交由上层用场景信息裁决：判定顺序为 ① 该图是否已由其它线索确定为室内（如检出 shop_front）② 交人工/规则。",
-      "glass door": [
-        9,
-        14
-      ],
-      "glass doors": [
-        9,
-        14
-      ],
-      "glass entrance": [
-        9,
-        14
-      ],
-      "transparent door": [
-        9,
-        14
-      ],
-      "escalator": [
-        2,
-        13
-      ],
-      "escalators": [
-        2,
-        13
-      ],
-      "moving staircase": [
-        2,
-        13
-      ]
+      "note": "这些说法无法从文本判断属于同名的户外类还是室内类（玻璃门 17/21、扶梯 2/19）。仅凭文字归类等于抛硬币，因此一律返回未决，交由上层用场景信息裁决。",
+      "glass door": [17, 21],
+      "glass doors": [17, 21],
+      "glass entrance": [17, 21],
+      "transparent door": [17, 21],
+      "escalator": [2, 19],
+      "escalators": [2, 19],
+      "moving staircase": [2, 19]
     }
+  },
+  "classes": [
+    {
+      "id": 0, "name_en": "footbridge_entrance", "name_zh": "天橋入口",
+      "verify_query": "footbridge entrance", "gdin_threshold": 0.25,
+      "yolo_world_prompts": ["footbridge entrance", "pedestrian bridge entrance", "bridge entrance", "footbridge stairway entrance", "entrance of a footbridge"],
+      "la_aliases": ["footbridge entrance", "bridge entrance", "pedestrian bridge entrance", "footbridge", "pedestrian bridge", "bridge stairs", "staircase"]
+    },
+    {
+      "id": 1, "name_en": "stairs", "name_zh": "樓梯",
+      "verify_query": "stairs", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["stairs", "a staircase", "steps of stairs", "outdoor stairs"],
+      "la_aliases": ["stairs", "staircase", "stairway", "steps", "stair", "steps of stairs"]
+    },
+    {
+      "id": 2, "name_en": "escalator_outdoor", "name_zh": "戶外扶梯",
+      "verify_query": "outdoor escalator", "gdin_threshold": 0.35,
+      "yolo_world_prompts": ["escalator", "an outdoor escalator", "outdoor escalator"],
+      "la_aliases": ["outdoor escalator", "escalator outdoors", "moving staircase"]
+    },
+    {
+      "id": 3, "name_en": "elevator", "name_zh": "升降機",
+      "verify_query": "elevator", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["elevator", "lift", "elevator door", "lift door"],
+      "la_aliases": ["elevator", "lift", "elevator door", "lift door", "elevator doors"]
+    },
+    {
+      "id": 4, "name_en": "ramp", "name_zh": "斜道",
+      "verify_query": "ramp", "gdin_threshold": 0.20,
+      "yolo_world_prompts": ["ramp", "a wheelchair ramp", "accessibility ramp", "sloped walkway"],
+      "la_aliases": ["ramp", "wheelchair ramp", "access ramp", "slope", "sloped walkway", "ramps"]
+    },
+    {
+      "id": 5, "name_en": "footbridge_railing", "name_zh": "天橋欄杆",
+      "verify_query": "railing", "gdin_threshold": 0.35,
+      "yolo_world_prompts": ["railing", "handrail", "metal railing", "fence railing"],
+      "la_aliases": ["railing", "railings", "handrail", "handrails", "metal railing", "guard rail", "banister", "banisters"]
+    },
+
+    {
+      "id": 6, "name_en": "pedestrian", "name_zh": "行人",
+      "verify_query": "pedestrian", "gdin_threshold": 0.40,
+      "yolo_world_prompts": ["pedestrian", "person walking", "person", "people"],
+      "la_aliases": ["pedestrian", "pedestrians", "person", "people", "man", "woman", "human", "walker", "walking person"]
+    },
+    {
+      "id": 7, "name_en": "bin", "name_zh": "垃圾桶",
+      "verify_query": "bin", "gdin_threshold": 0.25,
+      "gdin_prompt": "rubbish bin",
+      "note": "从旧的伞类 street_obstacle 独立出来。verify_query 用 bin（实测确认率 100%），Grounding DINO prompt 用 rubbish bin（实测 0.81）。",
+      "yolo_world_prompts": ["rubbish bin", "trash bin", "litter bin", "garbage can", "waste bin"],
+      "la_aliases": ["rubbish bin", "rubbish bins", "trash bin", "trash can", "trash bins", "garbage can", "garbage bin", "litter bin", "waste bin", "waste basket", "dustbin", "bin", "bins"]
+    },
+    {
+      "id": 8, "name_en": "bollard", "name_zh": "護柱",
+      "verify_query": "bollard", "gdin_threshold": 0.35,
+      "yolo_world_prompts": ["bollard", "a bollard", "metal post on pavement"],
+      "la_aliases": ["bollard", "bollards", "post", "posts", "metal post"]
+    },
+    {
+      "id": 9, "name_en": "traffic_cone", "name_zh": "交通錐",
+      "verify_query": "traffic cone", "gdin_threshold": 0.30,
+      "gdin_prompt": "traffic cone",
+      "yolo_world_prompts": ["traffic cone", "a traffic cone", "road cone"],
+      "la_aliases": ["traffic cone", "traffic cones", "cone", "cones", "road cone"]
+    },
+    {
+      "id": 10, "name_en": "barrier_water", "name_zh": "水馬",
+      "verify_query": "water barrier", "gdin_threshold": 0.25,
+      "gdin_prompt": "water-filled barrier",
+      "note": "香港特有的注水式塑胶围栏。",
+      "yolo_world_prompts": ["water barrier", "water filled barrier", "plastic road barrier", "construction barrier"],
+      "la_aliases": ["water barrier", "water filled barrier", "water-filled barrier", "plastic barrier", "road barrier", "construction barrier"]
+    },
+    {
+      "id": 11, "name_en": "bicycle", "name_zh": "單車",
+      "verify_query": "bicycle", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["bicycle", "a bicycle", "a bike"],
+      "la_aliases": ["bicycle", "bicycles", "bike", "bikes", "cycle"]
+    },
+    {
+      "id": 12, "name_en": "scooter", "name_zh": "滑板車",
+      "verify_query": "scooter", "gdin_threshold": 0.25,
+      "yolo_world_prompts": ["scooter", "an electric scooter", "a kick scooter"],
+      "la_aliases": ["scooter", "scooters", "electric scooter", "kick scooter", "e-scooter"]
+    },
+    {
+      "id": 13, "name_en": "cart_trolley", "name_zh": "手推車",
+      "verify_query": "trolley", "gdin_threshold": 0.30,
+      "note": "合并 手推車 / 唧車 / 嬰兒車。三者形状差异大，**确认率若不达标应考虑拆类**。",
+      "yolo_world_prompts": ["hand cart", "a trolley", "a push cart", "a baby stroller", "a pram", "a hand truck"],
+      "la_aliases": ["trolley", "trolleys", "hand cart", "handcart", "push cart", "hand truck", "cart", "stroller", "baby stroller", "pram", "pushchair"]
+    },
+    {
+      "id": 14, "name_en": "step", "name_zh": "台階",
+      "verify_query": "step", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["a step", "curb", "curbstone", "single step", "kerb"],
+      "la_aliases": ["step", "steps", "a step", "curb", "kerb", "curbstone", "single step", "pavement edge"]
+    },
+
+    {
+      "id": 15, "name_en": "tactile_paving", "name_zh": "盲道",
+      "verify_query": "tactile paving", "gdin_threshold": 0.40,
+      "yolo_world_prompts": ["tactile paving", "yellow tactile paving", "guide path for the blind", "tactile guide path", "truncated domes"],
+      "la_aliases": ["tactile paving", "tactile paving on a sidewalk", "blind guide path", "guide path", "yellow tactile paving", "truncated domes", "tactile floor", "tactile strip"]
+    },
+    {
+      "id": 16, "name_en": "zebra_crossing", "name_zh": "斑馬線",
+      "verify_query": "zebra crossing", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["zebra crossing", "pedestrian crossing", "crosswalk"],
+      "la_aliases": ["zebra crossing", "crosswalk", "pedestrian crossing", "crossing", "crosswalk stripes", "zebra"]
+    },
+
+    {
+      "id": 17, "name_en": "glass_door", "name_zh": "玻璃門",
+      "verify_query": "glass door", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["glass door", "a glass entrance door", "transparent door"],
+      "la_aliases": ["outdoor glass door", "glass entrance door", "glass doors outdoors"]
+    },
+    {
+      "id": 18, "name_en": "door", "name_zh": "推拉門",
+      "verify_query": "door", "gdin_threshold": 0.25,
+      "note": "非玻璃的推/拉门，与 glass_door 区分。",
+      "yolo_world_prompts": ["a push door", "a pull door", "a wooden door", "a metal door"],
+      "la_aliases": ["door", "doors", "push door", "pull door", "wooden door", "metal door", "entrance door"]
+    },
+    {
+      "id": 19, "name_en": "escalator_indoor", "name_zh": "商場扶梯",
+      "verify_query": "indoor escalator", "gdin_threshold": 0.35,
+      "yolo_world_prompts": ["indoor escalator", "mall escalator", "escalator inside a building"],
+      "la_aliases": ["indoor escalator", "mall escalator", "escalator in a mall", "shopping mall escalator", "escalators indoors"]
+    },
+    {
+      "id": 20, "name_en": "sign_pictogram", "name_zh": "指示牌",
+      "verify_query": "directional sign", "gdin_threshold": 0.25,
+      "gdin_prompt": "sign",
+      "note": "图形标志牌。带文字的招牌走 OCR，不做检测类。",
+      "yolo_world_prompts": ["directional sign", "a pictogram sign", "a wayfinding sign", "a floor directory"],
+      "la_aliases": ["directional sign", "pictogram", "wayfinding sign", "floor directory", "sign", "signs", "signage"]
+    },
+    {
+      "id": 21, "name_en": "glass_door_indoor", "name_zh": "商場玻璃門",
+      "verify_query": "indoor glass door", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["glass door inside a mall", "indoor glass door", "glass entrance of a shop"],
+      "la_aliases": ["indoor glass door", "glass door inside a mall", "mall glass door", "glass doors indoors"]
+    },
+
+    {
+      "id": 22, "name_en": "shop_front", "name_zh": "店鋪門面",
+      "verify_query": "shop front", "gdin_threshold": 0.35,
+      "note": "供店铺 logo 分类器裁剪使用。店名文字走 OCR。",
+      "yolo_world_prompts": ["shop front", "storefront", "shop facade", "store entrance"],
+      "la_aliases": ["shop front", "storefront", "shop facade", "store front", "shop", "store", "shop entrance", "store entrance"]
+    },
+    {
+      "id": 23, "name_en": "ambiguous_vertical", "name_zh": "垂直設施不明",
+      "verify_query": null, "gdin_threshold": null,
+      "verify_query_note": "该类的定义就是「无法判定」，让 VLM 验证自相矛盾。只能由人工或时序规则产生。",
+      "never_from_vlm": true,
+      "yolo_world_prompts": ["stairs or escalator", "vertical access of unclear type"],
+      "la_aliases": ["stairs or escalator", "unclear stairs or escalator", "vertical access", "ambiguous vertical facility"]
+    }
+  ],
+  "out_of_taxonomy_candidates": {
+    "note": "★ 类别发现用的「表外候选词」。这些**不是类别**，只是用来探测「画面里有没有我们没有的东西」。命中后写进 out_of_taxonomy.csv 交人决定是否扩表。实测在 Streetview.mp4 上 lamp post/tree/sign 出框率 100%——需按 gdin_threshold 过滤后再报。",
+    "words": [
+      "tree", "bench", "fire hydrant", "post box", "planter", "lamp post",
+      "utility box", "cardboard", "shopping bag", "suitcase", "umbrella",
+      "wheelchair", "bus stop", "rubbish bag", "banner", "table", "chair"
+    ],
+    "default_gdin_threshold": 0.35
   }
 }

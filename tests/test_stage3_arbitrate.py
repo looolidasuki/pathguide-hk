@@ -31,22 +31,34 @@ def test_area_of_degenerate_box_is_zero():
 
 # ---- 优先级 ----
 
-def test_umbrella_class_has_lowest_priority(tax):
+def test_pedestrian_ranks_below_static_facilities(tax):
+    """行人（移动障碍）优先级低于静止设施——设施位置稳定，对导航更有用。"""
     prio = build_priority(tax)
-    sid = next(c["id"] for c in tax.classes if c["name_en"] == "street_obstacle")
+    pid = next(c["id"] for c in tax.classes if c["name_en"] == "pedestrian")
+    for n in ("bin", "bollard", "elevator", "stairs"):
+        cid = next(c["id"] for c in tax.classes if c["name_en"] == n)
+        assert prio[cid] < prio[pid], n
+
+
+def test_ambiguous_vertical_ranks_lowest(tax):
+    """训练专用类是「分不清」的兜底，不该抢走具体类别的框。"""
+    prio = build_priority(tax)
     aid = next(c["id"] for c in tax.classes if c["name_en"] == "ambiguous_vertical")
-    sid_prio = prio[sid]
-    assert all(prio[c["id"]] < sid_prio
-               for c in tax.classes if c["name_en"] not in ("street_obstacle", "ambiguous_vertical"))
-    # ambiguous_vertical 是训练专用类，优先级最低
-    assert prio[aid] > sid_prio
+    for c in tax.classes:
+        if c["name_en"] != "ambiguous_vertical":
+            assert prio[c["id"]] < prio[aid], c["name_en"]
+
+
+def test_umbrella_class_removed_from_taxonomy(tax):
+    """v2 起伞类 street_obstacle 已删除，其内容拆为具体类。"""
+    assert "street_obstacle" not in [c["name_en"] for c in tax.classes]
 
 
 # ---- 冲突消解 ----
 
 def test_non_overlapping_boxes_all_kept(tax):
     prio = build_priority(tax)
-    dets = [_det(3, [0.0, 0.0, 0.2, 0.2]), _det(9, [0.5, 0.5, 0.7, 0.7])]
+    dets = [_det(3, [0.0, 0.0, 0.2, 0.2]), _det(17, [0.5, 0.5, 0.7, 0.7])]
     kept, merged = resolve_conflicts(dets, prio, 0.55)
     assert len(kept) == 2 and not merged
 
@@ -59,21 +71,21 @@ def test_same_class_overlapping_boxes_are_not_deduped_here(tax):
     assert len(kept) == 2 and not merged
 
 
-def test_cross_class_overlap_keeps_specific_class(tax):
-    """具体设施应胜过伞类：elevator(3) 与 street_obstacle(7) 重叠时保留 elevator。"""
+def test_cross_class_overlap_keeps_static_facility_over_pedestrian(tax):
+    """elevator(3) 与 pedestrian(6) 重叠时保留 elevator——静止设施更有导航价值。"""
     prio = build_priority(tax)
     box = [0.1, 0.1, 0.4, 0.5]
-    dets = [_det(7, box, 0.9), _det(3, box, 0.3)]
+    dets = [_det(6, box, 0.9), _det(3, box, 0.3)]
     kept, merged = resolve_conflicts(dets, prio, 0.55)
     assert len(kept) == 1
-    assert kept[0]["class_id"] == 3, "应保留更具体的类别，尽管它置信度更低"
+    assert kept[0]["class_id"] == 3, "应保留静止设施，尽管它置信度更低"
     assert len(merged) == 1
     assert merged[0]["merged_into_class"] == 3
 
 
 def test_conflict_iou_recorded(tax):
     prio = build_priority(tax)
-    dets = [_det(3, [0.0, 0.0, 0.4, 0.4]), _det(7, [0.0, 0.0, 0.4, 0.4])]
+    dets = [_det(3, [0.0, 0.0, 0.4, 0.4]), _det(6, [0.0, 0.0, 0.4, 0.4])]
     _, merged = resolve_conflicts(dets, prio, 0.55)
     assert merged and merged[0]["conflict_iou"] == pytest.approx(1.0)
 
@@ -81,7 +93,7 @@ def test_conflict_iou_recorded(tax):
 def test_below_iou_threshold_not_merged(tax):
     prio = build_priority(tax)
     # IoU = 0.2/0.6 ~= 0.33 < 0.55
-    dets = [_det(3, [0.0, 0.0, 0.4, 0.5]), _det(7, [0.2, 0.0, 0.6, 0.5])]
+    dets = [_det(3, [0.0, 0.0, 0.4, 0.5]), _det(6, [0.2, 0.0, 0.6, 0.5])]
     kept, merged = resolve_conflicts(dets, prio, 0.55)
     assert len(kept) == 2 and not merged
 
