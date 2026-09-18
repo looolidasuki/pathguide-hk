@@ -1,6 +1,6 @@
 """把第三方库的写路径与并发原语适配到受限环境。
 
-背景：本项目的运行环境受文件沙箱约束。三个已知冲突，以及各自的处理方式：
+背景：本项目的运行环境受文件沙箱约束。以下冲突及处理方式均已实测确认：
 
 1. **写路径**：Ultralytics 默认写 `%APPDATA%\\Ultralytics`，matplotlib 写用户缓存目录
    —— 均在工作区外，会被拒绝。
@@ -13,6 +13,17 @@
 
 3. **uv 缓存**：默认在 `%LOCALAPPDATA%\\uv\\cache`。
    处理：由 `.env.ps1` 设置 `UV_CACHE_DIR`。
+
+4. **★ HF 缓存分居两地，不能统一**（本文件最贵的一条教训）：
+      `nvidia/LocateAnything-3B`（7.3 GB）只在 `~/.cache/huggingface/hub`
+      `IDEA-Research/grounding-dino-tiny`（~700 MB）只在工作区内 `.hf/hub`
+   两处都**不可兼得**：`~/.cache` 在工作区外（只读，新模型下不进去），
+   而 `.hf` 里没有 LocateAnything 的完整权重。
+   **把 HF_HUB_CACHE 指向任一处，另一个模型都会触发重新下载**——
+   实测曾因此静默重下 5.6 GB 并卡住 20 分钟以上。
+   处理：`HF_HUB_CACHE` 保持指向 `~/.cache/huggingface/hub`（那里有最大的
+   LocateAnything）；Grounding DINO 改用 `local_files_only=True` 从 `.hf/hub` 读，
+   或在首次下载时临时覆盖 `HF_HUB_CACHE`。**不要全局覆盖 HF_HUB_CACHE。**
 
 **必须在 `import ultralytics` 之前调用 `apply()`。**
 """
@@ -28,6 +39,11 @@ MPL_CONFIG_DIR = REPO_ROOT / ".mpl-cache"
 CLIP_CACHE_DIR = REPO_ROOT / ".cache" / "clip"
 # torch 的 inductor/dynamo 缓存与临时目录同样默认在工作区外
 TORCH_CACHE_DIR = REPO_ROOT / ".tmp" / "inductor"
+# HF 缓存：**保持系统默认**（含 LocateAnything 完整权重，7.3 GB）。
+# 见模块 docstring 第 4 条——不要把它指到工作区内。
+HF_HUB_DEFAULT = Path.home() / ".cache" / "huggingface" / "hub"
+# Grounding DINO 等在工作区内下载的模型放这里
+HF_LOCAL_HUB = REPO_ROOT / ".hf" / "hub"
 TMP_DIR = REPO_ROOT / ".tmp"
 
 

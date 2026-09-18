@@ -124,7 +124,9 @@ def main() -> int:
                     help="若指定，则同时写入 YOLO 数据集的 labels/<来源>/<名>.txt 结构")
     ap.add_argument("--iou-merge", type=float, default=0.55,
                     help="跨类重复的 IoU 阈值")
-    ap.add_argument("--min-conf", type=float, default=0.35)
+    ap.add_argument("--min-conf", type=float, default=0.20,
+                    help="采纳门槛。**必须与第二段的 --min-conf 一致**，否则第二段保住的低置信框"
+                         "会在这里被静默丢弃。默认 0.20：过滤应由 VLM 验证承担，而非置信度阈值。")
     ap.add_argument("--max-area", type=float, default=0.75,
                     help="面积占比超过此值的框标记复核（框满全图多为失败输出）")
     ap.add_argument("--min-area", type=float, default=0.0002,

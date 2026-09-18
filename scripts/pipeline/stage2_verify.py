@@ -66,8 +66,13 @@ def main() -> int:
     ap.add_argument("--images", default=None, help="图像根目录（默认从 proposals.jsonl 的 source 推断）")
     ap.add_argument("--out", default="data/auto/verified")
     ap.add_argument("--limit", type=int, default=None, help="只处理前 N 张图")
-    ap.add_argument("--min-conf", type=float, default=0.35,
-                    help="低于此置信度的框直接丢弃，不做验证（省算力）")
+    ap.add_argument("--min-conf", type=float, default=0.20,
+                    help="低于此置信度的框直接丢弃，**不做验证也不进复核清单**。"
+                         "默认 0.20 是刻意压低：第一段已用 --conf 0.15 保召回，"
+                         "若这里再设高（曾用 0.35）会把低阈值的收获取消掉——"
+                         "实测垃圾桶 58 个框在 0.35 下只剩 33 个（-43%%），"
+                         "而降到 0.25 可保留 42 个。**过滤应由 VLM 验证承担，而非阈值。**"
+                         "被丢弃的框会记入 dropped_low_conf.csv 以供调参。")
     ap.add_argument("--trust-above", type=float, default=1.01,
                     help="置信度 >= 此值的框跳过 VLM 验证、直接采纳。"
                          "默认 1.01 表示**不跳过任何框**——全量验证。"
@@ -180,6 +185,7 @@ def main() -> int:
     t_start = time.time()
     n_boxes = n_rejected = n_verified = n_skipped = n_accepted = 0
     vlm_calls = 0
+    dropped_rows: list[dict] = []
 
     with verified_path.open("w", encoding="utf-8") as vf:
         for i, rec in enumerate(records, 1):
@@ -205,6 +211,16 @@ def main() -> int:
                 n_boxes += 1
                 if d["conf"] < args.min_conf:
                     n_skipped += 1
+                    # 记录而非静默丢弃——否则无法判断门槛设得对不对
+                    dropped_rows.append({
+                        "image": rec["image"],
+                        "class": id_to_name.get(d["class_id"], d["class_id"]),
+                        "class_id": d["class_id"],
+                        "conf": round(d["conf"], 4),
+                        "prompt": d.get("prompt", ""),
+                        "bbox": [round(v, 4) for v in d["bbox"]],
+                        "reason": f"conf < min_conf({args.min_conf})",
+                    })
                     continue
                 verdict = None
                 raw = ""
@@ -261,6 +277,17 @@ def main() -> int:
 
     cache_f.close()
     elapsed = time.time() - t_start
+
+    # 被丢弃的低置信框写盘——供调 min_conf
+    import csv as _csv
+
+    dropped_path = out_dir / "dropped_low_conf.csv"
+    with dropped_path.open("w", encoding="utf-8-sig", newline="") as f:
+        w = _csv.DictWriter(f, fieldnames=["image", "class", "class_id", "conf",
+                                           "prompt", "bbox", "reason"])
+        w.writeheader()
+        w.writerows(dropped_rows)
+
     stats = {
         "images": len(records),
         "boxes_in": n_boxes,
@@ -280,6 +307,8 @@ def main() -> int:
     print(f"\n完成 {len(records)} 张，{elapsed/60:.1f} min（{stats['sec_per_image']} s/张）")
     print(f"框：入 {n_boxes} -> 采纳 {n_accepted}，VLM 拒绝 {n_rejected}，低置信丢弃 {n_skipped}")
     print(f"VLM 调用 {vlm_calls} 次")
+    if dropped_rows:
+        print(f"低置信丢弃清单（供调 --min-conf）：{dropped_path.relative_to(REPO_ROOT)}")
     print(f"输出：{verified_path.relative_to(REPO_ROOT)}")
     return 0
 
