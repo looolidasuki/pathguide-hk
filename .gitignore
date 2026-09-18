@@ -31,6 +31,7 @@ data/logos/*/**
 # 保留结论文档与脚本；图像与署名清单可按 fetch_commons.py 重新拉取。
 data/probe/hk/**
 data/probe/hk_onsite/**
+data/probe/streetview/**
 data/probe/report.json
 !data/probe/**/.gitkeep
 !data/probe/FINDINGS.md
