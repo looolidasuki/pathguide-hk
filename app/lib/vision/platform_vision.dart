@@ -120,20 +120,26 @@ class PlatformVision {
     }
   }
 
-  /// 请求原生侧启动相机预览。返回是否真的启动了。
+  /// 请求原生侧申请权限并启动相机预览。返回是否真的启动了。
   ///
-  /// 时序上必须在**拿到相机权限之后**调用，否则原生侧会因无权限而拒绝，
-  /// 且不报错（只有一条日志）。这一条曾经写错过：早期版本在插件构造时
-  /// 缓存权限状态，导致用户授权后仍然没有预览。
+  /// 权限申请在原生侧完成：Dart 无法自己拿到 Android 的运行时权限，
+  /// 而原生若只在插件构造时检查一次权限，用户授权后会一直停在「无权限」，
+  /// 相机永不启动——表现为一片黑，且没有任何报错。
+  ///
+  /// 加超时的原因：权限对话框若因 Activity 重建等原因没有回调，
+  /// Future 会永不完成。宁可超时给出明确提示，也不要卡在「正在初始化」。
   Future<bool> startPreview() async {
     try {
-      final reply = await _method.invokeMethod<Map<Object?, Object?>>(
-        VisionMethods.startPreview,
-      );
+      final reply = await _method
+          .invokeMethod<Map<Object?, Object?>>(VisionMethods.startPreview)
+          .timeout(const Duration(seconds: 60));
       return reply?['started'] == true;
+    } on TimeoutException {
+      return false;
     } on PlatformException {
       return false;
     } on MissingPluginException {
+      // iOS 尚未实现原生插件时走这里，属预期。
       return false;
     }
   }

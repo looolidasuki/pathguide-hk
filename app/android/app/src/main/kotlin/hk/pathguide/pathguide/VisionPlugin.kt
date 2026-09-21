@@ -11,10 +11,13 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.BinaryMessenger
 import io.flutter.plugin.common.EventChannel
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugin.common.PluginRegistry
 import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
@@ -46,7 +49,7 @@ import kotlin.math.min
  */
 class VisionPlugin(
     private val context: Context,
-) : FlutterPlugin {
+) : FlutterPlugin, ActivityAware, PluginRegistry.RequestPermissionsResultListener {
 
     companion object {
         const val TAG = "PathGuideVision"
@@ -59,10 +62,19 @@ class VisionPlugin(
 
         /** 期望输入边长；模型若声明了固定形状则以模型为准。 */
         const val EXPECTED_INPUT_SIZE = 640
+
+        /** 相机权限请求码。 */
+        private const val REQ_CAMERA = 7301
     }
 
     private var methodChannel: MethodChannel? = null
     private var frameChannel: EventChannel? = null
+
+    /** 当前 Activity。权限请求需要它，由 ActivityAware 回调注入。 */
+    private var activity: android.app.Activity? = null
+
+    /** 等待权限结果的 startPreview 调用。同一时刻只允许一个。 */
+    private var pendingPermissionResult: MethodChannel.Result? = null
 
     @Volatile private var eventSink: EventChannel.EventSink? = null
 
@@ -125,14 +137,14 @@ class VisionPlugin(
                     result.success(null)
                 }
             }
-            // Dart 侧拿到相机权限后调用。**必须在授权之后真的能被调用到**：
+            // Dart 侧请求启动相机。**这里同时负责申请权限**：
             // 权限是运行时申请的，若只在插件构造时检查一次，用户授权后
-            // 原生侧仍停留在「无权限」状态，相机永不启动，表现为一片黑且无报错。
-            "startPreview" -> {
-                val granted = hasCameraPermission()
-                if (granted) startCameraIfPossible()
-                result.success(mapOf("started" to granted))
-            }
+            // 原生侧仍停留在「无权限」，相机永不启动，表现为一片黑且无报错。
+            //
+            // 刻意不用 permission_handler 包：它会传递引入 objective_c，
+            // 后者的 build hook 在含空格的路径上会让 `flutter test` 失败。
+            // 见 pubspec.yaml 里的说明。
+            "startPreview" -> requestPermissionThenStart(result)
             "release" -> {
                 stopCamera()
                 detector?.close()
@@ -206,14 +218,92 @@ class VisionPlugin(
 
     // ------------------------------------------------------------------ 相机
 
-    fun onPreviewCreated(view: PreviewView) {
-        currentPreview = view
-        startCameraIfPossible()
-    }
+    // -------------------------------------------------------------- 权限
 
     private fun hasCameraPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
             android.content.pm.PackageManager.PERMISSION_GRANTED
+
+    /**
+     * 申请相机权限，拿到结果后启动相机，并把结果回给 Dart。
+     *
+     * 回包 `{started, granted}`：`granted=false` 表示用户拒绝，
+     * Dart 侧要给出可操作的提示，而不是静默黑屏。
+     */
+    private fun requestPermissionThenStart(result: MethodChannel.Result) {
+        if (hasCameraPermission()) {
+            startCameraIfPossible()
+            result.success(mapOf("started" to true, "granted" to true))
+            return
+        }
+        val act = activity ?: run {
+            Log.w(TAG, "没有 Activity，无法申请权限")
+            result.success(mapOf("started" to false, "granted" to false))
+            return
+        }
+        if (pendingPermissionResult != null) {
+            // 前一次请求还没回来。直接失败而不是覆盖，避免结果丢失。
+            result.error("busy", "上一次权限请求尚未返回", null)
+            return
+        }
+        pendingPermissionResult = result
+        act.requestPermissions(arrayOf(android.Manifest.permission.CAMERA), REQ_CAMERA)
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray,
+    ): Boolean {
+        if (requestCode != REQ_CAMERA) return false
+        val granted = grantResults.isNotEmpty() &&
+            grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED
+        val pending = pendingPermissionResult
+        pendingPermissionResult = null
+        if (granted) {
+            startCameraIfPossible()
+            pending?.success(mapOf("started" to true, "granted" to true))
+        } else {
+            Log.w(TAG, "用户拒绝了相机权限")
+            pending?.success(mapOf("started" to false, "granted" to false))
+        }
+        return true
+    }
+
+    // ------------------------------------------------- ActivityAware 回调
+
+    override fun onAttachedToActivity(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        binding.addRequestPermissionsResultListener(this)
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        failPendingPermission("Activity 正在重建")
+        activity = null
+    }
+
+    override fun onReattachedToActivityForConfigChanges(binding: ActivityPluginBinding) {
+        activity = binding.activity
+        binding.addRequestPermissionsResultListener(this)
+    }
+
+    override fun onDetachedFromActivity() {
+        failPendingPermission("Activity 已分离")
+        activity = null
+    }
+
+    /** 权限回调永远不会来了（Activity 销毁/重建）时必须给 Dart 一个结果，
+     *  否则 startPreview 的 Future 永不完成，界面上表现为卡在「正在初始化」。 */
+    private fun failPendingPermission(reason: String) {
+        val pending = pendingPermissionResult ?: return
+        pendingPermissionResult = null
+        pending.success(mapOf("started" to false, "granted" to false, "reason" to reason))
+    }
+
+    fun onPreviewCreated(view: PreviewView) {
+        currentPreview = view
+        startCameraIfPossible()
+    }
 
     fun startCameraIfPossible() {
         val view = currentPreview ?: return

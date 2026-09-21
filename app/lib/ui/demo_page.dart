@@ -3,7 +3,6 @@ import 'dart:io' show Platform;
 import 'dart:ui' show Size;
 
 import 'package:flutter/material.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 import '../overlay/box_painter.dart';
 import '../tts/announcer.dart';
@@ -84,20 +83,17 @@ class _DemoPageState extends State<DemoPage> {
     });
   }
 
+  /// 请求相机权限并启动预览。
+  ///
+  /// 权限申请**在原生侧**完成（见 `VisionPlugin.requestPermissionThenStart`）。
+  /// 刻意不用 permission_handler：它会传递引入 `objective_c`，而那个包的
+  /// build hook 在含空格的路径上会让 `flutter test` 直接失败。
   Future<void> _requestCamera() async {
     if (!Platform.isAndroid && !Platform.isIOS) return;
-    final status = await Permission.camera.request();
-    if (!mounted) return;
-    if (!status.isGranted) {
-      setState(() => _status = '未授予相机权限，请到系统设置里开启后重进');
-      return;
-    }
-    // 授权成功后**必须显式通知原生侧**：原生不能自己知道 Dart 刚授权了。
-    // 漏掉这一步的表现是预览一片黑，而日志里只有一条「尚未授予相机权限」。
     final started = await _platform.startPreview();
     if (!mounted) return;
     if (!started) {
-      setState(() => _status = '相机未启动：原生侧报告失败（检查权限与设备占用）');
+      setState(() => _status = '相机未启动：可能未授予权限，或设备被其他程序占用');
     }
   }
 

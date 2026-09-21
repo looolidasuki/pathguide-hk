@@ -31,18 +31,30 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  # 仅 UI 图标用。
   cupertino_icons: ^1.0.8
-  # 相机预览在原生侧（Android CameraX 的 PreviewView / iOS AVCaptureVideoPreviewLayer），
-  # 不经过这些插件；保留它们是为将来的回放与设置页预留。
-  camera: ^0.12.1
+
   # 粤语播报。
   flutter_tts: ^4.2.5
-  # 模型与日志的落盘位置。
-  path_provider: ^2.1.6
-  # 相机是运行时权限，必须显式请求。
-  permission_handler: ^11.3.1
+
+# ---------------------------------------------------------------------------
+# 刻意**不**引入的依赖，以及原因（改动前务必读一遍）
+#
+# permission_handler / path_provider / camera —— 都会（直接或传递）拉入
+#   `objective_c`，它的 `hook/build.dart` 在 Windows 上调用子进程时不给路径
+#   加引号，于是**项目路径里只要有空格**（本仓库正是如此）构建就失败：
+#       'C:\Users\user\PycharmProjects\Accessible' is not recognized as
+#       an internal or external command
+#   它会在**所有平台**上执行 build hook，即使你只做 Android。
+#
+#   三者的替代方案：
+#   - 相机权限  -> 由本仓库自己的 VisionPlugin 在 Kotlin 里请求（见 startPreview）
+#   - 模型落盘  -> 目前从 assets 直接内存映射读，不需要外部目录
+#   - 相机预览  -> 由 VisionPlugin 的 CameraX 平台视图渲染，不经过 Flutter 相机插件
+#
+#   若将来确有必要引入它们，请先把仓库移到**不含空格**的路径，例如
+#   C:\dev\pathguide，验证 flutter test 能过之后再改回。
+# ---------------------------------------------------------------------------
 
 dev_dependencies:
   flutter_test:
