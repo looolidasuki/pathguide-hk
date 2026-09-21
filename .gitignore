@@ -107,3 +107,10 @@ service-account*.json
 # 临时
 *.tmp
 ~$*
+
+# X-AnyLabeling
+# 它默认写 ~/.anylabelingrc（工作区外，受限环境被拒），需用 --config 指到工作区内。
+.anylabelingrc
+.anylabeling_labels.txt
+# 人工复核用的试跑目录（由 to_xanylabeling.py 生成，可重复生成）
+data/xtest/**
