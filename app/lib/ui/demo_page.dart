@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 
 import '../overlay/box_painter.dart';
 import '../tts/announcer.dart';
@@ -304,12 +305,67 @@ class _DemoPageState extends State<DemoPage> {
                 child: Text(
                   _status,
                   style: TextStyle(color: color, fontSize: 12),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                  // 不限制行数：状态里有失败原因时，截断会让人只看到「模型未加载」
+                  // 而看不到「为什么」。之前用 maxLines: 2 就吃过这个亏。
+                  softWrap: true,
                 ),
               ),
             ],
           ),
+          // 失败原因单独一块，**完整**显示，且长按可复制。
+          // 理由：这类错误只在真机上出现，用户没有 logcat 可用；
+          // 把完整文本摆在屏幕上、允许复制，比让他去翻日志现实得多。
+          if (!_modelReady && _platform.error != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: GestureDetector(
+                onLongPress: () async {
+                  await Clipboard.setData(ClipboardData(text: _platform.error!));
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('错误详情已复制'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.4),
+                    border: Border.all(color: color.withValues(alpha: 0.5)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              '模型加载失败（长按复制）',
+                              style: TextStyle(color: color, fontSize: 11,
+                                               fontWeight: FontWeight.w600),
+                            ),
+                          ),
+                          Icon(Icons.copy, size: 13, color: color),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      SelectableText(
+                        _platform.error!,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                          height: 1.35,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           if (_modelReady)
             Padding(
               padding: const EdgeInsets.only(top: 4),
