@@ -1,5 +1,5 @@
 import 'dart:math' as math;
-import 'dart:ui' show Rect, Size, Offset;
+import 'dart:ui' show Offset, Rect, Size;
 
 /// 一个检测结果。坐标是**归一化的 YOLO 格式**（中心点 + 宽高），取值 [0, 1]。
 ///
@@ -87,10 +87,11 @@ class DisplayFit {
     required this.dy,
   });
 
-  /// 原始帧尺寸（旋转之前）。
+  /// 原始帧尺寸（旋转之前）。注意：语义上是**旋转后的帧尺寸**，
+  /// 因为构造时应传入 [rotatedFrameSize] 的结果。
   final Size frame;
 
-  /// 预览控件的尺寸。
+  /// 预览控件尺寸。仅用于计算缩放与偏移，不参与坐标语义。
   final Size view;
 
   /// 缩放系数。
@@ -142,23 +143,18 @@ class DisplayFit {
   }
 
   /// 归一化帧坐标（已旋转到位）-> 屏幕像素矩形。
+  ///
+  /// **刻意不做夹紧**：归一化坐标在原生侧已被夹到 [0,1]，这里再夹一次会把
+  /// `cover` 模式弄坏——整帧比视口大时，夹紧会把宽 1422px 的映射压成 400px，
+  /// 框与画面直接错位。越界部分交给 `CustomPaint` 的画布裁切即可，
+  /// 那里本来就是裁剪语义。
   Rect normalizedToScreen(Rect normalized) {
-    var r = Rect.fromLTWH(
+    return Rect.fromLTWH(
       dx + normalized.left * frame.width * scale,
       dy + normalized.top * frame.height * scale,
       normalized.width * frame.width * scale,
       normalized.height * frame.height * scale,
     );
-    // 模型偶尔会给出越界的框（后处理取整、边界物体）。绘制前夹紧到视口，
-    // 否则框会画到预览控件外面去。
-    if (view.width > 0 && view.height > 0) {
-      final left = r.left.clamp(0.0, view.width);
-      final top = r.top.clamp(0.0, view.height);
-      final right = r.right.clamp(0.0, view.width);
-      final bottom = r.bottom.clamp(0.0, view.height);
-      r = Rect.fromLTRB(left, top, math.max(left, right), math.max(top, bottom));
-    }
-    return r;
   }
 
   @override
@@ -169,14 +165,21 @@ class DisplayFit {
 
 /// 把归一化矩形按顺时针 [quarterTurns] 个 90° 旋转。
 ///
-/// 旋转在**归一化空间**做，公式直接用坐标变换推导：
-/// - 0 个：`(x, y) -> (x, y)`，宽高不变
+/// ## 为什么容易写错
+///
+/// 90°/270° 时外框**宽高互换**，位移量必须用**旋转后的尺寸**算。
+/// 写成用原尺寸会得到整体偏移的框，而且不报错。
+///
+/// 公式由「点绕帧中心旋转」逐点推导（顺时针）：
+/// - 0 个：`(x, y) -> (x, y)`
 /// - 1 个：`(x, y) -> (1-y, x)`，宽高互换
-/// - 2 个：`(x, y) -> (1-x, 1-y)`，宽高不变
+/// - 2 个：`(x, y) -> (1-x, 1-y)`
 /// - 3 个：`(x, y) -> (y, 1-x)`，宽高互换
 ///
-/// 推导基于「整个帧绕中心旋转」，因此旋转后仍然是一个轴对齐矩形，
-/// 只是落在新坐标系里的位置变了。
+/// **注意：外框的 left 不等于「左上角点旋转后的 x」。** 取
+/// `(0.1, 0.2, w=0.3, h=0.4)` 转 90°：左上角点变成 (0.8, 0.1)、右下角点变成
+/// (0.4, 0.4)，所以外框是 `left=0.4, top=0.1, w=0.4, h=0.3`——
+/// 0.8 是**右边界**，不是 left。写测试时我也在这里错过一次。
 Rect rotateNormalized(Rect r, {required int quarterTurns}) {
   final q = quarterTurns % 4;
   final w = r.width;

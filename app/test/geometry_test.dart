@@ -49,17 +49,19 @@ void main() {
       expect(fit.dx, closeTo((1280 - 720 * (720 / 1280)) / 2, 1e-9));
     });
 
-    test('返回值不会超出显示区域', () {
-      // 帧上有越界的归一化框（模型/后处理出错时会出现），绘制前必须夹紧
+    test('映射不做夹紧，越界的框保持几何关系（由画布裁切）', () {
+      // 归一化坐标本身已被上游夹到 [0,1]；这里再夹一次会把 cover 模式
+      // 弄坏（整帧比视口大时被压扁，框与画面错位）。所以映射必须保持
+      // 纯几何，越界部分交给 CustomPaint 的画布裁切。
       final fit = DisplayFit.contain(
         frame: const Size(1280, 720),
         view: const Size(400, 800),
       );
       final r = fit.normalizedToScreen(const Rect.fromLTWH(-0.2, -0.1, 1.5, 1.2));
-      expect(r.left, greaterThanOrEqualTo(0.0));
-      expect(r.top, greaterThanOrEqualTo(0.0));
-      expect(r.right, lessThanOrEqualTo(400.0));
-      expect(r.bottom, lessThanOrEqualTo(800.0));
+      final expectedScale = fit.scale;
+      expect(r.width, closeTo(1.5 * 1280 * expectedScale, 1e-6));
+      expect(r.height, closeTo(1.2 * 720 * expectedScale, 1e-6));
+      expect(r.left, lessThan(0.0), reason: '负的归一化 x 应映射到视口左侧之外');
     });
 
     test('中心的框映射到显示区域中心', () {
@@ -114,17 +116,48 @@ void main() {
       expect(r, const Rect.fromLTWH(0.25, 0.5, 0.5, 0.25));
     });
 
-    test('90 度交换宽高并把 (x,y) 映射到 (1-y, x)', () {
+    test('90 度交换宽高，外框位置由角点推导', () {
       final r = rotateNormalized(
         const Rect.fromLTWH(0.1, 0.2, 0.3, 0.4),
         quarterTurns: 1,
       );
-      // 左上角 (0.1,0.2) -> (1-0.2, 0.1) = (0.8, 0.1)
-      expect(r.left, closeTo(0.8, 1e-9));
+      // 顺时针 90°: (x,y) -> (1-y, x)
+      //   左上 (0.1,0.2) -> (0.8,0.1)
+      //   右下 (0.4,0.6) -> (0.4,0.4)
+      // 外框 = 这两点的包围盒
+      expect(r.left, closeTo(0.4, 1e-9));
       expect(r.top, closeTo(0.1, 1e-9));
-      // 宽高互换
+      expect(r.width, closeTo(0.4, 1e-9), reason: '新宽度 = 原高度');
+      expect(r.height, closeTo(0.3, 1e-9), reason: '新高度 = 原宽度');
+      expect(r.right, closeTo(0.8, 1e-9), reason: '0.8 是右边界，不是 left');
+    });
+
+    test('270 度外框位置由角点推导', () {
+      final r = rotateNormalized(
+        const Rect.fromLTWH(0.1, 0.2, 0.3, 0.4),
+        quarterTurns: 3,
+      );
+      // 顺时针 270° = 逆时针 90°: (x,y) -> (y, 1-x)
+      //   左上 (0.1,0.2) -> (0.2,0.9)
+      //   右下 (0.4,0.6) -> (0.6,0.6)
+      expect(r.left, closeTo(0.2, 1e-9));
+      expect(r.top, closeTo(0.6, 1e-9));
       expect(r.width, closeTo(0.4, 1e-9));
       expect(r.height, closeTo(0.3, 1e-9));
+    });
+
+    test('旋转不改变面积', () {
+      // 面积守恒是防「位移量用错尺寸」类 bug 的独立检查：
+      // 尺寸用错时宽高都会不对，面积随之变化。
+      const original = Rect.fromLTWH(0.1, 0.2, 0.3, 0.4);
+      for (var q = 0; q < 4; q++) {
+        final r = rotateNormalized(original, quarterTurns: q);
+        expect(
+          r.width * r.height,
+          closeTo(original.width * original.height, 1e-9),
+          reason: 'q=$q 面积应守恒',
+        );
+      }
     });
 
     test('180 度关于中心镜像', () {

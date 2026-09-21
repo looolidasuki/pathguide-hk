@@ -1,0 +1,111 @@
+﻿00:00 +0: loading C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart
+00:00 +0: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 首帧即播报
+00:00 +0 -1: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 首帧即播报 [E]
+  Expected: an object with length of <1>
+    Actual: []
+     Which: has length of <0>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\announcer_test.dart 64:5                       main.<fn>
+  
+00:00 +0 -1: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同一类在冷却期内不重复播报
+00:00 +0 -2: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同一类在冷却期内不重复播报 [E]
+  Expected: an object with length of <1>
+    Actual: []
+     Which: has length of <0>
+  1 秒 < 2 秒同类冷却
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\announcer_test.dart 72:5                       main.<fn>
+  
+00:00 +0 -2: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同类冷却过后可以再播
+00:00 +0 -3: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同类冷却过后可以再播 [E]
+  Expected: an object with length of <2>
+    Actual: []
+     Which: has length of <0>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\announcer_test.dart 80:5                       main.<fn>
+  
+00:00 +0 -3: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 全局冷却会压掉不同类的播报
+00:00 +0 -4: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 全局冷却会压掉不同类的播报 [E]
+  Expected: an object with length of <1>
+    Actual: []
+     Which: has length of <0>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\announcer_test.dart 88:5                       main.<fn>
+  
+00:00 +0 -4: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: force 可以绕过冷却
+00:00 +0 -5: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: force 可以绕过冷却 [E]
+  Expected: an object with length of <2>
+    Actual: []
+     Which: has length of <0>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\announcer_test.dart 96:5                       main.<fn>
+  
+00:00 +0 -5: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 空帧不播报
+00:00 +1 -5: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 不可播报的类别被忽略（ambiguous_vertical 是训练期占位类）
+00:00 +2 -5: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 未知类别 id 不会崩，也不会播报
+00:00 +3 -5: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同类多个候选只播一次
+00:00 +3 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同类多个候选只播一次 [E]
+  Expected: an object with length of <1>
+    Actual: []
+     Which: has length of <0>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\announcer_test.dart 123:5                      main.<fn>
+  
+00:00 +3 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 记下跳过原因，便于现场解释
+00:00 +4 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: reset 清空冷却，新场景第一个目标不会被旧冷却压掉
+00:00 +5 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 禁播时不说，但仍然记录决策
+00:00 +6 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 播报文本就是类别中文名，不加修饰语
+00:00 +7 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.contain 同宽高比时只做缩放、无偏移
+00:00 +8 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.contain 帧更宽时上下留黑边（letterbox）
+00:00 +9 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.contain 帧更高时左右留黑边
+00:00 +10 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.contain 返回值不会超出显示区域
+00:00 +11 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.contain 中心的框映射到显示区域中心
+00:00 +12 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.contain 退化输入返回空矩形而不是 NaN
+00:00 +13 -6: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.cover 铺满时不留黑边、内容被裁切
+00:00 +13 -7: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: DisplayFit.cover 铺满时不留黑边、内容被裁切 [E]
+  Expected: a numeric value within <0.000001> of <1422.2222222222222>
+    Actual: <400.0>
+     Which:  differs by <1022.2222222222222>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\geometry_test.dart 104:7                       main.<fn>.<fn>
+  
+00:00 +13 -7: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: 坐标旋转 0 度不改变归一化坐标
+00:00 +14 -7: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: 坐标旋转 90 度交换宽高并把 (x,y) 映射到 (1-y, x)
+00:00 +14 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: 坐标旋转 90 度交换宽高并把 (x,y) 映射到 (1-y, x) [E]
+  Expected: a numeric value within <1e-9> of <0.8>
+    Actual: <0.39999999999999997>
+     Which:  differs by <0.4000000000000001>
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\geometry_test.dart 123:7                       main.<fn>.<fn>
+  
+00:00 +14 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: 坐标旋转 180 度关于中心镜像
+00:00 +15 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: 坐标旋转 270 度等价于反向 90 度
+00:00 +16 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: 坐标旋转 旋转四次回到原点
+00:00 +17 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: 坐标旋转 旋转后的框仍然落在 [0,1] 内
+00:00 +18 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: Detection normalizedRect 由中心点与宽高还原
+00:00 +19 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: Detection 面积为零的框被判定为退化
+00:00 +20 -8: C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/geometry_test.dart: Detection 正常框不是退化框
+00:00 +21 -8: Some tests failed.
+
+Failing tests:
+  C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: force 可以绕过冷却
+  C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 全局冷却会压掉不同类的播报
+  C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同一类在冷却期内不重复播报
+  C:/Users/user/PycharmProjects/Accessible Visual Guidance/app/test/announcer_test.dart: 同类冷却过后可以再播
+  ... and 4 more

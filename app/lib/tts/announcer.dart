@@ -85,6 +85,15 @@ class Announcer {
   /// 已播报历史（保留最近 50 条），供 UI 展示。
   final List<Announcement> history = <Announcement>[];
 
+  /// 最近一次播报的完成 future。
+  ///
+  /// 对外暴露它有两个必要理由：
+  /// 1. **可测试**：`_speak` 是异步的，`onFrame` 返回时 Speaker 还没被调用，
+  ///    测试若立刻断言就会看到空列表（本项目实际踩过）；
+  /// 2. 调用方需要知道「上一句说完了没有」才能决定是否打断。
+  Future<void>? get lastSpeech => _lastSpeech;
+  Future<void>? _lastSpeech;
+
   bool _speaking = false;
   bool get isSpeaking => _speaking;
 
@@ -122,7 +131,9 @@ class Announcer {
       _lastByClass[label.id] = now;
       _lastAny = now;
       _record(label, c.detection.score, text, now, force ? '强制播报' : '正常播报');
-      unawaited(_speak(text, interrupt: _isP0(label)));
+      // 记下 future 供调用方/测试等待。不 await 是刻意的：onFrame 由相机
+      // 帧回调调用，阻塞它会让掉帧；但必须让「说完了」这件事可被观察。
+      _lastSpeech = _speak(text, interrupt: _isP0(label));
       return history.last;
     }
     return null;
@@ -184,6 +195,7 @@ class Announcer {
     _lastByClass.clear();
     _lastAny = null;
     history.clear();
+    _lastSpeech = null;
   }
 }
 
