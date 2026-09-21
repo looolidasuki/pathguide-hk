@@ -322,9 +322,13 @@ class VisionPlugin(
     }
 
     private fun bindCamera(provider: ProcessCameraProvider, view: PreviewView) {
-        val owner = context as? LifecycleOwner
+        // 必须用 ActivityAware 注入的 activity，**不能用插件构造时的 context**：
+        // Flutter 传给插件的 context 是 Activity 的包装上下文，
+        // (context as? LifecycleOwner) 永远为 null，相机就永远绑不上——
+        // 表现为预览一片黑，日志里只有一行「不是 LifecycleOwner」。
+        val owner = activity as? LifecycleOwner
         if (owner == null) {
-            Log.e(TAG, "context 不是 LifecycleOwner，无法绑定相机生命周期")
+            Log.e(TAG, "activity 不是 LifecycleOwner，无法绑定相机生命周期")
             return
         }
         val previewUseCase = Preview.Builder().build().also {
