@@ -33,10 +33,27 @@ def load_manifest() -> list[dict]:
         return list(csv.DictReader(f))
 
 
-def load_class_names() -> list[str]:
-    with CLASSES_PATH.open(encoding="utf-8") as f:
+def load_class_names(path: Path | None = None) -> list[str]:
+    if path is None:
+        path = CLASSES_PATH
+    with path.open(encoding="utf-8") as f:
         data = json.load(f)
     return [c["name_en"] for c in sorted(data["classes"], key=lambda c: c["id"])]
+
+
+def resolve_class_names(dataset_dir: Path) -> list[str]:
+    """优先用**数据集自带的** classes.json，其次回退到项目类别表。
+
+    ★ 这不是可选优化，而是正确性问题。单类数据集
+    （data/dataset_single_bin）的标签索引被重写为 0，而项目类别表里 0 是
+    `footbridge_entrance`。若此处用项目表，写出的 yaml 会声明 `nc: 24`
+    且 `0: footbridge_entrance`，于是标签里的 "0"（垃圾桶）被当成天桥入口训练——
+    **训练不报错，只是类别全错**，而且会一路带到导出的模型里。
+    """
+    local = dataset_dir / "classes.json"
+    if local.exists():
+        return load_class_names(local)
+    return load_class_names(CLASSES_PATH)
 
 
 def source_class_sets(rows: list[dict]) -> dict[str, set[int]]:
@@ -236,7 +253,9 @@ def run_split(dataset_dir: Path | None = None, ratios: tuple[float, float, float
     }
     (dataset_dir / "split.json").write_text(
         json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_yaml(split, load_class_names(), dataset_dir, datasets_dir)
+    # 用**数据集自己**的类别表，而不是项目表。单类数据集的标签索引被重写为 0，
+    # 用项目表会把 0 写成 footbridge_entrance，导致类别整体错位且训练不报错。
+    write_yaml(split, resolve_class_names(dataset_dir), dataset_dir, datasets_dir)
 
     for fold in FOLD_ORDER:
         n_sources = len({r["source_folder"] for r in rows if r["image_rel"] in set(split[fold])})

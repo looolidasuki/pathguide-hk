@@ -1,0 +1,4 @@
+C:\Users\user\PycharmProjects\Accessible Visual Guidance\data\dataset_single_bin\images\trashbin\bin (1).jpg
+C:\Users\user\PycharmProjects\Accessible Visual Guidance\data\dataset_single_bin\images\trashbin\bin (2).jpg
+C:\Users\user\PycharmProjects\Accessible Visual Guidance\data\dataset_single_bin\images\trashbin\bin (3).jpg
+C:\Users\user\PycharmProjects\Accessible Visual Guidance\data\dataset_single_bin\images\trashbin\bin (4).jpg

@@ -84,6 +84,13 @@ abstract final class VisionKeys {
   static const String classes = 'classes';
   static const String inputSize = 'inputSize';
 
+  /// 类别 id 偏移：原生把它**加到模型输出的每个 id 上**再回传。
+  ///
+  /// 用于单类模型：它输出 id 0，而项目类别表里 id 0 是 `footbridge_entrance`。
+  /// 传 `bin` 的原始 id（7）作为偏移，Dart 之后画框/播报/查表全部无需改动。
+  /// 多类模型传 0。
+  static const String classOffset = 'classOffset';
+
   // ---- detect 入参 ----
   /// 帧的原始像素字节。Android 为 **NV21**（`Uint8List`，长度 = w*h*3/2）。
   static const String bytes = 'bytes';

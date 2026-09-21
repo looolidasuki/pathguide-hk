@@ -1,0 +1,65 @@
+{
+  "seed": 42,
+  "ratios": [
+    0.8,
+    0.1,
+    0.1
+  ],
+  "counts": {
+    "train": 36,
+    "val": 4,
+    "test": 4
+  },
+  "single_source": true,
+  "single_source_note": "单来源等间隔取样：同源划分无法防泄漏，指标偏乐观，仅用于跑通链路",
+  "train": [
+    "trashbin/bin (10).jpg",
+    "trashbin/bin (11).jpg",
+    "trashbin/bin (12).jpg",
+    "trashbin/bin (13).jpg",
+    "trashbin/bin (14).jpg",
+    "trashbin/bin (16).jpg",
+    "trashbin/bin (17).jpg",
+    "trashbin/bin (18).jpg",
+    "trashbin/bin (19).jpg",
+    "trashbin/bin (20).jpg",
+    "trashbin/bin (21).jpg",
+    "trashbin/bin (22).jpg",
+    "trashbin/bin (23).jpg",
+    "trashbin/bin (25).jpg",
+    "trashbin/bin (26).jpg",
+    "trashbin/bin (27).jpg",
+    "trashbin/bin (28).jpg",
+    "trashbin/bin (29).jpg",
+    "trashbin/bin (30).jpg",
+    "trashbin/bin (31).jpg",
+    "trashbin/bin (32).jpg",
+    "trashbin/bin (33).jpg",
+    "trashbin/bin (34).jpg",
+    "trashbin/bin (36).jpg",
+    "trashbin/bin (37).jpg",
+    "trashbin/bin (38).jpg",
+    "trashbin/bin (39).jpg",
+    "trashbin/bin (40).jpg",
+    "trashbin/bin (41).jpg",
+    "trashbin/bin (42).jpg",
+    "trashbin/bin (43).jpg",
+    "trashbin/bin (5).jpg",
+    "trashbin/bin (6).jpg",
+    "trashbin/bin (7).jpg",
+    "trashbin/bin (8).jpg",
+    "trashbin/bin (9).jpg"
+  ],
+  "val": [
+    "trashbin/bin (1).jpg",
+    "trashbin/bin (2).jpg",
+    "trashbin/bin (3).jpg",
+    "trashbin/bin (4).jpg"
+  ],
+  "test": [
+    "trashbin/bin (15).jpg",
+    "trashbin/bin (24).jpg",
+    "trashbin/bin (35).jpg",
+    "trashbin/bin (44).jpg"
+  ]
+}

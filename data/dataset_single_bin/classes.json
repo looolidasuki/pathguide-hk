@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "note": "单类数据集：只有 bin（原 id 7，此处重写为 0）。由 scripts/build_single_class_dataset.py 生成。",
+  "classes": [
+    {
+      "id": 0,
+      "name_en": "bin",
+      "name_zh": "",
+      "group": "single",
+      "priority": "P0",
+      "announced": true,
+      "original_id": 7
+    }
+  ]
+}
