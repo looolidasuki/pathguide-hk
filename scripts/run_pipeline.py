@@ -72,7 +72,12 @@ def step_split(args: argparse.Namespace) -> None:
     for name in FOLD_FILES:
         p = DATASET_DIR / name
         if not p.exists() or p.stat().st_size == 0:
-            raise SystemExit(f"划分产物缺失或为空：{p}")
+            raise SystemExit(
+                f"划分产物缺失或为空：{p}\n"
+                f"  最常见原因：数据只有一个 source_folder（一次实地采集 = 一个文件夹），\n"
+                f"  分组防泄漏划分会把全部图像丢进 train，val/test 为空。\n"
+                f"  split_dataset.py 已内置单来源等间隔取样兜底；若仍为空，说明样本量\n"
+                f"  不足（单来源至少要 3 张才有 val 与 test），需先补数据。")
         paths = [ln.strip() for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
         missing = [x for x in paths if not Path(x).exists()]
         if missing:

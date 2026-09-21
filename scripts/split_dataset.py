@@ -15,6 +15,8 @@ import random
 from collections import defaultdict
 from pathlib import Path
 
+from single_source import SingleSourceSplitError, single_source_folds
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DATASET_DIR = REPO_ROOT / "data" / "dataset"
 MANIFEST_PATH = DATASET_DIR / "manifest.csv"
@@ -125,11 +127,15 @@ def validate_no_leakage(split: dict, manifest: list[dict]) -> list[str]:
     return problems
 
 
-def write_yaml(split: dict, class_names: list[str]) -> None:
+def write_yaml(split: dict, class_names: list[str], dataset_dir: Path | None = None,
+               datasets_dir: Path | None = None, yaml_path: Path | None = None) -> None:
+    dataset_dir = dataset_dir or DATASET_DIR
+    datasets_dir = datasets_dir or DATASETS_DIR
+    yaml_path = yaml_path or (datasets_dir / "pathguide.yaml")
     names_block = "\n".join(f"  {i}: {n}" for i, n in enumerate(class_names))
     content = (
         "# 由 scripts/split_dataset.py 自动生成，请勿手工编辑\n"
-        f"path: {DATASET_DIR.as_posix()}\n"
+        f"path: {dataset_dir.as_posix()}\n"
         "train: train.txt\n"
         "val: val.txt\n"
         "test: test.txt\n\n"
@@ -137,17 +143,105 @@ def write_yaml(split: dict, class_names: list[str]) -> None:
         "names:\n"
         f"{names_block}\n"
     )
-    DATASETS_DIR.mkdir(parents=True, exist_ok=True)
-    YAML_PATH.write_text(content, encoding="utf-8")
+    datasets_dir.mkdir(parents=True, exist_ok=True)
+    yaml_path.write_text(content, encoding="utf-8")
 
     for fold in FOLD_ORDER:
-        listing = DATASET_DIR / f"{fold}.txt"
+        listing = dataset_dir / f"{fold}.txt"
         # 必须写**绝对原生路径**：
         #   1) Ultralytics 从 CWD 解析相对路径，而非从 yaml 的 path 字段；
         #   2) img2label_paths() 用 os.sep 拼 `\images\` -> `\labels\`，
         #      Windows 下正斜杠路径无法匹配，会退化为「找不到标签」。
-        lines = [str(DATASET_DIR / "images" / Path(rel)) for rel in split[fold]]
+        lines = [str(dataset_dir / "images" / Path(rel)) for rel in split[fold]]
         listing.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+
+
+def check_split_files(dataset_dir: Path | None = None) -> list[str]:
+    """划分产物是否可用。返回问题描述列表，空列表表示通过。
+
+    空折必须被显式拦下：空 val 让训练跑不起来，空 test 让评测给出假指标。
+    而且要在**这里**说清是哪个折为空，别让训练脚本只报「val.txt 缺失」——
+    那句错误信息完全指不到真实原因（单来源数据无法分组划分）。
+    """
+    dataset_dir = dataset_dir or DATASET_DIR
+    problems: list[str] = []
+    for fold in FOLD_ORDER:
+        listing = dataset_dir / f"{fold}.txt"
+        if not listing.exists():
+            problems.append(f"{fold} 划分清单不存在：{listing}")
+        elif not listing.read_text(encoding="utf-8").strip():
+            problems.append(f"{fold} 划分清单为空：{listing}")
+    return problems
+
+
+def run_split(dataset_dir: Path | None = None, ratios: tuple[float, float, float] = (0.8, 0.1, 0.1),
+              seed: int = 42, include_unlabelled: bool = False,
+              datasets_dir: Path | None = None, manifest_path: Path | None = None) -> dict | int:
+    """执行划分。成功返回 split 字典，失败返回退出码 1。"""
+    dataset_dir = dataset_dir or DATASET_DIR
+    datasets_dir = datasets_dir or DATASETS_DIR
+    manifest_path = manifest_path or (dataset_dir / "manifest.csv")
+
+    if not manifest_path.exists():
+        print(f"未找到 {manifest_path}。请先运行 make_manifest.py。")
+        return 1
+
+    with manifest_path.open(encoding="utf-8-sig", newline="") as f:
+        all_rows = list(csv.DictReader(f))
+    if include_unlabelled:
+        rows = all_rows
+    else:
+        rows = [r for r in all_rows if str(r.get("has_label", "")).lower() in ("true", "1")]
+    if not rows:
+        print("manifest 中没有可用图像。请先完成标注（Task 10）。")
+        return 1
+
+    srcs = sorted({r["source_folder"] for r in rows})
+    single = len(srcs) == 1
+
+    if single:
+        # 分组防泄漏划分在单来源下无从下手（会把全部图像丢进一个折），
+        # 退到等间隔取样，并明确标注「同源，指标偏乐观」。
+        try:
+            split = single_source_folds([r["image_rel"] for r in rows], ratios)
+        except SingleSourceSplitError as e:
+            print(f"无法划分：{e}")
+            return 1
+        print(f"**单来源数据集（{srcs[0]}）：已退到等间隔取样划分。")
+        print(  "  同源划分无法防泄漏——相邻帧几乎相同，指标会偏乐观，"
+                "只能用于跑通链路，不能作为最终性能证据。")
+    else:
+        split = assign_folds(rows, ratios, seed)
+
+    problems = validate_no_leakage(split, rows)
+    if single:
+        # 单来源必然「共享来源文件夹」，那不是缺陷，是我们已知且已声明的限制
+        problems = [p for p in problems if "共享来源文件夹" not in p]
+    if problems:
+        print("划分校验失败：")
+        for p in problems:
+            print(f"  - {p}")
+        return 1
+
+    payload = {
+        "seed": seed,
+        "ratios": list(ratios),
+        "counts": {k: len(v) for k, v in split.items()},
+        "single_source": single,
+        "single_source_note": (
+            "单来源等间隔取样：同源划分无法防泄漏，指标偏乐观，仅用于跑通链路"
+            if single else ""
+        ),
+        **split,
+    }
+    (dataset_dir / "split.json").write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    write_yaml(split, load_class_names(), dataset_dir, datasets_dir)
+
+    for fold in FOLD_ORDER:
+        n_sources = len({r["source_folder"] for r in rows if r["image_rel"] in set(split[fold])})
+        print(f"  {fold}: {len(split[fold])} 张, {n_sources} 个来源")
+    return payload
 
 
 def main() -> int:
@@ -159,45 +253,16 @@ def main() -> int:
                     help="也纳入缺标签的图像（默认仅用已标注的）")
     args = ap.parse_args()
 
-    if not MANIFEST_PATH.exists():
-        print(f"未找到 {MANIFEST_PATH}。请先运行 make_manifest.py。")
-        return 1
-
-    all_rows = load_manifest()
-    if args.include_unlabelled:
-        rows = all_rows
-    else:
-        rows = [r for r in all_rows if str(r.get("has_label", "")).lower() in ("true", "1")]
-    if not rows:
-        print("manifest 中没有可用图像。请先完成标注（Task 10）。")
-        return 1
-
     total_ratio = sum(args.ratios)
     if abs(total_ratio - 1.0) > 1e-6:
         print(f"ratios 之和必须为 1.0，当前为 {total_ratio}")
         return 1
 
-    split = assign_folds(rows, tuple(args.ratios), args.seed)
-    problems = validate_no_leakage(split, rows)
-    if problems:
-        print("划分校验失败：")
-        for p in problems:
-            print(f"  - {p}")
-        return 1
-
-    payload = {
-        "seed": args.seed,
-        "ratios": list(args.ratios),
-        "counts": {k: len(v) for k, v in split.items()},
-        **split,
-    }
-    SPLIT_PATH.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    write_yaml(split, load_class_names())
-
     print(f"seed={args.seed}")
-    for fold in FOLD_ORDER:
-        n_sources = len({r["source_folder"] for r in rows if r["image_rel"] in set(split[fold])})
-        print(f"  {fold}: {len(split[fold])} 张, {n_sources} 个来源")
+    result = run_split(ratios=tuple(args.ratios), seed=args.seed,
+                       include_unlabelled=args.include_unlabelled)
+    if result == 1:
+        return 1
     print(f"split -> {SPLIT_PATH}")
     print(f"yaml  -> {YAML_PATH}")
     return 0

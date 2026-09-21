@@ -87,14 +87,9 @@ def test_write_yaml_emits_absolute_native_paths(tmp_path, monkeypatch):
     两点原因：Ultralytics 从 CWD 解析相对路径；img2label_paths() 在 Windows 上
     用 os.sep 拼 ``\\images\\`` -> ``\\labels\\``，正斜杠路径无法匹配。
     """
-    import split_dataset as sd
-
-    monkeypatch.setattr(sd, "DATASET_DIR", tmp_path)
-    monkeypatch.setattr(sd, "YAML_PATH", tmp_path / "pg.yaml")
-    monkeypatch.setattr(sd, "DATASETS_DIR", tmp_path)
-
     split = {"train": ["src0/a.jpg"], "val": ["src1/b.jpg"], "test": ["src2/c.jpg"]}
-    write_yaml(split, ["cls0", "cls1"])
+    write_yaml(split, ["cls0", "cls1"], dataset_dir=tmp_path,
+               datasets_dir=tmp_path, yaml_path=tmp_path / "pg.yaml")
 
     line = (tmp_path / "train.txt").read_text(encoding="utf-8").strip()
     assert Path(line).is_absolute()
