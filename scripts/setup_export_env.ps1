@@ -35,10 +35,20 @@ $py = Join-Path $venv "Scripts\python.exe"
 # 先装 pi 上没有冲突的核心依赖。刻意**只用默认 PyPI 索引**：
 # ultralytics 的自动安装会加 --extra-index-url https://pypi.ngc.nvidia.com，
 # 那个域名在部分网络下 DNS 解析失败（实测 os error 11001），导致整批安装失败。
-Write-Host "`n安装核心依赖（仅 PyPI）..." -ForegroundColor Yellow
+#
+# ★ protobuf 与 tf_keras 必须**显式钉死**，否则必然出问题：
+#   - onnx2tf 会把 protobuf 拉到 7.x，而 TensorFlow 2.19 只认 protobuf 4/5。
+#     症状是 `import tensorflow` 报
+#         AttributeError: 'MessageFactory' object has no attribute 'GetPrototype'
+#     这不是 TensorFlow 的错，是 protobuf 版本不匹配。
+#   - tf_keras 也要 2.19（与 TF 同版本），装到 2.15 会报
+#         module 'tensorflow._api.v2.compat.v2.__internal__' has no attribute
+#         'register_load_context_function'
+Write-Host "`n安装核心依赖（仅 PyPI，钉死 protobuf 与 tf_keras）..." -ForegroundColor Yellow
 uv pip install --python $py `
     "tensorflow==2.19.0" `
-    "tf_keras<=2.19.0" `
+    "tf_keras==2.19.0" `
+    "protobuf>=4.25.3,<6" `
     "onnx2tf" `
     "sng4onnx" `
     "onnx_graphsurgeon" `
@@ -60,11 +70,23 @@ for name in ["tensorflow", "tf_keras", "onnx", "onnx2tf", "ultralytics"]:
     except Exception as e:
         ok = False
         print("  FAIL %-14s %s: %s" % (name, type(e).__name__, e))
+
 import importlib.metadata as md
+for pkg in ["protobuf", "tensorflow", "tf_keras", "onnx2tf"]:
+    try:
+        print("  %-14s %s" % (pkg, md.version(pkg)))
+    except Exception:
+        pass
+
+# protobuf 主版本必须 < 6，否则 TensorFlow 2.19 的 C++ 侧认不出来。
 try:
-    print("  protobuf       %s" % md.version("protobuf"))
+    major = int(md.version("protobuf").split(".")[0])
+    if major >= 6:
+        ok = False
+        print("  FAIL protobuf 主版本 %d >= 6，TensorFlow 2.19 无法使用" % major)
 except Exception:
     pass
+
 sys.exit(0 if ok else 1)
 '@
 & $py -c $verify
