@@ -17,7 +17,7 @@ dist/
 
 # 数据（体积大，不入库；raw/ 与 dataset/ 由外部备份盘维护）
 # 注意：用 `dir/*` 而非 `dir/**`，否则父目录被整体排除后，
-#       `!.../.gitkeep` 无法重新包含其中的文件（git 的目录排除优先规则）。
+#       `!.../file` 无法重新包含其中的文件（git 的目录排除优先规则）。
 data/raw/*/**
 data/frames/*/**
 data/dataset/images/*/**
@@ -26,6 +26,15 @@ data/dataset/_duplicates/*/**
 data/dataset/_smoke/*/**
 data/logos/*/**
 !data/**/.gitkeep
+
+# 例外：**小体积、高价值、不可再生**的资产必须入库
+#  - 标注文件（几十 KB）：标注成果，重跑成本高
+#  - 署名文件（几百 KB）：CC BY/SA 许可要求，丢了无法补
+# 写法要点：用 `dir/*/` 只排除**子目录**（图片），不排除该层目录本身；
+#          若写成 `dir/**` 连目录一起排除，下面的 `!` 就失效了（实测踩过）。
+data/raw/external/*/**
+!data/raw/external/attribution.jsonl
+!data/dataset/labels/**
 
 # 探测（spike）素材：Commons 图片是 CC 授权的第三方资源，不入库。
 # 保留结论文档与脚本；图像与署名清单可按 fetch_commons.py 重新拉取。

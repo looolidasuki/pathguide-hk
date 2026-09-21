@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "note": "从 Wikimedia Commons 采集训练数据。**香港分类优先**（风格贴近部署环境），不足时补全球图。用途：为『日常出行物件』文档里的类别补充网上可得的图像。注意：Commons 对香港特有设施（水马、鹰架、封锁胶带、港铁升降机）几乎无存量，那些必须实地采集。",
+  "why_two_tiers": "实测：全球分类动辄上千张，但香港分类只有几十到三百张。全球图存在风格偏移（欧美/日本街道 vs 香港），因此**先取香港、再补全球**，并把来源写进 attribution.jsonl 以便事后区分训练/评测域。",
+  "availability_probe": {
+    "note": "2026-09-18 实测的 Commons 文件数（文件/子类），供判断每类能拿到多少。",
+    "hong_kong": {
+      "trees": 294, "tables": 148, "scaffolding": 111, "benches": 99,
+      "chairs": 84, "street_vendors": 80, "bicycles": 62,
+      "traffic_cones": 44, "fire_hydrants": 7
+    },
+    "global_only": {
+      "trees": 6312, "chairs": 2451, "banners": 1124, "bicycles": 1058,
+      "tables": 817, "scaffolding": 501, "cardboard": 470, "benches": 342,
+      "cardboard_boxes": 227, "fire_hydrants": 209, "kick_scooters": 146,
+      "motor_scooters": 161, "advertising_banners": 94, "traffic_cones": 46
+    },
+    "empty_or_missing": [
+      "planter", "post_box", "fence", "signage", "utility_box",
+      "electrical_box", "steel_plate", "road_plate", "stroller", "baby_transport"
+    ]
+  },
+  "classes": [
+    {
+      "class_id": 11, "name_en": "bicycle", "name_zh": "單車",
+      "categories": ["Category:Bicycles in Hong Kong", "Category:Bicycles"]
+    },
+    {
+      "class_id": 12, "name_en": "scooter", "name_zh": "滑板車",
+      "categories": ["Category:Kick scooters", "Category:Motor scooters"]
+    },
+    {
+      "class_id": 13, "name_en": "cart_trolley", "name_zh": "手推車",
+      "categories": ["Category:Shopping carts", "Category:Hand trucks"],
+      "note": "Commons 无香港分类；社区推车与货运手推车形状差异大，可能需拆分。"
+    },
+    {
+      "class_id": 14, "name_en": "step", "name_zh": "台階",
+      "categories": ["Category:Steps", "Category:Stairs in Hong Kong"],
+      "note": "与 stairs 需区分：本类指单级/路缘台阶。"
+    },
+    {
+      "class_id": 16, "name_en": "zebra_crossing", "name_zh": "斑馬線",
+      "categories": ["Category:Zebra crossings in Hong Kong", "Category:Zebra crossings"]
+    },
+    {
+      "class_id": 20, "name_en": "sign_pictogram", "name_zh": "指示牌",
+      "categories": ["Category:Signs in Hong Kong", "Category:Pictograms"],
+      "note": "Commons 的 Signs 分类不存在，退回香港街景与通用图示。"
+    }
+  ],
+  "out_of_taxonomy_targets": {
+    "note": "这些**不是本项目的类别**，但属于『日常出行物件』文档里的物件、且 Commons 有存量。采集它们用于：(a) 验证文档里哪些能靠网上数据冷启动；(b) 作为未来扩表的候选。存入 data/raw/external/<name>/。",
+    "targets": [
+      { "name": "bench",         "categories": ["Category:Benches in Hong Kong", "Category:Benches"] },
+      { "name": "tree",          "categories": ["Category:Trees in Hong Kong", "Category:Trees"] },
+      { "name": "table",         "categories": ["Category:Outdoor tables", "Category:Tables"] },
+      { "name": "chair",         "categories": ["Category:Outdoor chairs", "Category:Chairs"] },
+      { "name": "fire_hydrant",  "categories": ["Category:Fire hydrants in Hong Kong", "Category:Fire hydrants"] },
+      { "name": "traffic_cone",  "categories": ["Category:Traffic cones in Hong Kong", "Category:Traffic cones"] },
+      { "name": "scaffold",      "categories": ["Category:Scaffolding in Hong Kong", "Category:Scaffolding"] },
+      { "name": "cardboard",     "categories": ["Category:Cardboard boxes", "Category:Cardboard"] },
+      { "name": "banner",        "categories": ["Category:Advertising banners", "Category:Banners"] },
+      { "name": "goods_on_street", "categories": ["Category:Street vendors in Hong Kong"] }
+    ]
+  },
+  "licensing": {
+    "note": "Commons 图像多为 CC BY / CC BY-SA。每张图的作者、许可证、描述页 URL 写入 attribution.jsonl。**论文引用与任何发布都必须列出署名**；CC BY-SA 还要求衍生作品同样以 SA 授权——若训练出的模型要发布，需评估这一点，或在论文中仅作学术使用声明。",
+    "attribution_file": "attribution.jsonl"
+  }
+}
