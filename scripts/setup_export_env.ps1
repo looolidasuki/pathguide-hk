@@ -59,39 +59,42 @@ uv pip install --python $py `
     "numpy<2.1"
 
 Write-Host "`n验证导入..." -ForegroundColor Yellow
-# 用**单引号** here-string：不做变量展开，因此 Python 里的引号和 $ 都不需要转义。
-$verify = @'
-import sys
-ok = True
-for name in ["tensorflow", "tf_keras", "onnx", "onnx2tf", "ultralytics"]:
-    try:
-        m = __import__(name)
-        print("  OK   %-14s %s" % (name, getattr(m, "__version__", "?")))
-    except Exception as e:
-        ok = False
-        print("  FAIL %-14s %s: %s" % (name, type(e).__name__, e))
+# 把校验代码写成临时文件再执行。
+# **不要用 `python -c <多行字符串>`**：Windows 命令行对多行参数与内嵌引号的
+# 传递不可靠，实测会被截断成 `SyntaxError: '(' was never closed`。
+$verifyPath = Join-Path ([System.IO.Path]::GetTempPath()) "dsh_verify_export_env.py"
+$verifyLines = @(
+    'import sys',
+    'ok = True',
+    'for name in ["tensorflow", "tf_keras", "onnx", "onnx2tf", "ultralytics"]:',
+    '    try:',
+    '        m = __import__(name)',
+    '        print("  OK   %-14s %s" % (name, getattr(m, "__version__", "?")))',
+    '    except Exception as e:',
+    '        ok = False',
+    '        print("  FAIL %-14s %s: %s" % (name, type(e).__name__, e))',
+    'import importlib.metadata as md',
+    'for pkg in ["protobuf", "tensorflow", "tf_keras", "onnx2tf"]:',
+    '    try:',
+    '        print("  %-14s %s" % (pkg, md.version(pkg)))',
+    '    except Exception:',
+    '        pass',
+    '# protobuf 主版本必须 < 6，否则 TensorFlow 2.19 的 C++ 侧认不出来。',
+    'try:',
+    '    major = int(md.version("protobuf").split(".")[0])',
+    '    if major >= 6:',
+    '        ok = False',
+    '        print("  FAIL protobuf 主版本 %d >= 6，TensorFlow 2.19 无法使用" % major)',
+    'except Exception:',
+    '    pass',
+    'sys.exit(0 if ok else 1)'
+)
+Set-Content -Path $verifyPath -Value $verifyLines -Encoding UTF8
+& $py $verifyPath
+$verifyExit = $LASTEXITCODE
+Remove-Item $verifyPath -Force -ErrorAction SilentlyContinue
 
-import importlib.metadata as md
-for pkg in ["protobuf", "tensorflow", "tf_keras", "onnx2tf"]:
-    try:
-        print("  %-14s %s" % (pkg, md.version(pkg)))
-    except Exception:
-        pass
-
-# protobuf 主版本必须 < 6，否则 TensorFlow 2.19 的 C++ 侧认不出来。
-try:
-    major = int(md.version("protobuf").split(".")[0])
-    if major >= 6:
-        ok = False
-        print("  FAIL protobuf 主版本 %d >= 6，TensorFlow 2.19 无法使用" % major)
-except Exception:
-    pass
-
-sys.exit(0 if ok else 1)
-'@
-& $py -c $verify
-
-if ($LASTEXITCODE -ne 0) {
+if ($verifyExit -ne 0) {
     Write-Host "`n有依赖导入失败，导出无法进行。把上面的 FAIL 行贴回来。" -ForegroundColor Red
     return
 }
