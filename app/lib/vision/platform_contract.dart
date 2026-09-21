@@ -55,6 +55,21 @@ abstract final class VisionMethods {
   /// 相机永不启动——表现为一片黑，且没有任何报错。
   static const String startPreview = 'startPreview';
 
+  /// 返回一个**可写**的目录（应用私有），用于把模型落盘。回包是路径字符串。
+  ///
+  /// 存在的原因：实测某些 ROM 上原生 `AssetManager.open()` 读不到
+  /// `flutter_assets` 下的资源，因此改由 Dart 用 rootBundle 读出、写到这里、
+  /// 原生再读文件。见 `platform_vision.dart` 中 `loadModel` 的说明。
+  static const String modelDir = 'modelDir';
+
+  /// 写入文件。入参 `{path, bytes}`。
+  static const String writeFile = 'writeFile';
+
+  /// 查询文件大小；不存在返回 -1。入参 `{path}`。
+  ///
+  /// 用来避免每次启动都重复写 10 MB 的模型。
+  static const String fileSize = 'fileSize';
+
   /// 原生侧能力与状态查询：`{ready: bool, modelPath: String?, inputSize: int?}`
   static const String status = 'status';
 }
@@ -108,4 +123,11 @@ abstract final class VisionKeys {
   // ---- status ----
   static const String ready = 'ready';
   static const String modelPath = 'modelPath';
+
+  // ---- 模型落盘 / 文件操作 ----
+  /// 文件路径。
+  static const String path = 'path';
+
+  // 文件内容字节复用上面的 [bytes]（同为 Uint8List），不另设键——
+  // 同一语义两个键名正是这个契约文件要防止的漂移。
 }

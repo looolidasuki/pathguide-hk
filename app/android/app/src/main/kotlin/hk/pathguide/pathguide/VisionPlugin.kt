@@ -58,26 +58,19 @@ class VisionPlugin(
         const val PREVIEW_VIEW = "hk.pathguide/vision/preview"
 
         /**
-         * 模型在 AssetManager 中的路径。
+         * 历史常量：早期版本从 AssetManager 读模型用的路径。
          *
-         * ★★ 这里有个**必须理解清楚**的路径约定，写错过一次：
+         * **已不再使用**，保留仅为记录这段经历，避免以后有人再走同一条路：
+         * 真机（Redmi / Android 16 / HyperOS）上 `AssetManager.open()` 读
+         * `flutter_assets/assets/models/detector.tflite` 必然 FileNotFoundException，
+         * 而同一次运行里 `assets.list()` 递归又能列出这个路径——ROM 行为与
+         * Android 文档约定不符，改路径试了三轮都无效。
          *
-         *   `AssetManager.open("X")` 会**自动加 `assets/` 前缀**去查 APK 条目 X。
-         *   也就是说，传给 open() 的字符串**不含开头的 `assets/`**。
-         *
-         * APK 里的真实条目是：
-         *   assets/flutter_assets/assets/models/detector.tflite
-         *        ^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-         *        AssetManager 自动加   传给 open() 的部分
-         *
-         * 所以正确的字符串是 `flutter_assets/assets/models/detector.tflite`。
-         * 我最初写成 `assets/flutter_assets/...`，AssetManager 去找
-         * `assets/assets/flutter_assets/...`，必然 FileNotFoundException。
-         *
-         * 另注：Android 侧不要用 pubspec 里那个 key（`assets/models/...`）——
-         * 那是 Flutter 的 AssetBundle key，与 APK 条目是两套命名。
+         * 现在模型由 Dart 侧用 rootBundle 读出、写入应用私有目录（见 modelDir /
+         * writeFile 两个方法），Kotlin 只读文件，彻底绕开 AssetManager。
          */
-        const val MODEL_ASSET = "flutter_assets/assets/models/detector.tflite"
+        @Suppress("unused")
+        const val LEGACY_MODEL_ASSET = "flutter_assets/assets/models/detector.tflite"
 
         /** 期望输入边长；模型若声明了固定形状则以模型为准。 */
         const val EXPECTED_INPUT_SIZE = 640
@@ -98,6 +91,10 @@ class VisionPlugin(
     @Volatile private var eventSink: EventChannel.EventSink? = null
 
     @Volatile var detector: YoloDetector? = null
+        private set
+
+    /** 实际加载成功的模型路径。报给 Dart 的是**真实发生过的事**，不是猜的常量。 */
+    @Volatile var loadedModelPath: String? = null
         private set
 
     @Volatile var currentPreview: PreviewView? = null
@@ -164,6 +161,37 @@ class VisionPlugin(
             // 后者的 build hook 在含空格的路径上会让 `flutter test` 失败。
             // 见 pubspec.yaml 里的说明。
             "startPreview" -> requestPermissionThenStart(result)
+
+            // ---- 模型落盘支持 ----
+            // 实测某些 ROM 上 AssetManager 读不到 flutter_assets 下的资源，
+            // 因此改为 Dart 用 rootBundle 读出、写到这里、原生再读文件。
+            "modelDir" -> result.success(context.filesDir.absolutePath)
+
+            "writeFile" -> {
+                val path = call.argument<String>("path")
+                val bytes = call.argument<ByteArray>("bytes")
+                if (path == null || bytes == null) {
+                    result.error("bad_args", "缺少 path 或 bytes", null)
+                } else {
+                    runCatching {
+                        val f = java.io.File(path)
+                        f.parentFile?.mkdirs()
+                        f.writeBytes(bytes)
+                    }.onSuccess {
+                        Log.i(TAG, "已写入 ${bytes.size / 1024} KB -> $path")
+                        result.success(null)
+                    }.onFailure {
+                        Log.e(TAG, "写入失败：$path", it)
+                        result.error("write_failed", "${it.javaClass.simpleName}: ${it.message}", null)
+                    }
+                }
+            }
+
+            "fileSize" -> {
+                val path = call.argument<String>("path")
+                val f = if (path == null) null else java.io.File(path)
+                result.success(if (f != null && f.exists()) f.length() else -1L)
+            }
             "release" -> {
                 stopCamera()
                 detector?.close()
@@ -173,7 +201,8 @@ class VisionPlugin(
             "status" -> result.success(
                 mapOf(
                     "ready" to (detector != null),
-                    "modelPath" to MODEL_ASSET,
+                    // 报实际加载成功的那个路径，不是猜的常量。
+                    "modelPath" to loadedModelPath,
                     "inputSize" to (detector?.inputSize ?: EXPECTED_INPUT_SIZE),
                 ),
             )
@@ -186,77 +215,54 @@ class VisionPlugin(
      *
      * 模型缺失时**不抛异常**：demo 在没有模型时仍要能跑界面（配假数据源），
      * 抛异常会让画面白屏，反而看不出问题出在哪。
+     *
+     * 入参 `model` 是**绝对文件路径**（由 Dart 侧用 rootBundle 把资源落盘得到）。
+     * 不再依赖 AssetManager —— 实测在某些 ROM 上 `AssetManager.open()` 读
+     * `flutter_assets/...` 必然 FileNotFoundException，而同一次运行里
+     * `assets.list()` 又能列出该路径，即 ROM 行为与文档约定不符。
      */
     private fun loadModel(call: MethodCall): Map<String, Any?> {
-        val requested = call.argument<String>("model") ?: MODEL_ASSET
+        val path = call.argument<String>("model")
         detector?.close()
         detector = null
+        loadedModelPath = null
 
-        // 逐个候选路径尝试。
-        // 注意 AssetManager 的约定：open("X") 会**自动加 `assets/` 前缀**，
-        // 所以候选里**不能**带开头的 "assets/"（见 MODEL_ASSET 的说明）。
-        // 仍保留几个历史写法作为兜底，并在全部失败时报出 APK 里实际有什么。
-        val candidates = listOf(
-            requested,
-            MODEL_ASSET,
-            "flutter_assets/assets/models/detector.tflite",
-            "assets/models/detector.tflite",
-        ).distinct()
-
-        var lastError: Exception? = null
-        for (path in candidates) {
-            try {
-                // 用 ACCESS_BUFFER：APK 里资源可能是压缩存储的，默认的
-                // open() 走文件描述符，对压缩资源不适用。
-                val bytes = context.assets.open(path, android.content.res.AssetManager.ACCESS_BUFFER)
-                    .use { it.readBytes() }
-                val det = YoloDetector(bytes, EXPECTED_INPUT_SIZE)
-                detector = det
-                startCameraIfPossible()
-                Log.i(TAG, "模型已加载：$path（${bytes.size / 1024} KB, ${det.numClasses} 类）")
-                return mapOf(
-                    "loaded" to true,
-                    "classes" to det.numClasses,
-                    "inputSize" to det.inputSize,
-                    "modelPath" to path,
-                )
-            } catch (e: Exception) {
-                lastError = e
-                Log.w(TAG, "候选路径失败：$path -> ${e.javaClass.simpleName}: ${e.message}")
-            }
+        if (path.isNullOrBlank()) {
+            return mapOf(
+                "loaded" to false, "classes" to 0, "inputSize" to EXPECTED_INPUT_SIZE,
+                "error" to "Dart 侧没有给出模型文件路径（model 参数为空）",
+            )
+        }
+        val f = java.io.File(path)
+        if (!f.exists()) {
+            val dir = f.parentFile
+            val siblings = dir?.listFiles()?.joinToString(", ") { it.name } ?: "（目录不存在）"
+            return mapOf(
+                "loaded" to false, "classes" to 0, "inputSize" to EXPECTED_INPUT_SIZE,
+                "error" to "文件不存在：$path（同目录下有：$siblings）",
+            )
         }
 
-        // 全部失败时，把 **APK 里实际存在的 tflite** 递归列出来。
-        // 这类错误只在真机上出现，拿不到文件系统就只能靠这条信息定位。
-        val hint = try {
-            val found = buildList {
-                fun walk(dir: String, depth: Int) {
-                    if (depth > 4) return
-                    val children = runCatching { context.assets.list(dir) }.getOrNull() ?: return
-                    for (c in children) {
-                        val child = if (dir.isEmpty()) c else "$dir/$c"
-                        if (c.contains(".")) {
-                            if (c.endsWith(".tflite")) add(child)
-                        } else {
-                            walk(child, depth + 1)
-                        }
-                    }
-                }
-                walk("", 0)
-            }
-            if (found.isEmpty()) "（递归查找未发现任何 .tflite）"
-            else "（APK 内实际路径：${found.joinToString(" | ")}）"
+        return try {
+            val bytes = f.readBytes()
+            val det = YoloDetector(bytes, EXPECTED_INPUT_SIZE)
+            detector = det
+            loadedModelPath = path
+            startCameraIfPossible()
+            Log.i(TAG, "模型已加载：$path（${bytes.size / 1024} KB, ${det.numClasses} 类）")
+            mapOf(
+                "loaded" to true,
+                "classes" to det.numClasses,
+                "inputSize" to det.inputSize,
+                "modelPath" to path,
+            )
         } catch (e: Exception) {
-            "（列举 assets 失败：${e.javaClass.simpleName}: ${e.message}）"
+            Log.w(TAG, "模型加载失败：$path", e)
+            mapOf(
+                "loaded" to false, "classes" to 0, "inputSize" to EXPECTED_INPUT_SIZE,
+                "error" to "读文件/建解释器失败 ${e.javaClass.simpleName}: ${e.message}",
+            )
         }
-
-        return mapOf(
-            "loaded" to false,
-            "classes" to 0,
-            "inputSize" to EXPECTED_INPUT_SIZE,
-            "error" to "找不到模型。试过：${candidates.joinToString(", ")}；" +
-                "最后错误 ${lastError?.javaClass?.simpleName}: ${lastError?.message} $hint",
-        )
     }
 
     /**

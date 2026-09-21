@@ -6,6 +6,15 @@ import 'detection.dart';
 import 'platform_contract.dart';
 import 'vision_source.dart';
 
+/// 模型在 **Flutter AssetBundle** 中的 key，与 pubspec.yaml 里声明的一致。
+///
+/// 注意这与 APK 内的条目路径是两套命名：pubspec/AssetBundle 用
+/// `assets/models/detector.tflite`，而 APK 条目是
+/// `assets/flutter_assets/assets/models/detector.tflite`。
+/// 传给 Android `AssetManager.open()` 时还要去掉开头的 `assets/`
+/// （它会自动加前缀）——这个歧义正是我们改用 rootBundle 读取的原因。
+const String defaultModelAssetKey = 'assets/models/detector.tflite';
+
 /// 平台原生视觉能力（Android CameraX + LiteRT）。
 ///
 /// ## 这一层只做两件事
@@ -53,11 +62,71 @@ class PlatformVision {
   ///
   /// 返回 `false` 表示**加载失败但 App 可以继续跑**（模型文件缺失、
   /// 输入形状不符等）。调用方应当显示明确原因，而不是白屏。
-  Future<bool> loadModel({String? path}) async {
+  ///
+  /// ## 为什么由 Dart 读资源再交给原生，而不是原生直接读 APK 内的 assets
+  ///
+  /// 实测（真机 Redmi / Android 16 / HyperOS）原生 `AssetManager.open()` 读
+  /// `flutter_assets/assets/models/detector.tflite` **必然 FileNotFoundException**，
+  /// 而同一次运行里 `assets.list()` 递归又能列出这个路径——即 ROM 行为与
+  /// Android 文档约定不符。改路径试了三轮都无效，不再与 AssetManager 纠缠。
+  ///
+  /// Flutter 自己的资源系统是可靠的（`AssetManifest.bin` 里明确列有该 key），
+  /// 所以改为：**Dart 用 rootBundle 读出字节 -> 写入应用私有目录 -> 原生读文件**。
+  /// 这样彻底绕开 AssetManager 的路径歧义。
+  ///
+  /// 代价：启动时多一次 10 MB 的写盘。用「已存在且大小一致就跳过」避免重复写。
+  Future<bool> loadModel({String? assetKey}) async {
+    final key = assetKey ?? defaultModelAssetKey;
+    String? filePath;
+    try {
+      filePath = await _materializeModelToDisk(key);
+    } catch (e) {
+      _loaded = false;
+      _error = '把模型写入应用目录失败：${e.runtimeType}: $e';
+      return false;
+    }
+    return _loadFromPath(filePath);
+  }
+
+  /// 把 Flutter 资源落盘到应用私有目录，返回绝对路径。
+  ///
+  /// 目录来自 `path_provider` 会引入额外依赖（且它会拖入 objective_c，
+  /// 见 pubspec 的说明），所以这里直接用原生提供的目录：
+  /// 由 [VisionMethods.modelDir] 返回，已保证可写。
+  Future<String> _materializeModelToDisk(String assetKey) async {
+    final dir = await _method.invokeMethod<String>(VisionMethods.modelDir);
+    if (dir == null || dir.isEmpty) {
+      throw StateError('原生未返回可写的模型目录');
+    }
+    final data = await rootBundle.load(assetKey);
+    final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+    final target = '$dir/detector.tflite';
+    // 已存在且大小一致就跳过写盘：模型是 10 MB，每次启动都写没必要。
+    //
+    // 注意类型：原生返回的是 kotlin Long，平台通道会映射成 Dart int。
+    // 但若在原生侧返回的是 Int 以外的整数类型，泛型写错会**静默得到 null**，
+    // 于是每次启动都重写一遍——所以要显式处理 null 并把类型放宽。
+    final Object? existingRaw = await _method.invokeMethod<Object?>(
+      VisionMethods.fileSize,
+      <String, Object>{VisionKeys.path: target},
+    );
+    final existing = existingRaw is num ? existingRaw.toInt() : -1;
+    if (existing == bytes.length) {
+      return target;
+    }
+    await _method.invokeMethod<void>(
+      VisionMethods.writeFile,
+      <String, Object>{VisionKeys.path: target, VisionKeys.bytes: bytes},
+    );
+    return target;
+  }
+
+  Future<bool> _loadFromPath(String? filePath) async {
     try {
       final reply = await _method.invokeMethod<Map<Object?, Object?>>(
         VisionMethods.loadModel,
-        path == null ? null : <String, Object>{VisionKeys.model: path},
+        filePath == null ? null : <String, Object>{VisionKeys.model: filePath},
       );
       _loaded = reply?[VisionKeys.loaded] == true;
       _numClasses = _asInt(reply?[VisionKeys.classes]) ?? 0;
