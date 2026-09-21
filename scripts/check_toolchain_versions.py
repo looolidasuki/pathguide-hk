@@ -141,7 +141,28 @@ def main() -> int:
         f"gradle-{gradle}-all.zip" if gradle else f"{WRAPPER} 里没找到 distributionUrl",
     ))
 
-    # ---- 2) AGP 主版本必须与 Gradle 主版本匹配 ----
+    # ---- 2) Gradle 必须满足 Flutter 的最低要求 ----
+    #
+    # Flutter 在应用 dev.flutter.flutter-gradle-plugin 时会硬性校验版本，低于
+    # 最低版直接 BUILD FAILED：
+    #     Error: Your project's Gradle version (8.13.0) is lower than Flutter's
+    #     minimum supported version of 8.14.0.
+    # 实测 Flutter 3.47.5 要求 Gradle >= 8.14.0。这条必须离线可查，
+    # 否则又要跑两分钟构建才知道。
+    FLUTTER_MIN_GRADLE = (8, 14, 0)
+    if gradle:
+        g = tuple(int(p) for p in re.findall(r"\d+", gradle)[:3]) or (0, 0, 0)
+        g = (g + (0, 0, 0))[:3]
+        checks.append(Check(
+            "Gradle 满足 Flutter 最低要求",
+            g >= FLUTTER_MIN_GRADLE,
+            f"Gradle {gradle} >= {'.'.join(map(str, FLUTTER_MIN_GRADLE))}（Flutter 3.47.5 的硬校验）"
+            if g >= FLUTTER_MIN_GRADLE
+            else f"Gradle {gradle} 低于 Flutter 要求的 "
+                 f"{'.'.join(map(str, FLUTTER_MIN_GRADLE))}，构建会直接 FAILED",
+        ))
+
+    # ---- 3) AGP 主版本必须与 Gradle 主版本匹配 ----
     if agp and gradle:
         a, g = major_minor(agp), major_minor(gradle)
         if a[0] == 9:
