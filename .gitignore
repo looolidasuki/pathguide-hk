@@ -121,7 +121,15 @@ data/xtest/**
 # 执行沙箱禁止写入工作区外，所以它们只能落在此处；**绝不能入库**。
 .tools/
 
+# TFLite 导出专用环境。
+# 导出链（onnx2tf + TF 2.19）与训练链（ultralytics + torch）依赖冲突，必须分开；
+# 见 scripts/setup_export_env.ps1 的说明。
+.venv-export/
+# onnx2tf 留在仓库根的校准数据（每次导出会重新下载）
+calibration_image_sample_data_*.npy*
+
 # 终端输出转存（排查用，不入库）
 /test.txt
 /analyze.txt
+/run_log.txt
 /flutter_*.log
