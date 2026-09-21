@@ -54,6 +54,7 @@ data/eval/**
 
 # 自动预标产出的训练数据集（由 auto_annotate.py --dataset 生成）
 data/dataset_*_demo/**
+data/_ablation_pre_review/**
 data/dataset_*/images/**
 data/dataset_*/labels/**
 

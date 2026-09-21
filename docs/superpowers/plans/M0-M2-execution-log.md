@@ -171,3 +171,12 @@ python scripts\export_model.py --weights runs\pg_pipeline\weights\best.pt --int8
 ### 完成 M0–M2 后
 
 进入 M3（Flutter Demo）。M2 出口验收模板见计划 Task 12；M3 的输入契约是 `app/assets/models/detector.tflite` + `configs/classes.json` + `configs/logos.json`。
+
+---
+
+## 7. 后续执行记录
+
+| 日期 | 内容 | 文档 |
+|---|---|---|
+| 2026-09-22 | 人工复核一轮（trashbin 44 张）：跑通「预标 → 人工复核 → 回写 → 重训」闭环；新增 `xlabel_io.py`、`single_source.py`；实测人工复核 0 微调 / 5 删误检 / 41 补漏检，零框图像 9 → 0；对照实验 mAP@0.5 0.502 → 0.788、macro Recall 0.500 → 0.750 | [`2026-09-22-human-review-round-trashbin.md`](2026-09-22-human-review-round-trashbin.md) |
+

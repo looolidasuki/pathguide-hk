@@ -219,30 +219,37 @@ def step_export(args: argparse.Namespace, best: Path) -> dict:
     return out
 
 
-def write_report(args: argparse.Namespace, elapsed: float, summary: dict,
-                 export_info: dict, best: Path) -> None:
-    banner("8/8", "汇总运行报告")
-    import csv
-
-    manifest = DATASET_DIR / "manifest.csv"
-    n_images = 0
-    if manifest.exists():
-        with manifest.open(encoding="utf-8-sig", newline="") as f:
-            n_images = sum(1 for _ in csv.DictReader(f))
-    split = json.loads((DATASET_DIR / "split.json").read_text(encoding="utf-8"))
-
+def build_report(*, data_source: str, n_images: int, split: dict, elapsed: float,
+                 summary: dict, export_info: dict, best: Path,
+                 base_model: str, epochs: int, imgsz: int, batch: int,
+                 workers: int, now: str | None = None) -> str:
+    """生成报告文本。纯函数，便于测试——报告里的错误不会让任何东西报错。"""
+    now = now or time.strftime("%Y-%m-%d %H:%M:%S")
     lines = [
         "# 流水线端到端运行报告",
         "",
-        f"- 运行时间：{time.strftime('%Y-%m-%d %H:%M:%S')}",
+        f"- 运行时间：{now}",
         f"- 总耗时：{elapsed / 60:.1f} 分钟",
-        f"- 数据集：合成数据，{n_images} 张图像（仅用于验证流水线，不可用于交付模型）",
+        f"- 数据源：{data_source}",
+        f"- 数据集：{n_images} 张图像",
         f"- 划分：train={split['counts']['train']} / val={split['counts']['val']} / test={split['counts']['test']}",
         f"- 划分 seed：{split['seed']}",
-        f"- 基础模型：{args.base_model}",
-        f"- 训练：{args.epochs} epochs, imgsz={args.imgsz}, batch={args.batch}, workers={args.workers}",
+        f"- 基础模型：{base_model}",
+        f"- 训练：{epochs} epochs, imgsz={imgsz}, batch={batch}, workers={workers}",
         f"- 权重：`{best.relative_to(REPO_ROOT).as_posix()}`",
         "",
+    ]
+
+    if split.get("single_source"):
+        lines += [
+            "> **指标可信度警告：单来源划分。** " + split.get("single_source_note", ""),
+            "> 同一地点连拍的相邻帧几乎相同，train 与 test 高度相似，",
+            "> 下列数字**高于真实泛化性能**，只能用于横向对比与链路验证，",
+            "> **不得作为论文性能结论**。最终性能必须来自 ≥ 3 个独立采集点位的划分。",
+            "",
+        ]
+
+    lines += [
         "## 整体指标（test 折）",
         "",
         f"- mAP@0.5：{summary['map50']:.4f}",
@@ -264,7 +271,8 @@ def write_report(args: argparse.Namespace, elapsed: float, summary: dict,
         lines.append(f"- 已跳过：{export_info['skipped']}")
         lines.append("- 在普通终端执行：")
         lines.append("  ```")
-        lines.append("  python scripts\\export_model.py --weights runs\\pg_pipeline\\weights\\best.pt --int8")
+        lines.append(f"  python scripts\\export_model.py --weights "
+                     f"{best.relative_to(REPO_ROOT).as_posix()} --int8")
         lines.append("  ```")
     elif "int8_path" in export_info:
         lines.append(f"- TFLite INT8：`{Path(export_info['int8_path']).name}` "
@@ -275,34 +283,62 @@ def write_report(args: argparse.Namespace, elapsed: float, summary: dict,
             lines.append(f"- TFLite FP32 回退：`{Path(export_info['fp32_path']).name}` "
                          f"（{export_info['fp32_size_mb']} MB）")
 
+    model_label = Path(base_model).stem
     lines += [
         "",
         "## 流水线各环节状态",
         "",
         "| 环节 | 脚本 | 状态 |",
         "|---|---|---|",
-        "| 生成合成数据 | `scripts/gen_synthetic.py` | OK |",
         "| manifest | `scripts/make_manifest.py` | OK |",
         "| 分组分层划分 | `scripts/split_dataset.py` | OK（含泄漏校验） |",
         "| 标签门禁 | `scripts/check_labels.py` | OK |",
-        "| 训练 | Ultralytics YOLOv8n | OK |",
+        f"| 训练 | Ultralytics {model_label} | OK |",
         "| 评测 | Ultralytics val | OK |",
         "| 导出 | Ultralytics export | OK |",
         "",
         "## 说明",
         "",
-        "本报告验证的是**流水线可用性**，不是模型性能。合成数据的指标没有实际意义。",
-        "真人采集数据到位后，清空 `data/dataset/` 并按 M0–M2 计划重跑；",
-        "届时只需把第 1 步替换为 `extract_frames.py` → `dedup.py`。",
+    ]
+    if "合成" in data_source:
+        lines.append("本报告验证的是**流水线可用性**，不是模型性能。合成数据的指标没有实际意义。")
+        lines.append("真人采集数据到位后，清空 `data/dataset/` 并按 M0–M2 计划重跑；"
+                     "届时只需把第 1 步替换为 `extract_frames.py` → `dedup.py`。")
+    else:
+        lines.append("本报告的数据为真人采集/复核数据。")
+    if split.get("single_source"):
+        lines.append("本报告的单来源指标**偏乐观**，仅用于横向对比（如人工复核前后），"
+                     "不可作为论文性能结论。")
+    lines += [
         "",
         "## 待人工完成",
         "",
         "- INT8 量化后的精度复测（Ultralytics 的 `val()` 不支持 TFLite 后端，需自行用 tflite_runtime 跑前向）",
         "- 真机基准测试（延迟 P50/P95、内存、发热）",
     ]
+    return "\n".join(lines)
 
+
+def write_report(args: argparse.Namespace, elapsed: float, summary: dict,
+                 export_info: dict, best: Path) -> None:
+    banner("8/8", "汇总运行报告")
+    import csv
+
+    manifest = DATASET_DIR / "manifest.csv"
+    n_images = 0
+    if manifest.exists():
+        with manifest.open(encoding="utf-8-sig", newline="") as f:
+            n_images = sum(1 for _ in csv.DictReader(f))
+    split = json.loads((DATASET_DIR / "split.json").read_text(encoding="utf-8"))
+
+    text = build_report(
+        data_source=args.data_source, n_images=n_images, split=split,
+        elapsed=elapsed, summary=summary, export_info=export_info, best=best,
+        base_model=args.base_model, epochs=args.epochs, imgsz=args.imgsz,
+        batch=args.batch, workers=args.workers,
+    )
     REPORT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    REPORT_PATH.write_text("\n".join(lines), encoding="utf-8")
+    REPORT_PATH.write_text(text, encoding="utf-8")
     print(f"报告 -> {REPORT_PATH}")
 
 
@@ -321,10 +357,17 @@ def main() -> int:
     ap.add_argument("--per-class", type=int, default=24)
     ap.add_argument("--sources", type=int, default=8)
     ap.add_argument("--skip-generate", action="store_true")
+    ap.add_argument("--data-source", default=None,
+                    help="报告里对数据来源的说明。默认按 --skip-generate 推断："
+                         "跳过了合成就不是合成数据——不要把真人采集的数据写进报告说成合成。")
     ap.add_argument("--export", action="store_true",
                     help="是否导出 TFLite。**默认关闭**：导出会下载 TensorFlow 并通过管道 stdio 调用"
                          "转换子进程，在受限沙箱中会挂起。请在普通终端中单独执行导出。")
     args = ap.parse_args()
+
+    if args.data_source is None:
+        args.data_source = ("复用现有数据集（真人采集/人工复核）"
+                            if args.skip_generate else "合成数据（仅用于验证流水线）")
 
     print(f"仓库根目录：{REPO_ROOT}")
     print(f"Python：{PY}")
