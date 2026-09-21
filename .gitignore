@@ -120,3 +120,8 @@ data/xtest/**
 # Flutter SDK（1.9GB）与 Flutter/Gradle/pub 的缓存都在这里。
 # 执行沙箱禁止写入工作区外，所以它们只能落在此处；**绝不能入库**。
 .tools/
+
+# 终端输出转存（排查用，不入库）
+/test.txt
+/analyze.txt
+/flutter_*.log
