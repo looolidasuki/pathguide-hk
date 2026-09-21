@@ -82,6 +82,12 @@ weights/
 *.pt
 *.onnx
 *.tflite
+# 例外：App 要用的那个检测模型必须入库。
+# 它是「端侧推理能否跑通」的产物，重新导出要装一整套 TensorFlow 依赖链
+# （见 scripts/setup_export_env.ps1），不该让克隆仓库的人再走一遍。
+# 注意：被排除的目录里的文件无法用 ! 重新包含，所以这里只对具体文件放行，
+# 且父目录 app/assets/models/ 没有被 * 规则整目录排除。
+!app/assets/models/detector.tflite
 
 # IDE
 .idea/

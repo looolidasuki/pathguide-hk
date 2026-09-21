@@ -78,10 +78,18 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
-  # assets:
-  #   - images/a_dot_burr.jpeg
-  #   - images/a_dot_ham.jpeg
+  # ★ 必须显式声明，否则模型**不会被打进 APK**。
+  # 声明的 key 就是原生侧读资源用的路径：Kotlin 里的
+  #   context.assets.open("assets/models/detector.tflite")
+  # 与这里的 "assets/models/" 前缀必须完全对应——不一致时表现为
+  # 加载模型失败（界面会显示「模型未加载」），而不是崩溃。
+  #
+  # 模型由 scripts/export_tflite.py 生成并自动复制到这里。
+  # 当前内容是 float32 版（10.13 MB）。项目出口条件是 < 10 MB，
+  # 而同一份权重的 int8 版只有 2.85 MB——**先用 float32 验证链路能出框，
+  # 再换 int8 并对比精度损失**，见毕设设计 §10 的 M2 验收项。
+  assets:
+    - assets/models/detector.tflite
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
