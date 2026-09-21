@@ -244,12 +244,17 @@ class VisionPlugin(
         }
 
         return try {
-            val bytes = f.readBytes()
-            val det = YoloDetector(bytes, EXPECTED_INPUT_SIZE)
+            // ★ LiteRT 不接受堆缓冲 `ByteBuffer.wrap(byte[])`，会抛
+            //     IllegalArgumentException: Model ByteBuffer should be either a
+            //     MappedByteBuffer of the model file, or a direct ByteBuffer using
+            //     ByteOrder.nativeOrder()
+            // 所以用**文件内存映射**：既满足要求，又省掉一次 10 MB 的内存拷贝。
+            // 这也正是当初该直接用文件路径、而不是先在 Dart 侧读成字节的原因之一。
+            val det = YoloDetector.fromFile(f, EXPECTED_INPUT_SIZE)
             detector = det
             loadedModelPath = path
             startCameraIfPossible()
-            Log.i(TAG, "模型已加载：$path（${bytes.size / 1024} KB, ${det.numClasses} 类）")
+            Log.i(TAG, "模型已加载：$path（${f.length() / 1024} KB, ${det.numClasses} 类）")
             mapOf(
                 "loaded" to true,
                 "classes" to det.numClasses,
@@ -549,9 +554,33 @@ data class Detection(
  * 类别数**从张量形状反推**，不信任外部类别表——模型与类别表不一致时
  * 靠形状就能发现，比静默错位好。
  */
-class YoloDetector(modelBytes: ByteArray, expectedInput: Int) {
+class YoloDetector private constructor(
+    private val interpreter: Interpreter,
+    expectedInput: Int,
+) {
+    companion object {
+        /**
+         * 从**文件路径**构建，用内存映射。
+         *
+         * LiteRT 的 `Interpreter` 要求模型缓冲是 `MappedByteBuffer` 或
+         * 原生字节序的直接缓冲；传 `ByteBuffer.wrap(byte[])`（堆缓冲）会抛
+         * IllegalArgumentException: Model ByteBuffer should be either a
+         * MappedByteBuffer of the model file, or a direct ByteBuffer...
+         * 内存映射同时省掉一次整模型的内存拷贝。
+         */
+        fun fromFile(file: java.io.File, expectedInput: Int): YoloDetector {
+            val mapped = java.io.RandomAccessFile(file, "r").use { raf ->
+                raf.channel.map(
+                    java.nio.channels.FileChannel.MapMode.READ_ONLY, 0, raf.length(),
+                )
+            }
+            return YoloDetector(
+                Interpreter(mapped, Interpreter.Options().apply { setNumThreads(4) }),
+                expectedInput,
+            )
+        }
+    }
 
-    private val interpreter: Interpreter
     val inputSize: Int
     val numClasses: Int
     private val numAnchors: Int
@@ -569,10 +598,6 @@ class YoloDetector(modelBytes: ByteArray, expectedInput: Int) {
         private set
 
     init {
-        interpreter = Interpreter(
-            ByteBuffer.wrap(modelBytes),
-            Interpreter.Options().apply { setNumThreads(4) },
-        )
         val inShape = interpreter.getInputTensor(0).shape()
         require(inShape.size == 4) { "输入张量应为 4 维，实际 ${inShape.toList()}" }
         require(inShape[3] == 3) { "输入通道应为 3，实际 ${inShape[3]}" }
