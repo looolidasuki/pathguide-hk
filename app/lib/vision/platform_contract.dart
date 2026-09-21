@@ -42,6 +42,13 @@ abstract final class VisionMethods {
   /// 白白消耗每帧的序列化开销。
   static const String setThreshold = 'setThreshold';
 
+  /// 请求原生侧启动相机预览。回包 `{started: bool}`。
+  ///
+  /// **必须在 Dart 侧拿到相机权限之后调用。** 权限是运行时申请的，
+  /// 若原生只在插件构造时检查一次，用户授权后原生仍停留在「无权限」，
+  /// 相机永不启动——表现为一片黑，且没有任何报错。
+  static const String startPreview = 'startPreview';
+
   /// 原生侧能力与状态查询：`{ready: bool, modelPath: String?, inputSize: int?}`
   static const String status = 'status';
 }

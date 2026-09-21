@@ -46,7 +46,6 @@ import kotlin.math.min
  */
 class VisionPlugin(
     private val context: Context,
-    private val cameraGranted: Boolean,
 ) : FlutterPlugin {
 
     companion object {
@@ -126,6 +125,14 @@ class VisionPlugin(
                     result.success(null)
                 }
             }
+            // Dart 侧拿到相机权限后调用。**必须在授权之后真的能被调用到**：
+            // 权限是运行时申请的，若只在插件构造时检查一次，用户授权后
+            // 原生侧仍停留在「无权限」状态，相机永不启动，表现为一片黑且无报错。
+            "startPreview" -> {
+                val granted = hasCameraPermission()
+                if (granted) startCameraIfPossible()
+                result.success(mapOf("started" to granted))
+            }
             "release" -> {
                 stopCamera()
                 detector?.close()
@@ -204,11 +211,17 @@ class VisionPlugin(
         startCameraIfPossible()
     }
 
+    private fun hasCameraPermission(): Boolean =
+        ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) ==
+            android.content.pm.PackageManager.PERMISSION_GRANTED
+
     fun startCameraIfPossible() {
         val view = currentPreview ?: return
         if (detector == null) return
-        if (!cameraGranted) {
-            Log.w(TAG, "未授予相机权限，预览不启动")
+        // 每次**动态**检查权限。缓存这个结果会导致：用户在 Dart 侧授权之后，
+        // 原生侧仍认为无权限，相机永远不启动，屏幕上只有一片黑、也没有异常。
+        if (!hasCameraPermission()) {
+            Log.w(TAG, "尚未授予相机权限，预览不启动；授权后请调用 startPreview")
             return
         }
         val future = ProcessCameraProvider.getInstance(context)

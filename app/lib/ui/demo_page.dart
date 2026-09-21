@@ -85,11 +85,19 @@ class _DemoPageState extends State<DemoPage> {
   }
 
   Future<void> _requestCamera() async {
-    if (Platform.isAndroid || Platform.isIOS) {
-      final status = await Permission.camera.request();
-      if (!status.isGranted && mounted) {
-        setState(() => _status = '未授予相机权限，请到系统设置里开启后重进');
-      }
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    final status = await Permission.camera.request();
+    if (!mounted) return;
+    if (!status.isGranted) {
+      setState(() => _status = '未授予相机权限，请到系统设置里开启后重进');
+      return;
+    }
+    // 授权成功后**必须显式通知原生侧**：原生不能自己知道 Dart 刚授权了。
+    // 漏掉这一步的表现是预览一片黑，而日志里只有一条「尚未授予相机权限」。
+    final started = await _platform.startPreview();
+    if (!mounted) return;
+    if (!started) {
+      setState(() => _status = '相机未启动：原生侧报告失败（检查权限与设备占用）');
     }
   }
 

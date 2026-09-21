@@ -120,6 +120,24 @@ class PlatformVision {
     }
   }
 
+  /// 请求原生侧启动相机预览。返回是否真的启动了。
+  ///
+  /// 时序上必须在**拿到相机权限之后**调用，否则原生侧会因无权限而拒绝，
+  /// 且不报错（只有一条日志）。这一条曾经写错过：早期版本在插件构造时
+  /// 缓存权限状态，导致用户授权后仍然没有预览。
+  Future<bool> startPreview() async {
+    try {
+      final reply = await _method.invokeMethod<Map<Object?, Object?>>(
+        VisionMethods.startPreview,
+      );
+      return reply?['started'] == true;
+    } on PlatformException {
+      return false;
+    } on MissingPluginException {
+      return false;
+    }
+  }
+
   Future<void> release() async {
     try {
       await _method.invokeMethod<void>(VisionMethods.release);
