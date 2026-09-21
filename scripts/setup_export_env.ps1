@@ -57,6 +57,7 @@ uv pip install --python $py `
     "tensorflow==2.19.0" `
     "tf_keras==2.19.0" `
     "protobuf>=4.25.3,<6" `
+    "ai-edge-litert" `
     "onnx2tf" `
     "sng4onnx" `
     "onnx_graphsurgeon" `
@@ -65,6 +66,14 @@ uv pip install --python $py `
     "onnxslim" `
     "ultralytics==8.3.253" `
     "numpy<2.1"
+
+# 为什么 ai-edge-litert 必须显式列出：
+#   onnx2tf 1.28.8 的 utils/common_functions.py 第 20 行是**无条件** import：
+#       from ai_edge_litert.interpreter import Interpreter
+#   没有 try/except 兜底，缺了就 ModuleNotFoundError。虽然 TensorFlow 2.19 自带
+#   等价的 tensorflow.lite.Interpreter，但 onnx2tf 不认。
+#   它的依赖是松散的（protobuf 无版本约束），因此**必须与 protobuf 一起装**，
+#   并且靠上面的 <6 约束阻止它把 protobuf 抬到 7——那正是让 TF 2.19 失效的原因。
 
 Write-Host "`n验证导入..." -ForegroundColor Yellow
 # 把校验代码写成临时文件再执行。
