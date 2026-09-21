@@ -187,7 +187,14 @@ def main() -> int:
             f"Gradle {gradle} / AGP {agp}（同主版本是安全区间）",
         ))
 
-    # ---- 3) AGP 9 专有属性不得残留 ----
+    # ---- 3) AGP 9 专有属性残留（警告级，不是失败级）----
+    #
+    # 实测结论：这两行**在实践中无害**。曾有一次构建在它们存在的状态下
+    # 通过了这项检查、一路走到 Flutter 的 Kotlin 版本校验才失败——
+    # 说明 AGP 8.13.2 会忽略未知的 android.* 属性。
+    # 因此这里降为 warning：删掉更干净，但不值得为它阻断构建。
+    # 注意 Flutter migrator 会反复把它们加回来（注释写着 "added automatically
+    # by Flutter migrator"），所以指望它长期不存在是不现实的。
     props = _read(GRADLE_PROPS)
     stale = [k for k in ("android.newDsl", "android.builtInKotlin")
              if re.search(rf"^\s*{re.escape(k)}\s*=", props, re.MULTILINE)]
@@ -195,11 +202,13 @@ def main() -> int:
         checks.append(Check(
             "无 AGP 9 专有属性残留",
             False,
-            f"gradle.properties 里仍有 {stale}，但 AGP 是 {agp}（8.x）；"
-            f"未知 android.* 属性可能导致配置阶段失败",
+            f"gradle.properties 里有 {stale}（AGP 9 属性，当前 AGP {agp}）。"
+            f"实测无害（AGP 8 会忽略），删掉更干净；Flutter migrator 会反复加回",
+            severity="warning",
         ))
     else:
-        checks.append(Check("无 AGP 9 专有属性残留", True, "无残留" if not stale else f"{stale}（AGP 9 下正常）"))
+        checks.append(Check("无 AGP 9 专有属性残留", True,
+                            "无残留" if not stale else f"{stale}（AGP 9 下属正常）"))
 
     # ---- 4) Kotlin 插件版本与 AGP 主版本 ----
     if kotlin and agp:
@@ -209,6 +218,39 @@ def main() -> int:
             "Kotlin 插件与 AGP 兼容",
             ok,
             f"Kotlin Gradle 插件 {kotlin} / AGP {agp}",
+        ))
+
+    # ---- 4) Kotlin 插件必须满足 Flutter 的最低要求，且与 flutter_tts 一致 ----
+    #
+    # Flutter 硬校验 KGP 版本，低于最低版直接 BUILD FAILED：
+    #     Error: Your project's Kotlin version (2.1.0) is lower than Flutter's
+    #     minimum supported version of 2.2.20.
+    # 实测 Flutter 3.47.5 要求 Kotlin >= 2.2.20。
+    #
+    # 另外 flutter_tts 的 android/build.gradle 自己声明了
+    #     ext.kotlin_version = '2.2.20'
+    # 项目侧取同一版本可消除 buildscript classpath 与 plugins block 之间的漂移。
+    FLUTTER_MIN_KOTLIN = (2, 2, 20)
+    FLUTTER_TTS_KOTLIN = "2.2.20"
+    if kotlin:
+        k = tuple(int(p) for p in re.findall(r"\d+", kotlin)[:3])
+        k = (k + (0, 0, 0))[:3]
+        checks.append(Check(
+            "Kotlin 插件满足 Flutter 最低要求",
+            k >= FLUTTER_MIN_KOTLIN,
+            f"Kotlin 插件 {kotlin} >= {'.'.join(map(str, FLUTTER_MIN_KOTLIN))}"
+            f"（Flutter 3.47.5 的硬校验）"
+            if k >= FLUTTER_MIN_KOTLIN
+            else f"Kotlin 插件 {kotlin} 低于 Flutter 要求的 "
+                 f"{'.'.join(map(str, FLUTTER_MIN_KOTLIN))}，构建会直接 FAILED",
+        ))
+        checks.append(Check(
+            "Kotlin 插件与 flutter_tts 声明一致",
+            kotlin == FLUTTER_TTS_KOTLIN,
+            f"项目 {kotlin} / flutter_tts 声明 {FLUTTER_TTS_KOTLIN}"
+            + ("" if kotlin == FLUTTER_TTS_KOTLIN
+               else "（不一致会带来 buildscript 与 plugins block 的版本漂移）"),
+            severity="warning",
         ))
 
     # ---- 5) jvmTarget 与 Android 工具链 ----
@@ -255,10 +297,12 @@ def main() -> int:
 
     # ---- 输出 ----
     errors = [c for c in checks if not c.ok and c.severity == "error"]
+    warns = [c for c in checks if not c.ok and c.severity == "warning"]
     if args.json:
         print(json.dumps(
-            {"checks": [{"name": c.name, "ok": c.ok, "detail": c.detail} for c in checks],
-             "errors": len(errors),
+            {"checks": [{"name": c.name, "ok": c.ok, "severity": c.severity,
+                         "detail": c.detail} for c in checks],
+             "errors": len(errors), "warnings": len(warns),
              "toolchain": {"gradle": gradle, "agp": agp, "kotlin": kotlin,
                            "flutter": flutter, "litert": litert, "camerax": camerax,
                            "flutter_tts": tts}},
@@ -273,13 +317,21 @@ def main() -> int:
           f"flutter_tts {tts or '?'} / jvmTarget {jvm or '?'}")
     print("=" * 62)
     for c in checks:
-        mark = "OK  " if c.ok else "FAIL"
+        if c.ok:
+            mark = "OK   "
+        else:
+            mark = "WARN " if c.severity == "warning" else "FAIL "
         print(f"[{mark}] {c.name}")
         print(f"        {c.detail}")
     print("=" * 62)
     if errors:
         print(f"{len(errors)} 项不一致——先按上面的说明修，不要直接跑构建。")
+        if warns:
+            print(f"（另有 {len(warns)} 项警告，不阻断构建）")
         return 1
+    if warns:
+        print(f"全部通过；{len(warns)} 项警告不阻断构建。可以跑构建/导出。")
+        return 0
     print("全部一致。可以放心跑构建/导出。")
     return 0
 

@@ -19,13 +19,16 @@ pluginManagement {
 
 plugins {
     id("dev.flutter.flutter-plugin-loader") version "1.0.0"
-    // 刻意不用模板默认的 AGP 9.1.0。AGP 9 要求所有插件改用 built-in Kotlin，
-    // 而 flutter_tts 仍按旧方式应用 Kotlin Gradle Plugin，构建会失败
+    // 刻意不用模板默认的 AGP 9.1.0 + Kotlin 2.4.0。依据是 flutter_tts 4.2.5 自己的
+    // android/build.gradle：
+    //     ext.kotlin_version = '2.2.20'
+    //     classpath 'com.android.tools.build:gradle:8.13.0'
+    //     apply plugin: 'kotlin-android'        <- 旧式 KGP 应用方式
+    // AGP 9 要求所有插件改用 built-in Kotlin，与旧式应用方式冲突，构建必失败
     // （flutter/flutter#192111、#192167）。
-    // 取 AGP 8.x 的最后一个稳定版 8.13.2（已查 Google Maven 确认存在），
-    // 最可能与 Flutter 3.47 配合；Gradle 相应停在 8.13。
+    // Kotlin 取 2.2.20 而不取 2.2.21：与 flutter_tts 完全一致可消除版本漂移。
     id("com.android.application") version "8.13.2" apply false
-    id("org.jetbrains.kotlin.android") version "2.1.0" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.20" apply false
 }
 
 include(":app")
