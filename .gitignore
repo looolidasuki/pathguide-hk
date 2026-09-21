@@ -115,3 +115,8 @@ service-account*.json
 .anylabeling_labels.txt
 # 人工复核用的试跑目录（由 to_xanylabeling.py 生成，可重复生成）
 data/xtest/**
+
+# 工具链
+# Flutter SDK（1.9GB）与 Flutter/Gradle/pub 的缓存都在这里。
+# 执行沙箱禁止写入工作区外，所以它们只能落在此处；**绝不能入库**。
+.tools/

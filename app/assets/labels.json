@@ -1,0 +1,225 @@
+{
+  "generated_from": "configs/classes.json",
+  "note": "由 scripts/gen_dart_labels.py 生成，请勿手工编辑。",
+  "num_classes": 24,
+  "announcement_order": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    6,
+    7,
+    8,
+    9,
+    11,
+    14,
+    17,
+    19,
+    21,
+    5,
+    10,
+    12,
+    13,
+    15,
+    16,
+    18,
+    20,
+    22,
+    23
+  ],
+  "labels": [
+    {
+      "id": 0,
+      "name_en": "footbridge_entrance",
+      "name_zh": "天橋入口",
+      "group": "footbridge",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 1,
+      "name_en": "stairs",
+      "name_zh": "樓梯",
+      "group": "footbridge",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 2,
+      "name_en": "escalator_outdoor",
+      "name_zh": "戶外扶梯",
+      "group": "footbridge",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 3,
+      "name_en": "elevator",
+      "name_zh": "升降機",
+      "group": "footbridge",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 4,
+      "name_en": "ramp",
+      "name_zh": "斜道",
+      "group": "footbridge",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 5,
+      "name_en": "footbridge_railing",
+      "name_zh": "天橋欄杆",
+      "group": "footbridge",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 6,
+      "name_en": "pedestrian",
+      "name_zh": "行人",
+      "group": "obstacle",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 7,
+      "name_en": "bin",
+      "name_zh": "垃圾桶",
+      "group": "obstacle",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 8,
+      "name_en": "bollard",
+      "name_zh": "護柱",
+      "group": "obstacle",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 9,
+      "name_en": "traffic_cone",
+      "name_zh": "交通錐",
+      "group": "obstacle",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 10,
+      "name_en": "barrier_water",
+      "name_zh": "水馬",
+      "group": "obstacle",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 11,
+      "name_en": "bicycle",
+      "name_zh": "單車",
+      "group": "obstacle",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 12,
+      "name_en": "scooter",
+      "name_zh": "滑板車",
+      "group": "obstacle",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 13,
+      "name_en": "cart_trolley",
+      "name_zh": "手推車",
+      "group": "obstacle",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 14,
+      "name_en": "step",
+      "name_zh": "台階",
+      "group": "obstacle",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 15,
+      "name_en": "tactile_paving",
+      "name_zh": "盲道",
+      "group": "guide",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 16,
+      "name_en": "zebra_crossing",
+      "name_zh": "斑馬線",
+      "group": "guide",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 17,
+      "name_en": "glass_door",
+      "name_zh": "玻璃門",
+      "group": "indoor",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 18,
+      "name_en": "door",
+      "name_zh": "推拉門",
+      "group": "indoor",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 19,
+      "name_en": "escalator_indoor",
+      "name_zh": "商場扶梯",
+      "group": "indoor",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 20,
+      "name_en": "sign_pictogram",
+      "name_zh": "指示牌",
+      "group": "indoor",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 21,
+      "name_en": "glass_door_indoor",
+      "name_zh": "商場玻璃門",
+      "group": "indoor",
+      "priority": "P0",
+      "announced": true
+    },
+    {
+      "id": 22,
+      "name_en": "shop_front",
+      "name_zh": "店鋪門面",
+      "group": "classifier",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 23,
+      "name_en": "ambiguous_vertical",
+      "name_zh": "垂直設施不明",
+      "group": "train_only",
+      "priority": "P0",
+      "announced": false
+    }
+  ]
+}
