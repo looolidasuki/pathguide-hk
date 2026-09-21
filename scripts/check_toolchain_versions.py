@@ -295,6 +295,23 @@ def main() -> int:
         else "文件缺失；跑 scripts/export_tflite.py 生成",
     ))
 
+    # ---- 9) Kotlin 里的模型 asset 路径必须与 APK 内实际布局一致 ----
+    #
+    # 实测踩过：pubspec 声明 `assets/models/detector.tflite`，但 Flutter 会把资源
+    # 重新挂到 `flutter_assets/` 之下，打包后真实路径是
+    # `assets/flutter_assets/assets/models/detector.tflite`。
+    # 写错时 assets.open() 抛 FileNotFoundException，界面只显示「模型未加载」。
+    kotlin_src = _read(ANDROID_DIR / "app" / "src" / "main" / "kotlin"
+                       / "hk" / "pathguide" / "pathguide" / "VisionPlugin.kt")
+    has_multi_path = "candidates" in kotlin_src and "flutter_assets" in kotlin_src
+    checks.append(Check(
+        "loadModel 有多路径兜底",
+        has_multi_path,
+        "loadModel 依次尝试多个候选路径，全部失败时报出 APK 里实际的 .tflite"
+        if has_multi_path
+        else "loadModel 只试单一路径——路径写错时只能靠 unzip 手工排查",
+    ))
+
     # ---- 输出 ----
     errors = [c for c in checks if not c.ok and c.severity == "error"]
     warns = [c for c in checks if not c.ok and c.severity == "warning"]

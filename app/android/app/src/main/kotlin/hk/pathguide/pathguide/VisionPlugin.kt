@@ -57,8 +57,18 @@ class VisionPlugin(
         const val FRAME_CHANNEL = "hk.pathguide/vision/frame"
         const val PREVIEW_VIEW = "hk.pathguide/vision/preview"
 
-        /** 模型在 assets 中的路径。 */
-        const val MODEL_ASSET = "assets/models/detector.tflite"
+        /**
+         * 模型在 **Android AssetManager** 中的路径。
+         *
+         * ★ 注意前缀：pubspec.yaml 里声明的是 `assets/models/detector.tflite`，
+         * 但 Flutter 会把资源重新挂到 `flutter_assets/` 之下，所以打包进 APK 后
+         * 实际路径是 `assets/flutter_assets/assets/models/detector.tflite`
+         * （已用 unzip 列出 APK 内容确认）。
+         *
+         * 写错这一处的表现是：模型明明在 APK 里，`assets.open()` 却抛
+         * FileNotFoundException，界面上显示「模型未加载」——不崩溃，也不提示路径。
+         */
+        const val MODEL_ASSET = "assets/flutter_assets/assets/models/detector.tflite"
 
         /** 期望输入边长；模型若声明了固定形状则以模型为准。 */
         const val EXPECTED_INPUT_SIZE = 640
@@ -169,24 +179,55 @@ class VisionPlugin(
      * 抛异常会让画面白屏，反而看不出问题出在哪。
      */
     private fun loadModel(call: MethodCall): Map<String, Any?> {
-        val path = call.argument<String>("model") ?: MODEL_ASSET
+        val requested = call.argument<String>("model") ?: MODEL_ASSET
         detector?.close()
         detector = null
-        return try {
-            val bytes = context.assets.open(path).readBytes()
-            val det = YoloDetector(bytes, EXPECTED_INPUT_SIZE)
-            detector = det
-            startCameraIfPossible()
-            mapOf("loaded" to true, "classes" to det.numClasses, "inputSize" to det.inputSize)
-        } catch (e: Exception) {
-            Log.w(TAG, "加载模型失败：$path", e)
-            mapOf(
-                "loaded" to false,
-                "classes" to 0,
-                "inputSize" to EXPECTED_INPUT_SIZE,
-                "error" to "${e.javaClass.simpleName}: ${e.message}",
-            )
+
+        // 逐个候选路径尝试。Flutter 会把 pubspec 声明的 `assets/...` 重新挂到
+        // `flutter_assets/` 之下，因此打包后的真实路径与声明不一致是常态；
+        // 两条都试一遍比让调用方猜前缀可靠。
+        val candidates = listOf(requested, MODEL_ASSET, "assets/models/detector.tflite")
+            .distinct()
+
+        var lastError: Exception? = null
+        for (path in candidates) {
+            try {
+                val bytes = context.assets.open(path).readBytes()
+                val det = YoloDetector(bytes, EXPECTED_INPUT_SIZE)
+                detector = det
+                startCameraIfPossible()
+                Log.i(TAG, "模型已加载：$path（${bytes.size / 1024} KB）")
+                return mapOf(
+                    "loaded" to true,
+                    "classes" to det.numClasses,
+                    "inputSize" to det.inputSize,
+                    "modelPath" to path,
+                )
+            } catch (e: Exception) {
+                lastError = e
+                Log.w(TAG, "候选路径失败：$path -> ${e.javaClass.simpleName}: ${e.message}")
+            }
         }
+
+        // 全部失败时，把 **APK 里实际存在的 tflite** 报出来。
+        // 这类错误只在真机上出现，拿不到文件系统就只能靠这条信息定位，
+        // 所以宁可让错误信息长一点。
+        val hint = try {
+            val pattern = if (MODEL_ASSET.contains('/')) MODEL_ASSET.substringBeforeLast('/') else "assets"
+            val found = context.assets.list(pattern)?.filter { it.contains("tflite") } ?: emptyList()
+            if (found.isEmpty()) "（在 $pattern 下没找到任何 .tflite）"
+            else "（$pattern 下实际有：${found.joinToString(", ")}）"
+        } catch (e: Exception) {
+            "（列举 assets 失败：${e.javaClass.simpleName}）"
+        }
+
+        return mapOf(
+            "loaded" to false,
+            "classes" to 0,
+            "inputSize" to EXPECTED_INPUT_SIZE,
+            "error" to "找不到模型。试过：${candidates.joinToString(", ")}；" +
+                "最后错误 ${lastError?.javaClass?.simpleName}: ${lastError?.message} $hint",
+        )
     }
 
     /**
