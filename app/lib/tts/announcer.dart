@@ -66,6 +66,9 @@ class Announcer {
     this.perClassCooldown = const Duration(seconds: 2),
     this.globalCooldown = const Duration(seconds: 5),
     DateTime Function()? clock,
+    // prefer_initializing_formals 建议改成 `required this._speaker`，
+    // 但那会把下划线私有名暴露成公开参数标签，宁可保留显式赋值。
+    // ignore: prefer_initializing_formals
   })  : _speaker = speaker,
         _clock = clock ?? DateTime.now;
 

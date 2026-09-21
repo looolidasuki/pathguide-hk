@@ -28,8 +28,12 @@ abstract final class BoxPalette {
 ///
 /// 入参 [mapped] 必须已经是**屏幕坐标**（由 [mapDetectionsToScreen] 得到）。
 /// 这个类刻意不做任何坐标计算——坐标错位的 bug 只允许存在于一处。
-class BoxPainter extends CustomPainter {
-  BoxPainter({
+///
+/// **名字里带 `Detection` 前缀是必需的**：Flutter 的 `material.dart` 自己导出了
+/// 一个 `BoxPainter`（在 `decoration.dart`）。同名会导致 `CustomPaint(painter: ...)`
+/// 解析到 Flutter 那个，编译报 `invocation_of_non_function` + `ambiguous_import`。
+class DetectionBoxPainter extends CustomPainter {
+  DetectionBoxPainter({
     required this.mapped,
     required this.showLabels,
   });
@@ -121,6 +125,6 @@ class BoxPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant BoxPainter old) =>
+  bool shouldRepaint(covariant DetectionBoxPainter old) =>
       old.mapped != mapped || old.showLabels != showLabels;
 }

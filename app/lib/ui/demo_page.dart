@@ -49,7 +49,9 @@ class _DemoPageState extends State<DemoPage> {
 
   List<Detection> _detections = const <Detection>[];
   Size _frameSize = const Size(1280, 720);
-  int _rotationDegrees = 90;
+  /// 当前帧的旋转角。目前固定 90°：Android 后置相机在竖屏下输出横屏帧，
+  /// 需顺时针转 90° 才正立。HUD 常显它，框画偏时这是第一嫌疑。
+  static const int _rotationDegrees = 90;
 
   double _inferenceMs = 0;
   double _fps = 0;
@@ -159,11 +161,6 @@ class _DemoPageState extends State<DemoPage> {
     });
   }
 
-  void _announceStatus(String text) {
-    // 状态提示不发声（避免与检测播报抢麦），只写进界面。
-    setState(() => _status = text);
-  }
-
   @override
   void dispose() {
     _sub?.cancel();
@@ -212,7 +209,10 @@ class _DemoPageState extends State<DemoPage> {
             // 叠加层不能拦截手势，否则下方的预览收不到事件。
             IgnorePointer(
               child: CustomPaint(
-                painter: BoxPainter(mapped: mapped, showLabels: _showLabels),
+                painter: DetectionBoxPainter(
+                  mapped: mapped,
+                  showLabels: _showLabels,
+                ),
               ),
             ),
             Positioned(left: 8, top: 8, child: _perfPanel()),

@@ -19,6 +19,12 @@ library;
 /// 平台通道名。改动此值必须同时改动两端原生代码。
 const String kVisionChannel = 'hk.pathguide/vision';
 
+/// 逐帧检测结果的 EventChannel 名。原生侧主动推送，Dart 侧订阅。
+///
+/// 与 [kVisionChannel] 分开是刻意的：实时结果流是**高频**的，
+/// 走 EventChannel 避免 Dart 每帧发一次请求（那会让帧率减半）。
+const String kFrameChannel = 'hk.pathguide/vision/frame';
+
 /// 相机预览的平台视图类型名。必须与原生 `registerViewFactory` 的注册名一致——
 /// 不一致时表现为**一块空白**，两端都不报错。
 const String kVisionPreviewViewType = 'hk.pathguide/vision/preview';
