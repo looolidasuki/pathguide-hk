@@ -109,6 +109,26 @@ def main() -> int:
             num_classes = len(json.load(f)["classes"])
 
     from ultralytics import YOLO
+    import ultralytics
+
+    # 版本护栏：8.4.83 起 `format='tflite'` 被重定向到新的 'litert' 导出器，
+    # 而那个只在 Linux x86 / macOS 上可用，Windows 上会断言失败：
+    #     assert MACOS or (LINUX and not ARM64),
+    #     "LiteRT export only supported on Linux x86 and macOS"
+    # 与其等到导出中途才炸，不如在这里就说清楚。
+    uv_version = ultralytics.__version__
+    try:
+        major, minor = (int(x) for x in uv_version.split(".")[:2])
+    except ValueError:
+        major, minor = 0, 0
+    if (major, minor) > (8, 3):
+        print(
+            f"\n!! ultralytics 版本 {uv_version} 在 Windows 上无法导出 TFLite。\n"
+            f"   8.4.83 起 format='tflite' 使用新的 litert 导出器，仅支持 Linux x86 / macOS。\n"
+            f"   请在导出环境里降级：\n"
+            f"     uv pip install --python <venv>\\Scripts\\python.exe \"ultralytics==8.3.253\"\n"
+        )
+        return 1
 
     model = YOLO(str(weights))
     outputs: dict[str, Path] = {}

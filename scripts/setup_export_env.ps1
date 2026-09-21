@@ -44,7 +44,15 @@ $py = Join-Path $venv "Scripts\python.exe"
 #   - tf_keras 也要 2.19（与 TF 同版本），装到 2.15 会报
 #         module 'tensorflow._api.v2.compat.v2.__internal__' has no attribute
 #         'register_load_context_function'
-Write-Host "`n安装核心依赖（仅 PyPI，钉死 protobuf 与 tf_keras）..." -ForegroundColor Yellow
+#
+# ★ ultralytics 必须钉 8.3.x，**不能用最新的 8.4.x**：
+#   8.4.83 起把 `format='tflite'` 重定向到新的 'litert' 导出器，而那个
+#   只在 Linux x86 与 macOS 上可用，Windows 上直接断言失败：
+#         assert MACOS or (LINUX and not ARM64),
+#         "LiteRT export only supported on Linux x86 and macOS"
+#   8.3.x 走的是 ONNX -> TensorFlow SavedModel -> TFLite 老链路，Windows 可用。
+#   钉 8.3.253 还顺带保证与训练出该权重的版本一致。
+Write-Host "`n安装核心依赖（仅 PyPI，钉死 protobuf / tf_keras / ultralytics）..." -ForegroundColor Yellow
 uv pip install --python $py `
     "tensorflow==2.19.0" `
     "tf_keras==2.19.0" `
@@ -55,7 +63,7 @@ uv pip install --python $py `
     "onnx" `
     "onnxruntime" `
     "onnxslim" `
-    "ultralytics" `
+    "ultralytics==8.3.253" `
     "numpy<2.1"
 
 Write-Host "`n验证导入..." -ForegroundColor Yellow
