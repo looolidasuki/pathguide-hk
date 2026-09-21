@@ -1,5 +1,18 @@
 import 'labels.dart';
 
+/// **当前放进 App 的那个模型**是单类模型时，它对应项目类别表里的哪一类。
+///
+/// 改这里 = 换模型。取值必须与 `scripts/build_single_class_dataset.py`
+/// 的 `--class-id` 一致，也等于模型 assets 的内容。
+///
+/// 为什么用常量而不是自动探测：App 拿不到「模型是用哪个 class-id 训的」这个信息
+/// （TFLite 里没有这个元数据），只能在此显式声明。**声明错了不会报错**，
+/// 只会把垃圾桶标成别的类别名——所以下面配了测试断言它与 classes.json 一致。
+const int? singleClassProjectId = 7; // bin
+
+/// 该单类模型的类别英文名，用于界面提示。null 表示非单类。
+const String? singleClassProjectName = 'bin';
+
 /// 单类模型与项目 24 类类别表之间的映射。
 ///
 /// ## 为什么需要它

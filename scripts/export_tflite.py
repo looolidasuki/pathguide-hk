@@ -32,6 +32,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -63,8 +64,13 @@ def describe_tensors(model_path: Path) -> dict:
     }
 
 
-def explain_output_shape(shape: list[int], num_classes: int | None) -> str:
-    """把输出形状翻译成人话，并检查它是否符合 Kotlin 解码器的假设。"""
+def explain_output_shape(shape: list[int], num_classes: int | None,
+                         single_class_id: int | None = None) -> str:
+    """把输出形状翻译成人话，并检查它是否符合 Kotlin 解码器的假设。
+
+    [single_class_id] 给出 App 侧配置的单类映射时，类别数 1 是**预期**的，
+    不再报「与类别表不一致」——那条提示曾把正确的单类模型报成问题。
+    """
     if len(shape) != 3:
         return f"  !! 输出应为 3 维，实际 {shape}——Kotlin 解码器会拒绝这个模型"
     d1, d2 = shape[1], shape[2]
@@ -77,12 +83,34 @@ def explain_output_shape(shape: list[int], num_classes: int | None) -> str:
         f"  锚点数   ：{anchors}",
         f"  类别数   ：{classes}（= 通道 {channels} - 4）",
     ]
+    if classes == 1 and single_class_id is not None:
+        lines.append(
+            f"  ✓ 单类模型（预期）：App 会把模型输出的 id 0 偏移到类别 {single_class_id}。"
+            f"该偏移由 app/lib/vision/single_class_map.dart 的 singleClassProjectId 声明，"
+            f"二者必须一致"
+        )
+        if num_classes is not None and single_class_id >= num_classes:
+            lines.append(f"  !! 偏移 {single_class_id} 超出类别表范围（{num_classes} 类）")
+        return "\n".join(lines)
     if num_classes is not None and classes != num_classes:
         lines.append(f"  !! 与 configs/classes.json 的 {num_classes} 类**不一致**——"
                      f"App 侧会按形状得到 {classes} 类，类别名会整体错位")
     if anchors < 100:
         lines.append(f"  !! 锚点数 {anchors} 异常偏小，模型可能没导出成功")
     return "\n".join(lines)
+
+
+def dart_single_class_id() -> int | None:
+    """从 Dart 侧读 App 配置的单类映射 id，用于形状校验时判断 1 类是否正常。
+
+    这类「两处声明必须一致」的关系最容易漂移：模型是按 class-id 7 训的，
+    而 App 里写的是不是 7 只能靠对齐。在这里交叉检查。
+    """
+    p = REPO_ROOT / "app" / "lib" / "vision" / "single_class_map.dart"
+    if not p.exists():
+        return None
+    m = re.search(r"singleClassProjectId\s*=\s*(\d+)", p.read_text(encoding="utf-8"))
+    return int(m.group(1)) if m else None
 
 
 def main() -> int:
@@ -153,6 +181,7 @@ def main() -> int:
 
     print("\n=== 张量形状校验 ===")
     problems = 0
+    single_id = dart_single_class_id()
     for name, path in outputs.items():
         if not path.exists():
             print(f"[{name}] 文件不存在：{path}")
@@ -167,7 +196,7 @@ def main() -> int:
         print(f"[{name}] {path.name}")
         print(f"  输入 ：{info['input_shape']} {info['input_dtype']}")
         print(f"  输出 ：{info['output_shape']} {info['output_dtype']}")
-        print(explain_output_shape(info["output_shape"], num_classes))
+        print(explain_output_shape(info["output_shape"], num_classes, single_id))
 
     if args.copy_to_assets:
         src = outputs.get("float32")

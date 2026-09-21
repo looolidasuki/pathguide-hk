@@ -223,6 +223,9 @@ class VisionPlugin(
      */
     private fun loadModel(call: MethodCall): Map<String, Any?> {
         val path = call.argument<String>("model")
+        // 单类模型需要把输出 id 0 偏移到项目类别表里的真实 id（垃圾桶 = 7）。
+        // 偏移在原生侧完成，Dart 之后的画框/播报/查表无需改动。
+        val offset = call.argument<Int>("classOffset") ?: 0
         detector?.close()
         detector = null
         loadedModelPath = null
@@ -251,15 +254,21 @@ class VisionPlugin(
             // 所以用**文件内存映射**：既满足要求，又省掉一次 10 MB 的内存拷贝。
             // 这也正是当初该直接用文件路径、而不是先在 Dart 侧读成字节的原因之一。
             val det = YoloDetector.fromFile(f, EXPECTED_INPUT_SIZE)
+            det.classOffset = offset
             detector = det
             loadedModelPath = path
             startCameraIfPossible()
-            Log.i(TAG, "模型已加载：$path（${f.length() / 1024} KB, ${det.numClasses} 类）")
+            Log.i(
+                TAG,
+                "模型已加载：$path（${f.length() / 1024} KB, ${det.numClasses} 类, " +
+                    "类偏移 $offset）",
+            )
             mapOf(
                 "loaded" to true,
                 "classes" to det.numClasses,
                 "inputSize" to det.inputSize,
                 "modelPath" to path,
+                "classOffset" to offset,
             )
         } catch (e: Exception) {
             Log.w(TAG, "模型加载失败：$path", e)
@@ -594,6 +603,17 @@ class YoloDetector private constructor(
     @Volatile private var busy = false
     val isBusy: Boolean get() = busy
 
+    /**
+     * 类别 id 偏移：加到模型输出的每个 id 上再回传。
+     *
+     * 用处：单类模型（只认垃圾桶）输出 id 0，而项目类别表 `kLabels[0]` 是
+     * `footbridge_entrance`。若原样回传，界面会把垃圾桶标成「天橋入口」——
+     * **框对、名字错，且不报任何错**。
+     * 传 `bin` 的原始 id（7）作偏移后，Dart 侧画框/播报/查表全部无需改动。
+     * 多类模型传 0。
+     */
+    @Volatile var classOffset: Int = 0
+
     @Volatile var lastInferenceMs: Double = 0.0
         private set
 
@@ -780,7 +800,8 @@ class YoloDetector private constructor(
 
             out.add(
                 Detection(
-                    id = best,
+                    // 加上偏移：单类模型输出 0，需要映射回项目类别表里的真实 id。
+                    id = best + classOffset,
                     score = bestScore,
                     cx = (x1 + x2) / 2,
                     cy = (y1 + y2) / 2,

@@ -58,24 +58,24 @@ class PlatformVision {
       .where((event) => event is Map)
       .map((event) => _parseFrame(event as Map));
 
+  /// 模型输出的原始类别数，**不做偏移**。
+  ///
+  /// 单类模型这里是 1；多类模型是 24。UI 用它与 [classOffset] 一起算出
+  /// 「这个模型实际能识别几类」，并据此提示用户。
+  int get modelClassCount => _modelClassCount;
+  int _modelClassCount = 0;
+
+  /// 传给原生的类别 id 偏移（0 表示不偏移）。
+  int get classOffset => _classOffset;
+  int _classOffset = 0;
+
   /// 加载模型。
   ///
-  /// 返回 `false` 表示**加载失败但 App 可以继续跑**（模型文件缺失、
-  /// 输入形状不符等）。调用方应当显示明确原因，而不是白屏。
-  ///
-  /// ## 为什么由 Dart 读资源再交给原生，而不是原生直接读 APK 内的 assets
-  ///
-  /// 实测（真机 Redmi / Android 16 / HyperOS）原生 `AssetManager.open()` 读
-  /// `flutter_assets/assets/models/detector.tflite` **必然 FileNotFoundException**，
-  /// 而同一次运行里 `assets.list()` 递归又能列出这个路径——即 ROM 行为与
-  /// Android 文档约定不符。改路径试了三轮都无效，不再与 AssetManager 纠缠。
-  ///
-  /// Flutter 自己的资源系统是可靠的（`AssetManifest.bin` 里明确列有该 key），
-  /// 所以改为：**Dart 用 rootBundle 读出字节 -> 写入应用私有目录 -> 原生读文件**。
-  /// 这样彻底绕开 AssetManager 的路径歧义。
-  ///
-  /// 代价：启动时多一次 10 MB 的写盘。用「已存在且大小一致就跳过」避免重复写。
-  Future<bool> loadModel({String? assetKey}) async {
+  /// [classOffset] 会被传给原生，原生把它加到模型输出的每个类别 id 上再回传。
+  /// 单类模型（只认垃圾桶，输出 id 0）要传 `bin` 的原始 id（7），
+  /// 否则界面会把垃圾桶标成 `kLabels[0]` 即「天橋入口」。
+  Future<bool> loadModel({String? assetKey, int classOffset = 0}) async {
+    _classOffset = classOffset;
     final key = assetKey ?? defaultModelAssetKey;
     String? filePath;
     try {
@@ -85,7 +85,7 @@ class PlatformVision {
       _error = '把模型写入应用目录失败：${e.runtimeType}: $e';
       return false;
     }
-    return _loadFromPath(filePath);
+    return _loadFromPath(filePath, classOffset);
   }
 
   /// 把 Flutter 资源落盘到应用私有目录，返回绝对路径。
@@ -122,14 +122,18 @@ class PlatformVision {
     return target;
   }
 
-  Future<bool> _loadFromPath(String? filePath) async {
+  Future<bool> _loadFromPath(String? filePath, int classOffset) async {
     try {
       final reply = await _method.invokeMethod<Map<Object?, Object?>>(
         VisionMethods.loadModel,
-        filePath == null ? null : <String, Object>{VisionKeys.model: filePath},
+        filePath == null ? null : <String, Object>{
+          VisionKeys.model: filePath,
+          VisionKeys.classOffset: classOffset,
+        },
       );
       _loaded = reply?[VisionKeys.loaded] == true;
-      _numClasses = _asInt(reply?[VisionKeys.classes]) ?? 0;
+      _modelClassCount = _asInt(reply?[VisionKeys.classes]) ?? 0;
+      _numClasses = _modelClassCount;
       _inputSize = _asInt(reply?[VisionKeys.inputSize]) ?? 0;
       _error = _loaded ? null : (reply?['error'] as String? ?? '未知原因');
       return _loaded;

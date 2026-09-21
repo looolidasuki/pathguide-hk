@@ -10,6 +10,7 @@ import '../tts/flutter_tts_speaker.dart';
 import '../vision/detection.dart';
 import '../vision/mock_vision_source.dart';
 import '../vision/platform_vision.dart';
+import '../vision/single_class_map.dart';
 import '../vision/vision_preview.dart';
 import '../vision/vision_source.dart';
 
@@ -61,6 +62,9 @@ class _DemoPageState extends State<DemoPage> {
   bool _modelReady = false;
   String? _ttsLanguage;
 
+  /// 模型能力的一句话说明（单类模型时提醒「其余类别不会出框」）。
+  String? _modelNote;
+
   @override
   void initState() {
     super.initState();
@@ -101,12 +105,26 @@ class _DemoPageState extends State<DemoPage> {
 
   Future<void> _startCameraSource() async {
     await _sub?.cancel();
-    final ok = await _platform.loadModel();
+
+    // 单类模型需要把它的 0 映射回项目类别表里的真实 id。
+    // 这里先按「单类模型」假设去加载，拿到模型真实类别数后再据此提示。
+    final ok = await _platform.loadModel(
+      classOffset: singleClassProjectId ?? 0,
+    );
     if (!mounted) return;
+
+    final mapping = resolveMapping(
+      modelClassCount: _platform.modelClassCount,
+      singleClassOriginalId: singleClassProjectId,
+      singleClassName: singleClassProjectName ?? '',
+    );
     setState(() {
       _modelReady = ok;
+      _modelNote = ok && mapping != null ? mapping.describe() : null;
       _status = ok
-          ? '模型已加载（${_platform.numClasses} 类，输入 ${_platform.inputSize}）'
+          ? '模型已加载（模型类别数 ${_platform.modelClassCount}'
+              '${_platform.classOffset > 0 ? "，已偏移到类别 ${_platform.classOffset}" : ""}'
+              '，输入 ${_platform.inputSize}）'
           : '模型未加载：${_platform.error ?? "未知原因"}';
     });
     _sub = _platform.frames.listen(_onFrame, onError: (Object e) {
@@ -366,14 +384,13 @@ class _DemoPageState extends State<DemoPage> {
                 ),
               ),
             ),
-          if (_modelReady)
+          if (_modelReady && _modelNote != null)
             Padding(
               padding: const EdgeInsets.only(top: 4),
               child: Text(
-                // 这条不是客套话：当前只有 bin 有训练数据，
-                // 其余 23 类不会亮，不写清楚会被当成模型坏了。
-                '提示：目前只有「垃圾桶」一类有足够训练数据，'
-                '其余类别尚未采集，不会显示框。',
+                // 这条不是客套话：单类模型只会亮一个类别，
+                // 不写清楚会被当成模型坏了。
+                _modelNote!,
                 style: TextStyle(
                   color: Colors.white.withValues(alpha: 0.55),
                   fontSize: 11,
