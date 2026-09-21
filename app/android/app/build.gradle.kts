@@ -30,6 +30,14 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    androidResources {
+        // 模型不要压缩打包。
+        // AssetManager 默认的 open() 走文件描述符，对压缩存储的资源不适用；
+        // 虽然代码里已改用 ACCESS_BUFFER 兜底，但保持未压缩能少一层不确定性
+        // （也便于用 openFd 做内存映射）。
+        noCompress += "tflite"
+    }
 }
 
 kotlin {

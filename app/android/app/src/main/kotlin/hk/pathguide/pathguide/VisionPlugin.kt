@@ -58,17 +58,26 @@ class VisionPlugin(
         const val PREVIEW_VIEW = "hk.pathguide/vision/preview"
 
         /**
-         * 模型在 **Android AssetManager** 中的路径。
+         * 模型在 AssetManager 中的路径。
          *
-         * ★ 注意前缀：pubspec.yaml 里声明的是 `assets/models/detector.tflite`，
-         * 但 Flutter 会把资源重新挂到 `flutter_assets/` 之下，所以打包进 APK 后
-         * 实际路径是 `assets/flutter_assets/assets/models/detector.tflite`
-         * （已用 unzip 列出 APK 内容确认）。
+         * ★★ 这里有个**必须理解清楚**的路径约定，写错过一次：
          *
-         * 写错这一处的表现是：模型明明在 APK 里，`assets.open()` 却抛
-         * FileNotFoundException，界面上显示「模型未加载」——不崩溃，也不提示路径。
+         *   `AssetManager.open("X")` 会**自动加 `assets/` 前缀**去查 APK 条目 X。
+         *   也就是说，传给 open() 的字符串**不含开头的 `assets/`**。
+         *
+         * APK 里的真实条目是：
+         *   assets/flutter_assets/assets/models/detector.tflite
+         *        ^^^^^^^^^^^^^^^^ ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+         *        AssetManager 自动加   传给 open() 的部分
+         *
+         * 所以正确的字符串是 `flutter_assets/assets/models/detector.tflite`。
+         * 我最初写成 `assets/flutter_assets/...`，AssetManager 去找
+         * `assets/assets/flutter_assets/...`，必然 FileNotFoundException。
+         *
+         * 另注：Android 侧不要用 pubspec 里那个 key（`assets/models/...`）——
+         * 那是 Flutter 的 AssetBundle key，与 APK 条目是两套命名。
          */
-        const val MODEL_ASSET = "assets/flutter_assets/assets/models/detector.tflite"
+        const val MODEL_ASSET = "flutter_assets/assets/models/detector.tflite"
 
         /** 期望输入边长；模型若声明了固定形状则以模型为准。 */
         const val EXPECTED_INPUT_SIZE = 640
@@ -183,20 +192,28 @@ class VisionPlugin(
         detector?.close()
         detector = null
 
-        // 逐个候选路径尝试。Flutter 会把 pubspec 声明的 `assets/...` 重新挂到
-        // `flutter_assets/` 之下，因此打包后的真实路径与声明不一致是常态；
-        // 两条都试一遍比让调用方猜前缀可靠。
-        val candidates = listOf(requested, MODEL_ASSET, "assets/models/detector.tflite")
-            .distinct()
+        // 逐个候选路径尝试。
+        // 注意 AssetManager 的约定：open("X") 会**自动加 `assets/` 前缀**，
+        // 所以候选里**不能**带开头的 "assets/"（见 MODEL_ASSET 的说明）。
+        // 仍保留几个历史写法作为兜底，并在全部失败时报出 APK 里实际有什么。
+        val candidates = listOf(
+            requested,
+            MODEL_ASSET,
+            "flutter_assets/assets/models/detector.tflite",
+            "assets/models/detector.tflite",
+        ).distinct()
 
         var lastError: Exception? = null
         for (path in candidates) {
             try {
-                val bytes = context.assets.open(path).readBytes()
+                // 用 ACCESS_BUFFER：APK 里资源可能是压缩存储的，默认的
+                // open() 走文件描述符，对压缩资源不适用。
+                val bytes = context.assets.open(path, android.content.res.AssetManager.ACCESS_BUFFER)
+                    .use { it.readBytes() }
                 val det = YoloDetector(bytes, EXPECTED_INPUT_SIZE)
                 detector = det
                 startCameraIfPossible()
-                Log.i(TAG, "模型已加载：$path（${bytes.size / 1024} KB）")
+                Log.i(TAG, "模型已加载：$path（${bytes.size / 1024} KB, ${det.numClasses} 类）")
                 return mapOf(
                     "loaded" to true,
                     "classes" to det.numClasses,
@@ -209,16 +226,28 @@ class VisionPlugin(
             }
         }
 
-        // 全部失败时，把 **APK 里实际存在的 tflite** 报出来。
-        // 这类错误只在真机上出现，拿不到文件系统就只能靠这条信息定位，
-        // 所以宁可让错误信息长一点。
+        // 全部失败时，把 **APK 里实际存在的 tflite** 递归列出来。
+        // 这类错误只在真机上出现，拿不到文件系统就只能靠这条信息定位。
         val hint = try {
-            val pattern = if (MODEL_ASSET.contains('/')) MODEL_ASSET.substringBeforeLast('/') else "assets"
-            val found = context.assets.list(pattern)?.filter { it.contains("tflite") } ?: emptyList()
-            if (found.isEmpty()) "（在 $pattern 下没找到任何 .tflite）"
-            else "（$pattern 下实际有：${found.joinToString(", ")}）"
+            val found = buildList {
+                fun walk(dir: String, depth: Int) {
+                    if (depth > 4) return
+                    val children = runCatching { context.assets.list(dir) }.getOrNull() ?: return
+                    for (c in children) {
+                        val child = if (dir.isEmpty()) c else "$dir/$c"
+                        if (c.contains(".")) {
+                            if (c.endsWith(".tflite")) add(child)
+                        } else {
+                            walk(child, depth + 1)
+                        }
+                    }
+                }
+                walk("", 0)
+            }
+            if (found.isEmpty()) "（递归查找未发现任何 .tflite）"
+            else "（APK 内实际路径：${found.joinToString(" | ")}）"
         } catch (e: Exception) {
-            "（列举 assets 失败：${e.javaClass.simpleName}）"
+            "（列举 assets 失败：${e.javaClass.simpleName}: ${e.message}）"
         }
 
         return mapOf(
