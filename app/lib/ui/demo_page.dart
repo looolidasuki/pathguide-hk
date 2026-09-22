@@ -340,6 +340,19 @@ class _DemoPageState extends State<DemoPage> {
                   ),
                 ),
             ],
+            // 缓冲指针快照：一直显示。异常发生在推理中途时，
+            // 只有初始化时记下的这份数值还能看。
+            if (_diagnostics!.bufferState.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: SizedBox(
+                  width: 200,
+                  child: SelectableText(
+                    _diagnostics!.bufferState,
+                    style: style.copyWith(color: Colors.cyanAccent, fontSize: 8),
+                  ),
+                ),
+              ),
             if (_diagnostics!.analyzeErrors > 0 &&
                 _diagnostics!.analyzeError.isNotEmpty)
               Padding(

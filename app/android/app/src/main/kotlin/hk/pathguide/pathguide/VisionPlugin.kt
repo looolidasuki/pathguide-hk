@@ -265,6 +265,7 @@ class VisionPlugin(
                     "invalidByReason" to (detector?.invalidByReason?.toMap() ?: emptyMap<String, Long>()),
                     "inputStats" to (detector?.inputStats ?: ""),
                     "outputStats" to (detector?.outputStats ?: ""),
+                    "bufferState" to (detector?.bufferState ?: ""),
                     "threshold" to threshold.toDouble(),
                     "anchors" to (detector?.anchorCount ?: 0),
                     "channels" to (detector?.channelCount ?: 0),
@@ -622,8 +623,17 @@ class VisionPlugin(
         } catch (e: Exception) {
             analyzeErrors++
             // 用 message 而不是 toString，避免刷屏；同时保留类型。
-            lastAnalyzeError =
-                "${e.javaClass.simpleName}: ${e.message ?: "(无消息)"}"
+            // ★ 附上**异常发生的第一帧堆栈**：真机上多次出现「只知道异常类型、
+            // 不知道哪一行」的情况（例如 IndexOutOfBoundsException: limit=0），
+            // 而只靠类型无法定位。取栈顶若干帧足够指出行号。
+            val frames = e.stackTrace
+                .filter { it.className.contains("pathguide") || it.className.contains("Vision") }
+                .take(3)
+                .joinToString(" <- ") { "${it.fileName}:${it.lineNumber}" }
+            val where = if (frames.isEmpty()) {
+                e.stackTrace.take(2).joinToString(" <- ") { "${it.fileName}:${it.lineNumber}" }
+            } else frames
+            lastAnalyzeError = "${e.javaClass.simpleName}: ${e.message ?: "(无消息)"} @ $where"
             lastAnalyzeSkip = lastAnalyzeError
             Log.w(TAG, "分析帧失败 #$analyzeErrors：$lastAnalyzeError", e)
         } finally {
@@ -901,6 +911,16 @@ class YoloDetector private constructor(
     @Volatile var outputStats: String = ""
         private set
 
+    /**
+     * 输入/输出缓冲的 position / limit / capacity 快照。
+     *
+     * 真机上出现过 `IndexOutOfBoundsException: index=0 out of bounds (limit=0)`
+     * ——「limit=0」只可能来自某个空的缓冲，但当时没有数值能确认是哪一个。
+     * 这里把两个缓冲（以及 inputBuffer 的 FloatBuffer 视图）的三个指针全列出来。
+     */
+    @Volatile var bufferState: String = ""
+        private set
+
     init {
         val inShape = interpreter.getInputTensor(0).shape()
         require(inShape.size == 4) { "输入张量应为 4 维，实际 ${inShape.toList()}" }
@@ -943,6 +963,17 @@ class YoloDetector private constructor(
         }
         outputBufferSize = outputBuffer.capacity()
         inputFloats = inputBuffer.asFloatBuffer()
+        // 在**初始化时**就记录一次缓冲指针，而不是等到推理时。
+        // 真机上异常发生在推理过程中，若此时才写快照，出错那一帧的快照就丢了
+        // （HUD 上会是空的或旧值，等于没有线索）。初始化时的数值足以判断
+        // 「缓冲是否被正确分配」。
+        bufferState = ("inBuf(pos=%d,lim=%d,cap=%d) inFloats(cap=%d) " +
+            "outBuf(pos=%d,lim=%d,cap=%d)")
+            .format(
+                inputBuffer.position(), inputBuffer.limit(), inputBuffer.capacity(),
+                inputFloats.capacity(),
+                outputBuffer.position(), outputBuffer.limit(), outputBuffer.capacity(),
+            )
 
         Log.i(
             VisionPlugin.TAG,
@@ -1038,25 +1069,40 @@ class YoloDetector private constructor(
             // 真机曾出现「输出分数为负、前 1631 个锚点正常之后全是垃圾」，
             // 而同一个模型在电脑上对任意输入都输出合法值（越界 0/8400）。
             // 因此必须在真机上直接看**写进去的到底是什么**，而不是继续推理。
-            if (inputFloats.capacity() >= 12) {
+            //
+            // 注意：inputBuffer 与 inputFloats 共享同一块内存。这里若改动它们的
+            // position/limit，会直接影响随后的 interpreter.run()。所以只在
+            // 读取时用绝对下标 get(i)（不改变 position），并且**先 rewind**。
+            inputBuffer.rewind()
+            inputFloats.rewind()
+            val ifCap = inputFloats.capacity()
+            if (ifCap >= 12) {
                 var mn = Float.MAX_VALUE
                 var mx = -Float.MAX_VALUE
                 var bad = 0
                 var k = 0
-                while (k < inputFloats.capacity()) {
+                while (k < ifCap) {
                     val v = inputFloats.get(k)
                     if (!v.isFinite() || v < 0f || v > 1f) bad++
                     if (v < mn) mn = v
                     if (v > mx) mx = v
                     k += 1
                 }
-                inputStats = "min=%.3f max=%.3f 越界=%d/%d 前6个=[%.3f,%.3f,%.3f,%.3f,%.3f,%.3f]"
+                inputStats = "cap=%d 越界=%d [%.3f,%.3f] 前6=[%.3f,%.3f,%.3f,%.3f,%.3f,%.3f]"
                     .format(
-                        mn, mx, bad, inputFloats.capacity(),
+                        ifCap, bad, mn, mx,
                         inputFloats.get(0), inputFloats.get(1), inputFloats.get(2),
                         inputFloats.get(3), inputFloats.get(4), inputFloats.get(5),
                     )
+            } else {
+                inputStats = "cap=$ifCap（过小，未统计）"
             }
+            bufferState = "inBuf(pos=%d,lim=%d,cap=%d) inFloats(pos=%d,lim=%d,cap=%d) outBuf(lim=%d,cap=%d)"
+                .format(
+                    inputBuffer.position(), inputBuffer.limit(), inputBuffer.capacity(),
+                    inputFloats.position(), inputFloats.limit(), inputFloats.capacity(),
+                    outputBuffer.limit(), outputBuffer.capacity(),
+                )
 
             outputBuffer.rewind()
             val t0 = System.nanoTime()

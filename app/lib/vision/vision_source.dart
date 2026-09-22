@@ -56,6 +56,7 @@ class VisionDiagnostics {
     required this.invalidByReason,
     required this.inputStats,
     required this.outputStats,
+    required this.bufferState,
     required this.anchors,
     required this.channels,
     required this.transposed,
@@ -119,6 +120,13 @@ class VisionDiagnostics {
 
   /// 输出缓冲的真实统计（min / max / 非有限个数 / 前几个值）。
   final String outputStats;
+
+  /// 输入/输出缓冲的 position / limit / capacity 快照。
+  ///
+  /// 用于定位 `IndexOutOfBoundsException: index=0 out of bounds (limit=0)`
+  /// 这类错误——「limit=0」只可能来自某个空的缓冲，
+  /// 但必须知道是哪一个、以及它为什么是空的。
+  final String bufferState;
 
   /// 模型张量布局，用于核对解码假设。
   final int anchors;
