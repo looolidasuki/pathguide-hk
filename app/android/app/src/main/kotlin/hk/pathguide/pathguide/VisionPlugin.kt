@@ -75,6 +75,14 @@ class VisionPlugin(
         /** 期望输入边长；模型若声明了固定形状则以模型为准。 */
         const val EXPECTED_INPUT_SIZE = 640
 
+        /**
+         * letterbox 填充值。**必须与训练时一致**。
+         *
+         * Ultralytics 的预处理用 114 灰填充；这里若用 0（黑）或别的值，
+         * 填充区域与训练分布不符，会拉低置信度且不报错。
+         */
+        const val PAD = 114
+
         /** 相机权限请求码。 */
         private const val REQ_CAMERA = 7301
     }
@@ -782,6 +790,12 @@ class YoloDetector private constructor(
     private val inputBuffer: ByteBuffer
     private val outputBuffer: ByteBuffer
 
+    /** 输入缓冲字节数与单元素字节数，供启动时校验与诊断。 */
+    var inputBufferSize: Int = 0
+        private set
+    var inputBufferElementBytes: Int = 0
+        private set
+
     @Volatile private var busy = false
     val isBusy: Boolean get() = busy
 
@@ -821,6 +835,27 @@ class YoloDetector private constructor(
         outputBuffer = ByteBuffer
             .allocateDirect(4 * numAnchors * channels)
             .order(ByteOrder.nativeOrder())
+
+        // ★ 启动时就校验输入缓冲尺寸，而不是等第一帧推理才失败。
+        //
+        // 真机上曾报：
+        //   IllegalArgumentException: Cannot copy to a TensorFlowLite tensor (images)
+        //   with 4915200 bytes from a Java Buffer with 1228800 bytes
+        // 4915200 / 1228800 = 4 —— 正好是 float32 的字节数。原因是往 ByteBuffer 里
+        // 写了 put(byte)（1 字节）而不是 putFloat(4 字节）。
+        // 这类错误在加载模型时就能判出来，早报比晚报少一轮真机往返。
+        val expectedInputBytes = interpreter.getInputTensor(0).numBytes()
+        inputBufferSize = inputBuffer.capacity()
+        require(inputBufferSize == expectedInputBytes) {
+            "输入缓冲尺寸不匹配：分配 $inputBufferSize 字节，" +
+                "模型张量需要 $expectedInputBytes 字节（比值 " +
+                "${expectedInputBytes.toDouble() / inputBufferSize}）——" +
+                "若比值是 4，说明往 ByteBuffer 写的是 byte 而不是 float"
+        }
+        inputBufferElementBytes = expectedInputBytes / (inputSize * inputSize * 3)
+        require(inputBufferElementBytes == 4) {
+            "输入元素应为 4 字节（float32），实际 $inputBufferElementBytes 字节"
+        }
 
         Log.i(
             VisionPlugin.TAG,
@@ -878,7 +913,23 @@ class YoloDetector private constructor(
             val padY = (inputSize - newH) / 2
 
             inputBuffer.rewind()
+            // ★ 先用 letterbox 填充色铺满整个输入，再写入真实像素。
+            //
+            // 训练时 Ultralytics 用 114/255 ≈ 0.447 的灰边填充；如果这里留 0（黑边），
+            // 填充区域与训练分布不一致，会拉低置信度。这一点与「灰度输入」是同一类
+            // 问题：预处理必须和训练时逐项对齐，差一项都不报错，只是分数变低。
+            val padValue = PAD / 255f
+            for (i in 0 until inputSize * inputSize) {
+                inputBuffer.putFloat(padValue).putFloat(padValue).putFloat(padValue)
+            }
+            inputBuffer.rewind()
+            // 把写指针移到填充区域内真实内容的起点，之后逐像素 putFloat 覆盖真实内容
+            inputBuffer.position((padY * inputSize + padX) * 3 * 4)
+
             for (dy in 0 until newH) {
+                // 每行末尾要跳过右侧填充，直接按绝对位置定位更可靠
+                val rowStart = ((padY + dy) * inputSize + padX) * 3 * 4
+                inputBuffer.position(rowStart)
                 for (dx in 0 until newW) {
                     putRgb(
                         y, u, v, frameWidth, frameHeight, uvRowStride, uvPixelStride,
@@ -950,10 +1001,14 @@ class YoloDetector private constructor(
         val r = 1.164f * yf + 1.596f * vf
         val g = 1.164f * yf - 0.392f * uf - 0.813f * vf
         val b = 1.164f * yf + 2.017f * uf
+        // ★ 必须写 float（4 字节），不能写 byte（1 字节）。
+        // 模型输入张量是 float32，每个像素 3 个 float = 12 字节。
+        // 写成 put(byte) 会得到「4915200 字节的张量 vs 1228800 字节的缓冲」
+        // 这类 IllegalArgumentException —— 差值正好是 4 倍，就是这里露出来的。
         inputBuffer
-            .put(r.toInt().coerceIn(0, 255).toByte())
-            .put(g.toInt().coerceIn(0, 255).toByte())
-            .put(b.toInt().coerceIn(0, 255).toByte())
+            .putFloat(((r.coerceIn(0f, 255f)) / 255f))
+            .putFloat(((g.coerceIn(0f, 255f)) / 255f))
+            .putFloat(((b.coerceIn(0f, 255f)) / 255f))
     }
 
     private fun frameWidthOrRotated(w: Int, h: Int, rot: Int): Int =
