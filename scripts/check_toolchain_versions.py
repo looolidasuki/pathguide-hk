@@ -295,21 +295,34 @@ def main() -> int:
         else "文件缺失；跑 scripts/export_tflite.py 生成",
     ))
 
-    # ---- 9) Kotlin 里的模型 asset 路径必须与 APK 内实际布局一致 ----
+    # ---- 9) 模型加载方式：断言**当前架构**，而不是过时的做法 ----
     #
-    # 实测踩过：pubspec 声明 `assets/models/detector.tflite`，但 Flutter 会把资源
-    # 重新挂到 `flutter_assets/` 之下，打包后真实路径是
-    # `assets/flutter_assets/assets/models/detector.tflite`。
-    # 写错时 assets.open() 抛 FileNotFoundException，界面只显示「模型未加载」。
+    # 历史：曾用 AssetManager 读 APK 内资源，反复栽在路径前缀上
+    # （`assets/flutter_assets/...` vs `flutter_assets/...`），且某些 ROM 上
+    # open() 无论如何都 FileNotFoundException。
+    # 现已改为「Dart 用 rootBundle 读出 -> 写入应用私有目录 -> Kotlin 读文件」，
+    # 绕开 AssetManager，因此**不再需要多路径兜底**。
+    #
+    # 这里原先有一条「loadModel 必须有多路径兜底」的断言，是 AssetManager
+    # 时代的产物，改造后变成假失败。**过期断言比没有断言更糟**——它会让人
+    # 以为代码坏了。所以改为断言当前架构成立。
     kotlin_src = _read(ANDROID_DIR / "app" / "src" / "main" / "kotlin"
                        / "hk" / "pathguide" / "pathguide" / "VisionPlugin.kt")
-    has_multi_path = "candidates" in kotlin_src and "flutter_assets" in kotlin_src
+    uses_asset_manager = "assets.open(" in kotlin_src
     checks.append(Check(
-        "loadModel 有多路径兜底",
-        has_multi_path,
-        "loadModel 依次尝试多个候选路径，全部失败时报出 APK 里实际的 .tflite"
-        if has_multi_path
-        else "loadModel 只试单一路径——路径写错时只能靠 unzip 手工排查",
+        "模型不再经 AssetManager 读取",
+        not uses_asset_manager,
+        "模型由 Dart 落盘后按文件路径读取，绕开了 AssetManager 的路径歧义"
+        if not uses_asset_manager
+        else "仍在使用 assets.open() —— 已知在某些 ROM 上必然失败，应改走文件路径",
+    ))
+    uses_file = "java.io.File(path)" in kotlin_src or "java.io.File(f" in kotlin_src
+    checks.append(Check(
+        "loadModel 按文件路径加载",
+        uses_file,
+        "loadModel 用文件路径加载（model 参数由 Dart 侧给出应用私有目录的绝对路径）"
+        if uses_file
+        else "loadModel 未按文件路径加载，与 Dart 侧的落盘流程不匹配",
     ))
 
     # ---- 输出 ----
