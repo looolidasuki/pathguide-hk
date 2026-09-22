@@ -217,6 +217,37 @@ class PlatformVision {
     }
   }
 
+  /// 查询原生侧状态与**诊断计数**。
+  ///
+  /// 存在的原因：曾出现「相机预览正常，但推理一次都没执行」的情况，
+  /// 而当时界面上没有任何计数可用，只能靠反复重新构建来猜问题在哪。
+  /// 这类信息必须能在屏幕上看到，而不是要求用户去读 logcat。
+  Future<VisionDiagnostics?> diagnostics() async {
+    try {
+      final r = await _method.invokeMethod<Map<Object?, Object?>>(
+        VisionMethods.status,
+      );
+      if (r == null) return null;
+      return VisionDiagnostics(
+        modelReady: r[VisionKeys.ready] == true,
+        modelPath: r[VisionKeys.modelPath] as String?,
+        inputSize: _asInt(r[VisionKeys.inputSize]) ?? 0,
+        modelClassCount: _asInt(r[VisionKeys.classes]) ?? 0,
+        analyzedFrames: _asInt(r['analyzedFrames']) ?? 0,
+        analyzeErrors: _asInt(r['analyzeErrors']) ?? 0,
+        skippedReason: (r['skippedReason'] as String?) ?? '',
+        frameWidth: _asInt(r['frameWidth']) ?? 0,
+        frameHeight: _asInt(r['frameHeight']) ?? 0,
+        frameFormat: (r['frameFormat'] as String?) ?? '',
+        frameMaxScore: _asDouble(r['frameMaxScore']) ?? 0,
+      );
+    } on PlatformException {
+      return null;
+    } on MissingPluginException {
+      return null;
+    }
+  }
+
   Future<void> release() async {
     try {
       await _method.invokeMethod<void>(VisionMethods.release);

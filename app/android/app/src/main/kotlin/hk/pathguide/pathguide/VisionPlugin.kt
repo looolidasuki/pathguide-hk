@@ -102,6 +102,31 @@ class VisionPlugin(
 
     @Volatile var threshold: Float = 0.30f
 
+    // ---- 诊断计数器：全部随每帧结果回传，直接显示在 HUD 上 ----
+    // 加的动机：曾出现「预览正常、但推理 0 次」的情况，而当时**拿不到任何计数**，
+    // 只能靠反复重新构建来猜。这类问题必须能让用户在屏幕上自己看到。
+    @Volatile var analyzedFrames: Long = 0
+        private set
+    @Volatile var analyzeErrors: Long = 0
+        private set
+
+    /** 最近一帧被跳过的原因（空串表示正常处理）。 */
+    @Volatile var lastAnalyzeSkip: String = "尚未收到任何帧"
+        private set
+
+    @Volatile var lastFrameWidth: Int = 0
+        private set
+    @Volatile var lastFrameHeight: Int = 0
+        private set
+
+    /** 最近一帧的格式描述（平面数、旋转角、UV 步长），用于核对取帧假设。 */
+    @Volatile var lastFrameFormat: String = ""
+        private set
+
+    /** 最近一帧的最高置信度（**不受阈值影响**），用于判断「模型有没有给出高分」。 */
+    @Volatile var lastMaxScore: Float = 0f
+        private set
+
     private var cameraExecutor: ExecutorService? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -204,6 +229,17 @@ class VisionPlugin(
                     // 报实际加载成功的那个路径，不是猜的常量。
                     "modelPath" to loadedModelPath,
                     "inputSize" to (detector?.inputSize ?: EXPECTED_INPUT_SIZE),
+                    "classes" to (detector?.numClasses ?: 0),
+                    // 诊断计数：让 Dart 能在界面上显示「分析了几帧、为什么跳过」。
+                    // 这些信息以前只能通过 logcat 看，而用户手上没有 logcat。
+                    "analyzedFrames" to analyzedFrames,
+                    "analyzeErrors" to analyzeErrors,
+                    "skippedReason" to lastAnalyzeSkip,
+                    "frameWidth" to lastFrameWidth,
+                    "frameHeight" to lastFrameHeight,
+                    "frameFormat" to lastFrameFormat,
+                    "frameMaxScore" to lastMaxScore.toDouble(),
+                    "threshold" to threshold.toDouble(),
                 ),
             )
             else -> result.notImplemented()
@@ -468,37 +504,54 @@ class VisionPlugin(
         cameraExecutor?.shutdown()
         cameraExecutor = null
         currentPreview = null
+        // 停止后重置诊断计数，避免「上一轮运行的帧数」被误读成当前状态。
+        analyzedFrames = 0
+        analyzeErrors = 0
+        lastAnalyzeSkip = "相机已停止"
+        lastFrameFormat = ""
+        lastMaxScore = 0f
     }
 
-    /**
-     * 单帧分析：YUV -> 检测 -> EventChannel。
+    /** 单帧分析：YUV -> 检测 -> EventChannel。
      *
      * 取全部三个平面（Y / U / V），因为模型需要 RGB 输入；
      * 只取 Y 当灰度的做法实测会让置信度掉到阈值以下（详见 detectYuv 的说明）。
+     *
+     * 每个 return 分支都会累加 [analyzedFrames] 与 [lastAnalyzeSkip]，并把计数
+     * 随结果一起回传。**这是刻意的**：曾出现「预览正常但推理 0 次」的情况，
+     * 而当时拿不到任何计数信息，只能靠猜。现在 HUD 会直接显示「分析 N 帧」。
      */
     private fun analyze(image: ImageProxy) {
         // 必须无论成败都 close，否则 CameraX 停止投递新帧，表现为画面卡死。
         try {
-            val det = detector ?: return
-            if (currentPreview == null) return
-            if (det.isBusy) return // 上一帧还在推理：丢弃本帧，而不是排队
+            analyzedFrames++
+            val det = detector
+            if (det == null) { lastAnalyzeSkip = "模型未就绪"; return }
+            if (currentPreview == null) { lastAnalyzeSkip = "预览未就绪"; return }
+            if (det.isBusy) { lastAnalyzeSkip = "上一帧仍在推理"; return }
+            lastAnalyzeSkip = ""
 
             val w = image.width
             val h = image.height
             val rotation = image.imageInfo.rotationDegrees
             if (image.planes.size < 3) {
+                lastAnalyzeSkip = "帧平面数 ${image.planes.size} < 3"
                 Log.w(TAG, "帧平面数 ${image.planes.size} < 3，无法做 YUV->RGB，丢弃该帧")
                 return
             }
             val yPlane = image.planes[0]
             val uPlane = image.planes[1]
             val vPlane = image.planes[2]
-            val yBytes = copyPlane(yPlane.buffer, yPlane.rowStride, w, h, yPlane.pixelStride) ?: return
+            val yBytes = copyPlane(yPlane.buffer, yPlane.rowStride, w, h, yPlane.pixelStride)
             // UV 平面是 2x2 下采样，按半宽半高取
             val cw = (w + 1) / 2
             val ch = (h + 1) / 2
-            val uBytes = copyPlane(uPlane.buffer, uPlane.rowStride, cw, ch, uPlane.pixelStride) ?: return
-            val vBytes = copyPlane(vPlane.buffer, vPlane.rowStride, cw, ch, vPlane.pixelStride) ?: return
+            val uBytes = copyPlane(uPlane.buffer, uPlane.rowStride, cw, ch, uPlane.pixelStride)
+            val vBytes = copyPlane(vPlane.buffer, vPlane.rowStride, cw, ch, vPlane.pixelStride)
+            if (yBytes == null || uBytes == null || vBytes == null) {
+                lastAnalyzeSkip = "取平面失败"
+                return
+            }
 
             val t0 = System.nanoTime()
             val detections = det.detectYuv(
@@ -509,16 +562,27 @@ class VisionPlugin(
             )
             // 只统计纯推理耗时，不含取帧与转换——否则看不出瓶颈在哪。
             val ms = (System.nanoTime() - t0) / 1_000_000.0
+            lastFrameWidth = w
+            lastFrameHeight = h
+            lastFrameFormat = "YUV420 planes=${image.planes.size} rot=$rotation " +
+                "uvStride=${uPlane.rowStride}/${uPlane.pixelStride}"
+            lastMaxScore = detections.maxOfOrNull { it.score } ?: 0f
 
-            val sink = eventSink ?: return
+            val sink = eventSink ?: run { lastAnalyzeSkip = "EventSink 未连接"; return }
             val payload = mapOf(
                 "detections" to detections.map { it.toMap() },
                 "inferenceMs" to ms,
                 "frameWidth" to w,
                 "frameHeight" to h,
+                "analyzedFrames" to analyzedFrames,
+                "skippedReason" to lastAnalyzeSkip,
+                "frameMaxScore" to lastMaxScore.toDouble(),
+                "frameFormat" to lastFrameFormat,
             )
             ContextCompat.getMainExecutor(context).execute { sink.success(payload) }
         } catch (e: Exception) {
+            analyzeErrors++
+            lastAnalyzeSkip = "异常 ${e.javaClass.simpleName}: ${e.message}"
             Log.w(TAG, "分析帧失败", e)
         } finally {
             image.close()

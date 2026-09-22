@@ -28,6 +28,58 @@ class VisionFrame {
   int get frameArea => frameWidth * frameHeight;
 }
 
+/// 原生侧的诊断快照。
+///
+/// 为什么要有这个：相机链路里「预览正常但没有检测结果」可以由至少五种原因造成
+/// （相机没启动、分析器没跑、取平面失败、推理抛异常、阈值过高），
+/// 而它们在界面上看起来完全一样。没有计数就只能靠反复重新构建去猜。
+///
+/// 每个字段都对应一个具体的失败点，界面上直接显示，用户不必读 logcat。
+class VisionDiagnostics {
+  const VisionDiagnostics({
+    required this.modelReady,
+    required this.modelPath,
+    required this.inputSize,
+    required this.modelClassCount,
+    required this.analyzedFrames,
+    required this.analyzeErrors,
+    required this.skippedReason,
+    required this.frameWidth,
+    required this.frameHeight,
+    required this.frameFormat,
+    required this.frameMaxScore,
+  });
+
+  final bool modelReady;
+  final String? modelPath;
+  final int inputSize;
+  final int modelClassCount;
+
+  /// 分析器收到的帧数。**为 0 就说明相机分析回路根本没跑起来。**
+  final int analyzedFrames;
+  final int analyzeErrors;
+
+  /// 最近一帧被跳过的原因。空串表示正常处理。
+  final String skippedReason;
+
+  final int frameWidth;
+  final int frameHeight;
+
+  /// 最近一帧的格式描述（平面数、旋转角、UV 步长），用于核对取帧假设。
+  final String frameFormat;
+
+  /// 最近一帧的最高置信度，**不受阈值影响**。
+  ///
+  /// 这是区分「模型没给高分」与「阈值卡太严」的关键：
+  /// 若它明显高于阈值却仍无框，问题在过滤或映射；若它本身极低，问题在模型或输入。
+  final double frameMaxScore;
+
+  @override
+  String toString() => 'analyzed=$analyzedFrames errors=$analyzeErrors '
+      'skip="$skippedReason" frame=${frameWidth}x$frameHeight '
+      'maxScore=${frameMaxScore.toStringAsFixed(3)}';
+}
+
 /// 检测结果来源的抽象接口。
 ///
 /// `lib/` 下除本文件与 `platform_vision_source.dart` 之外的代码

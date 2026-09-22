@@ -65,6 +65,10 @@ class _DemoPageState extends State<DemoPage> {
   /// 模型能力的一句话说明（单类模型时提醒「其余类别不会出框」）。
   String? _modelNote;
 
+  /// 原生侧诊断快照，定时轮询后显示在 HUD 上。
+  VisionDiagnostics? _diagnostics;
+  Timer? _diagTimer;
+
   @override
   void initState() {
     super.initState();
@@ -130,6 +134,14 @@ class _DemoPageState extends State<DemoPage> {
     _sub = _platform.frames.listen(_onFrame, onError: (Object e) {
       if (mounted) setState(() => _status = '推理流出错：$e');
     });
+
+    // 轮询原生诊断计数。相机链路的失败点在界面上长得一模一样，
+    // 必须靠这些计数区分（分析帧为 0 / 有错误 / 最高分太低）。
+    _diagTimer?.cancel();
+    _diagTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
+      final d = await _platform.diagnostics();
+      if (mounted && d != null) setState(() => _diagnostics = d);
+    });
   }
 
   Future<void> _startMockSource() async {
@@ -181,6 +193,7 @@ class _DemoPageState extends State<DemoPage> {
 
   @override
   void dispose() {
+    _diagTimer?.cancel();
     _sub?.cancel();
     _mock?.dispose();
     _platform.release();
@@ -260,6 +273,36 @@ class _DemoPageState extends State<DemoPage> {
           Text('FPS      ${_fps.toStringAsFixed(1)}', style: style),
           Text('推理     ${_inferenceMs.toStringAsFixed(1)} ms', style: style),
           Text('检测框   ${_detections.length}', style: style),
+          // ---- 诊断计数：这几个数字直接指出链路卡在哪一环 ----
+          // 「分析帧」为 0（红色）说明相机分析回路根本没跑起来；
+          // 「最高分」低于阈值（橙色）说明模型没给出高分，问题在模型或输入；
+          // 「跳过」非空则直接写出被跳过的原因。
+          if (_diagnostics != null) ...<Widget>[
+            Text(
+              '分析帧   ${_diagnostics!.analyzedFrames}',
+              style: style.copyWith(
+                color: _diagnostics!.analyzedFrames == 0
+                    ? Colors.redAccent
+                    : Colors.white,
+              ),
+            ),
+            if (_diagnostics!.analyzeErrors > 0)
+              Text('分析错误 ${_diagnostics!.analyzeErrors}',
+                  style: style.copyWith(color: Colors.redAccent)),
+            Text(
+              '最高分   ${_diagnostics!.frameMaxScore.toStringAsFixed(3)}',
+              style: style.copyWith(
+                color: _diagnostics!.frameMaxScore >= _threshold
+                    ? Colors.greenAccent
+                    : Colors.orangeAccent,
+              ),
+            ),
+            if (_diagnostics!.skippedReason.isNotEmpty)
+              Text(
+                '跳过     ${_diagnostics!.skippedReason}',
+                style: style.copyWith(color: Colors.orangeAccent, fontSize: 10),
+              ),
+          ],
           Text(
             '语音     ${_ttsLanguage ?? "未就绪"}',
             style: style.copyWith(
