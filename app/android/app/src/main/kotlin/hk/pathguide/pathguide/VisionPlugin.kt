@@ -280,16 +280,26 @@ class VisionPlugin(
     }
 
     /**
-     * 单帧推理（回放/调试路径）。实时相机路径不走这里，走 EventChannel，
+     * 单帧推理（回放 / 调试路径）。实时相机路径不走这里，走 EventChannel，
      * 省掉一次整帧跨通道拷贝。
+     *
+     * ## 需要完整的 YUV，不能只给 Y
+     *
+     * 模型要 RGB 输入。只给 Y 平面时这里用 U=V=128（中性灰）补齐，
+     * 结果是**灰度**输入——实测置信度会掉到阈值以下，等于检测不到。
+     * 所以调用方应当通过 `u` / `v` 传真实色度；只有明确知道不需要颜色时
+     * 才省略它们（例如把检测当作纯几何验证）。
+     *
+     * 这条限制是真机上踩出来的：早期版本只传 Y，24 类模型在真机上一个框都不出，
+     * 排查了很久才定位到颜色空间不匹配。
      */
     private fun detect(call: MethodCall): Map<String, Any?> {
         val det = detector
             ?: return mapOf("detections" to emptyList<Any>(), "inferenceMs" to 0.0,
                 "error" to "模型未加载")
-        val bytes = call.argument<ByteArray>("bytes")
+        val y = call.argument<ByteArray>("bytes")
             ?: return mapOf("detections" to emptyList<Any>(), "inferenceMs" to 0.0,
-                "error" to "缺少 bytes")
+                "error" to "缺少 bytes（Y 平面）")
         val w = call.argument<Int>("frameWidth")
             ?: return mapOf("detections" to emptyList<Any>(), "inferenceMs" to 0.0,
                 "error" to "缺少 frameWidth")
@@ -299,7 +309,20 @@ class VisionPlugin(
         val rotation = call.argument<Int>("rotationDegrees") ?: 0
         val thr = (call.argument<Double>("threshold") ?: threshold.toDouble()).toFloat()
 
-        val dets = det.detectGray(bytes, w, h, rotation, thr)
+        val cw = (w + 1) / 2
+        val ch = (h + 1) / 2
+        val uBytes = call.argument<ByteArray>("u")
+        val vBytes = call.argument<ByteArray>("v")
+        val u = if (uBytes != null && uBytes.size >= cw * ch) uBytes
+                else ByteArray(cw * ch) { 128.toByte() }
+        val v = if (vBytes != null && vBytes.size >= cw * ch) vBytes
+                else ByteArray(cw * ch) { 128.toByte() }
+
+        val dets = det.detectYuv(
+            y, u, v, w, h,
+            uvRowStride = cw, uvPixelStride = 1,
+            rotationDegrees = rotation, threshold = thr,
+        )
         return mapOf(
             "detections" to dets.map { it.toMap() },
             "inferenceMs" to det.lastInferenceMs,
@@ -447,7 +470,12 @@ class VisionPlugin(
         currentPreview = null
     }
 
-    /** 单帧分析：Y 平面 -> 检测 -> EventChannel。 */
+    /**
+     * 单帧分析：YUV -> 检测 -> EventChannel。
+     *
+     * 取全部三个平面（Y / U / V），因为模型需要 RGB 输入；
+     * 只取 Y 当灰度的做法实测会让置信度掉到阈值以下（详见 detectYuv 的说明）。
+     */
     private fun analyze(image: ImageProxy) {
         // 必须无论成败都 close，否则 CameraX 停止投递新帧，表现为画面卡死。
         try {
@@ -458,10 +486,27 @@ class VisionPlugin(
             val w = image.width
             val h = image.height
             val rotation = image.imageInfo.rotationDegrees
-            val y = readYPlane(image, w, h) ?: return
+            if (image.planes.size < 3) {
+                Log.w(TAG, "帧平面数 ${image.planes.size} < 3，无法做 YUV->RGB，丢弃该帧")
+                return
+            }
+            val yPlane = image.planes[0]
+            val uPlane = image.planes[1]
+            val vPlane = image.planes[2]
+            val yBytes = copyPlane(yPlane.buffer, yPlane.rowStride, w, h, yPlane.pixelStride) ?: return
+            // UV 平面是 2x2 下采样，按半宽半高取
+            val cw = (w + 1) / 2
+            val ch = (h + 1) / 2
+            val uBytes = copyPlane(uPlane.buffer, uPlane.rowStride, cw, ch, uPlane.pixelStride) ?: return
+            val vBytes = copyPlane(vPlane.buffer, vPlane.rowStride, cw, ch, vPlane.pixelStride) ?: return
 
             val t0 = System.nanoTime()
-            val detections = det.detectGray(y, w, h, rotation, threshold)
+            val detections = det.detectYuv(
+                yBytes, uBytes, vBytes,
+                w, h,
+                uPlane.rowStride, uPlane.pixelStride,
+                rotation, threshold,
+            )
             // 只统计纯推理耗时，不含取帧与转换——否则看不出瓶颈在哪。
             val ms = (System.nanoTime() - t0) / 1_000_000.0
 
@@ -481,41 +526,61 @@ class VisionPlugin(
     }
 
     /**
-     * 从 `ImageProxy` 拷出 Y 平面。
+     * 从 `ImageBuffer` 拷出指定尺寸的平面。
      *
-     * `rowStride` 可能大于 `width`（硬件按 16/32 字节对齐），Y 平面也可能带
+     * `rowStride` 可能大于逻辑宽度（硬件按 16/32 字节对齐），也可能带
      * `pixelStride`。按 `rowStride` 逐行定位是**必须**的：直接顺序读会在
-     * 非对齐设备上产生一条条斜纹伪影，而且不报错。
+     * 非对齐设备上产生斜纹伪影，而且不报错。
      */
-    private fun readYPlane(image: ImageProxy, w: Int, h: Int): ByteArray? {
-        val plane = image.planes.firstOrNull() ?: return null
-        val buf = plane.buffer
-        val rowStride = plane.rowStride
-        val pixelStride = plane.pixelStride
-        val out = ByteArray(w * h)
-        if (rowStride == w && pixelStride == 1) {
-            buf.rewind()
-            buf.get(out, 0, min(out.size, buf.remaining()))
+    private fun copyPlane(
+        buffer: java.nio.ByteBuffer,
+        rowStride: Int,
+        width: Int,
+        height: Int,
+        pixelStride: Int,
+    ): ByteArray? {
+        val out = ByteArray(width * height)
+        buffer.rewind()
+        val stride0 = pixelStride.coerceAtLeast(1)
+        if (rowStride == width * stride0) {
+            // 紧凑布局：可直接连续读
+            val need = out.size * stride0
+            if (stride0 == 1) {
+                buffer.get(out, 0, min(out.size, buffer.remaining()))
+            } else {
+                var o = 0
+                var i = 0
+                while (o < out.size && i + stride0 <= buffer.remaining()) {
+                    out[o++] = buffer.get(i)
+                    i += stride0
+                }
+            }
+            if (need <= 0) return null
             return out
         }
-        val row = ByteArray(rowStride)
+        val row = ByteArray(rowStride.coerceAtLeast(width * stride0))
         var o = 0
-        for (y in 0 until h) {
+        for (y in 0 until height) {
             val pos = y * rowStride
-            if (pos >= buf.limit()) break
-            buf.position(pos)
-            val n = min(rowStride, buf.remaining())
-            buf.get(row, 0, n)
+            if (pos >= buffer.limit()) break
+            buffer.position(pos)
+            val n = min(row.size, buffer.remaining())
+            buffer.get(row, 0, n)
             var x = 0
-            while (x < w) {
-                val src = x * pixelStride
-                if (src >= n) break
+            while (x < width) {
+                val src = x * stride0
+                if (src >= n || o >= out.size) break
                 out[o++] = row[src]
                 x++
             }
         }
         return out
     }
+
+    // 注：早期这里有一个只取 Y 平面的 readYPlane()。已删除，不再保留死代码。
+    // 它对应的灰度输入路径实测会让置信度掉到阈值以下（0.04~0.55 vs RGB 的 0.62~0.82），
+    // 表现为「模型明明没问题却检测不到」。现在统一用 copyPlane 取齐 Y/U/V 再做
+    // YUV->RGB。要了解详情见 YoloDetector.detectYuv 的注释。
 }
 
 /** 预览平台视图。 */
@@ -652,21 +717,32 @@ class YoloDetector private constructor(
     }
 
     /**
-     * 用 Y 平面（灰度）推理。
+     * 用 YUV 帧推理（**转成 RGB**）。
      *
-     * ## 为什么只传亮度通道
+     * ## 曾经犯过的错误：为了速度喂灰度
      *
-     * 相机输出 YUV_420_888，`planes[0]` 就是亮度。传灰度省掉每帧的
-     * YUV→RGB（Android 上约 5–15 ms），代价是丢颜色。
+     * 早期版本只读 `planes[0]`（Y 亮度）当灰度输入，理由是省掉每帧 5–15 ms 的
+     * YUV→RGB，并判断「垃圾桶靠形状就能认，颜色不是关键特征」。
      *
-     * 当前唯一有数据的类是 `bin`（垃圾桶），靠形状即可识别，颜色不是关键特征。
-     * **若后续加入依赖颜色的类（红色交通锥、黄黑警示牌），必须改回 RGB**，
-     * 否则那些会系统性失效，且不报错。
+     * **那个判断是错的。** 实测同一模型、同一批图（模拟完整预处理流程）：
+     *
+     *     输入 RGB  -> 最高分 0.62 ~ 0.82
+     *     输入灰度 -> 最高分 0.04 ~ 0.55
+     *
+     * 阈值 0.30 下灰度输入**一个框都不出**。模型明显依赖颜色线索。
+     * 省下的几毫秒换来的是完全不可用。
+     *
+     * 结论：**必须传模型训练时使用的颜色空间**。这类错误不崩溃、不报错，
+     * 只表现为「模型明明没问题却检测不到」，极难定位。
      */
-    fun detectGray(
+    fun detectYuv(
         y: ByteArray,
+        u: ByteArray,
+        v: ByteArray,
         frameWidth: Int,
         frameHeight: Int,
+        uvRowStride: Int,
+        uvPixelStride: Int,
         rotationDegrees: Int,
         threshold: Float,
     ): List<Detection> {
@@ -674,7 +750,6 @@ class YoloDetector private constructor(
         busy = true
         try {
             val rot = ((rotationDegrees % 360) + 360) % 360
-            // 旋转后的有效尺寸：90/270 度时宽高互换
             val swap = rot == 90 || rot == 270
             val srcW = if (swap) frameHeight else frameWidth
             val srcH = if (swap) frameWidth else frameHeight
@@ -685,12 +760,13 @@ class YoloDetector private constructor(
             val padX = (inputSize - newW) / 2
             val padY = (inputSize - newH) / 2
 
-            // 灰度采样 + 通道复制，不经过 Bitmap（避免每帧分配一张 640x640 位图）
             inputBuffer.rewind()
             for (dy in 0 until newH) {
                 for (dx in 0 until newW) {
-                    val v = sampleGray(y, frameWidth, frameHeight, rot, dx, dy, newW, newH)
-                    inputBuffer.put(v).put(v).put(v)
+                    putRgb(
+                        y, u, v, frameWidth, frameHeight, uvRowStride, uvPixelStride,
+                        rot, dx, dy, newW, newH,
+                    )
                 }
             }
             inputBuffer.rewind()
@@ -708,29 +784,32 @@ class YoloDetector private constructor(
     }
 
     /**
-     * 在**正立帧**的 letterbox 图上取 (dx, dy) 处的灰度 [0,1]。
+     * 取 (dx, dy) 处的 RGB 写入输入缓冲。
      *
-     * 映射链：letterbox 图 -> 正立帧（撤缩放）-> 原始帧（逆旋转）-> 采样。
+     * 映射链：letterbox 图 -> 正立帧（撤缩放）-> 原始帧（逆旋转）-> YUV 采样 -> RGB。
      *
-     * 逆旋转的方向必须对：`rotationDegrees` 表示「顺时针转这么多度才正立」。
+     * 逆旋转方向必须对：`rotationDegrees` 表示「顺时针转这么多度才正立」。
      * 位图顺时针旋转满足 `destX = SRC_H-1-sy`、`destY = SRC_W-1-sx`；
      * 反解即下面的采样式。**方向搞反的表现是框整体镜像错位，不会报错。**
      */
-    private fun sampleGray(
+    private fun putRgb(
         y: ByteArray,
+        u: ByteArray,
+        v: ByteArray,
         frameWidth: Int,
         frameHeight: Int,
+        uvRowStride: Int,
+        uvPixelStride: Int,
         rotationDegrees: Int,
         dx: Int,
         dy: Int,
         newW: Int,
         newH: Int,
-    ): Byte {
-        // letterbox 图 -> 正立帧坐标（比例映射，此处不做取整修正）
-        val ux = dx * frameWidthOrRotated(frameWidth, frameHeight, rotationDegrees) / newW
-        val uy = dy * frameHeightOrRotated(frameWidth, frameHeight, rotationDegrees) / newH
+    ) {
         val outW = frameWidthOrRotated(frameWidth, frameHeight, rotationDegrees)
         val outH = frameHeightOrRotated(frameWidth, frameHeight, rotationDegrees)
+        val ux = dx * outW / newW
+        val uy = dy * outH / newH
 
         val (sx, sy) = when (rotationDegrees) {
             90 -> Pair(outH - 1 - uy, frameWidth - 1 - ux)
@@ -740,7 +819,24 @@ class YoloDetector private constructor(
         }
         val cx = sx.coerceIn(0, frameWidth - 1)
         val cy = sy.coerceIn(0, frameHeight - 1)
-        return y[cy * frameWidth + cx]
+
+        val yVal = y[cy * frameWidth + cx].toInt() and 0xFF
+        // UV 平面按 2x2 下采样：像素 (cx,cy) 对应 UV 的第 (cx/2, cy/2) 个样本
+        val uvIndex = (cy / 2) * uvRowStride + (cx / 2) * uvPixelStride
+        val uVal = if (uvIndex in u.indices) u[uvIndex].toInt() and 0xFF else 128
+        val vVal = if (uvIndex in v.indices) v[uvIndex].toInt() and 0xFF else 128
+
+        // 标准 BT.601 YUV -> RGB
+        val yf = yVal - 16
+        val uf = uVal - 128
+        val vf = vVal - 128
+        val r = 1.164f * yf + 1.596f * vf
+        val g = 1.164f * yf - 0.392f * uf - 0.813f * vf
+        val b = 1.164f * yf + 2.017f * uf
+        inputBuffer
+            .put(r.toInt().coerceIn(0, 255).toByte())
+            .put(g.toInt().coerceIn(0, 255).toByte())
+            .put(b.toInt().coerceIn(0, 255).toByte())
     }
 
     private fun frameWidthOrRotated(w: Int, h: Int, rot: Int): Int =
