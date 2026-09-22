@@ -798,6 +798,8 @@ class YoloDetector private constructor(
         private set
     var inputBufferElementBytes: Int = 0
         private set
+    var outputBufferSize: Int = 0
+        private set
 
     @Volatile private var busy = false
     val isBusy: Boolean get() = busy
@@ -832,33 +834,31 @@ class YoloDetector private constructor(
         numClasses = channels - 4
         require(numClasses > 0) { "无法从输出形状 ${outShape.toList()} 推出类别数" }
 
+        // ★ 缓冲大小**直接用模型声明的字节数**，不自己算。
+        //
+        // 这里连续错过两次：
+        //   第一次：往 ByteBuffer 写了 put(byte)（1 字节）而不是 putFloat(4 字节），
+        //            TFLite 报「张量 4915200 字节 vs 缓冲 1228800 字节」。
+        //   第二次：改成 putFloat 之后**忘了同步扩大缓冲**，仍然分配
+        //           640*640*3 = 1228800，只有所需的 1/4。
+        // 两次都是「自己算尺寸」导致的。用 getInputTensor().numBytes() 就与模型
+        // 永远一致，不需要人记住 float32 是 4 字节。
+        val expectedInputBytes = interpreter.getInputTensor(0).numBytes()
+        val expectedOutputBytes = interpreter.getOutputTensor(0).numBytes()
         inputBuffer = ByteBuffer
-            .allocateDirect(inputSize * inputSize * 3)
+            .allocateDirect(expectedInputBytes)
             .order(ByteOrder.nativeOrder())
         outputBuffer = ByteBuffer
-            .allocateDirect(4 * numAnchors * channels)
+            .allocateDirect(expectedOutputBytes)
             .order(ByteOrder.nativeOrder())
 
-        // ★ 启动时就校验输入缓冲尺寸，而不是等第一帧推理才失败。
-        //
-        // 真机上曾报：
-        //   IllegalArgumentException: Cannot copy to a TensorFlowLite tensor (images)
-        //   with 4915200 bytes from a Java Buffer with 1228800 bytes
-        // 4915200 / 1228800 = 4 —— 正好是 float32 的字节数。原因是往 ByteBuffer 里
-        // 写了 put(byte)（1 字节）而不是 putFloat(4 字节）。
-        // 这类错误在加载模型时就能判出来，早报比晚报少一轮真机往返。
-        val expectedInputBytes = interpreter.getInputTensor(0).numBytes()
         inputBufferSize = inputBuffer.capacity()
-        require(inputBufferSize == expectedInputBytes) {
-            "输入缓冲尺寸不匹配：分配 $inputBufferSize 字节，" +
-                "模型张量需要 $expectedInputBytes 字节（比值 " +
-                "${expectedInputBytes.toDouble() / inputBufferSize}）——" +
-                "若比值是 4，说明往 ByteBuffer 写的是 byte 而不是 float"
-        }
         inputBufferElementBytes = expectedInputBytes / (inputSize * inputSize * 3)
         require(inputBufferElementBytes == 4) {
-            "输入元素应为 4 字节（float32），实际 $inputBufferElementBytes 字节"
+            "输入元素应为 4 字节（float32），实际 $inputBufferElementBytes 字节；" +
+                "若为 1 说明模型是量化模型（int8），预处理需要相应改动"
         }
+        outputBufferSize = outputBuffer.capacity()
 
         Log.i(
             VisionPlugin.TAG,
