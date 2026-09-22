@@ -305,9 +305,11 @@ class _DemoPageState extends State<DemoPage> {
               Padding(
                 padding: const EdgeInsets.only(top: 2),
                 child: SizedBox(
-                  width: 190,
+                  width: 200,
                   child: SelectableText(
-                    '无效检测 ${_diagnostics!.invalidDetections}\n'
+                    // 分类计数：三种原因指向完全不同的故障，只有总数时无法区分。
+                    '无效 ${_diagnostics!.invalidDetections}\n'
+                    '${_invalidReasonText()}\n'
                     '${_diagnostics!.invalidSample}',
                     style: style.copyWith(color: Colors.redAccent, fontSize: 9),
                   ),
@@ -366,6 +368,15 @@ class _DemoPageState extends State<DemoPage> {
         ],
       ),
     );
+  }
+
+  /// 把无效检测的分类计数渲染成一行短文本，例如 `score_out_of_range=8400`。
+  ///
+  /// 单独成方法而不是写成嵌套插值：嵌套引号极易出错，而这里又只是字符串拼接。
+  String _invalidReasonText() {
+    final m = _diagnostics?.invalidByReason ?? const <String, int>{};
+    if (m.isEmpty) return '(未分类)';
+    return m.entries.map((e) => '${e.key}=${e.value}').join(' ');
   }
 
   Widget _glass({required Widget child}) {

@@ -53,6 +53,7 @@ class VisionDiagnostics {
     required this.detectionCount,
     required this.invalidDetections,
     required this.invalidSample,
+    required this.invalidByReason,
     required this.anchors,
     required this.channels,
     required this.transposed,
@@ -102,6 +103,12 @@ class VisionDiagnostics {
 
   /// 最近一个无效检测的原始数值，用于定位读错通道。
   final String invalidSample;
+
+  /// 无效检测按原因分类的计数：原因 -> 次数。
+  ///
+  /// 三种原因（分数越界 / 坐标非有限 / 宽高非正）指向完全不同的故障，
+  /// 只有总数时无法区分。
+  final Map<String, int> invalidByReason;
 
   /// 模型张量布局，用于核对解码假设。
   final int anchors;

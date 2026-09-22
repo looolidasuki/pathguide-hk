@@ -261,7 +261,8 @@ class VisionPlugin(
                     "frameMinScore" to lastMinScore.toDouble(),
                     "detectionCount" to lastDetectionCount,
                     "invalidDetections" to (detector?.invalidCount ?: 0L),
-                    "invalidSample" to (detector?.lastInvalid ?: ""),
+                    "invalidSample" to (detector?.firstInvalidSample ?: ""),
+                    "invalidByReason" to (detector?.invalidByReason?.toMap() ?: emptyMap<String, Long>()),
                     "threshold" to threshold.toDouble(),
                     "anchors" to (detector?.anchorCount ?: 0),
                     "channels" to (detector?.channelCount ?: 0),
@@ -861,8 +862,17 @@ class YoloDetector private constructor(
     @Volatile var invalidCount: Long = 0
         private set
 
-    /** 最近一个无效检测的原始数值，用于定位读错通道的问题。 */
-    @Volatile var lastInvalid: String = ""
+    /**
+     * 无效检测按**原因**分类的计数。
+     *
+     * 只给总数无法区分「分数越界」（解码越界读）、「坐标非有限」（缓冲被破坏）
+     * 与「宽高非正」（通道错位）——三者修法完全不同。
+     * 真机上出现过「无效检测一直增加」，当时只有总数，只能干猜。
+     */
+    val invalidByReason: MutableMap<String, Long> = java.util.concurrent.ConcurrentHashMap()
+
+    /** 本帧第一个无效样本的原始数值。只记第一个：它才代表问题模式。 */
+    @Volatile var firstInvalidSample: String = ""
         private set
 
     init {
@@ -1082,6 +1092,8 @@ class YoloDetector private constructor(
         srcH: Int,
     ): List<Detection> {
         val out = ArrayList<Detection>(64)
+        // 每帧重置「第一个无效样本」，否则会一直显示很久以前的旧值。
+        var firstInvalidSampleThisFrame: String? = null
         outputBuffer.rewind()
         val fb = outputBuffer.asFloatBuffer()
         val stride = numClasses + 4
@@ -1104,15 +1116,27 @@ class YoloDetector private constructor(
             val bh = if (transposed) fb.get(a * stride + 3) else fb.get(3 * numAnchors + a)
 
             // ★ 无效值检测。分数必在 [0,1]（模型最后一层是 sigmoid），
-            // 坐标必须是有限值。出现过就说明**读错了通道或步长**，
-            // 这种情况继续解码只会产出一堆垃圾框，不如直接丢弃并计数，
-            // 让 HUD 上能看见「无效 N」。
-            if (bestScore > 1f || bestScore < 0f ||
-                !cx.isFinite() || !cy.isFinite() || !bw.isFinite() || !bh.isFinite() ||
-                bw <= 0f || bh <= 0f
-            ) {
+            // 坐标必须是有限值，宽高必须为正。
+            //
+            // 分类计数是必要的：真机上「无效检测一直增加」时，只报一个总数
+            // 无法区分是分数越界（解码越界读）、坐标非有限（缓冲被破坏）
+            // 还是宽高非正（通道错位）。三者修法完全不同。
+            val reason = when {
+                bestScore > 1f || bestScore < 0f -> "score_out_of_range"
+                !cx.isFinite() || !cy.isFinite() || !bw.isFinite() || !bh.isFinite() ->
+                    "non_finite_coord"
+                bw <= 0f || bh <= 0f -> "non_positive_wh"
+                else -> null
+            }
+            if (reason != null) {
                 invalidCount++
-                lastInvalid = "score=$bestScore cx=$cx cy=$cy w=$bw h=$bh"
+                invalidByReason[reason] = (invalidByReason[reason] ?: 0L) + 1
+                // 只记**每帧第一个**无效样本。原来每次都覆盖，最终留下的是
+                // 第 8400 个锚点的值——那是噪声，不代表问题模式。
+                if (firstInvalidSampleThisFrame == null) {
+                    firstInvalidSampleThisFrame =
+                        "[$reason] score=$bestScore cx=$cx cy=$cy w=$bw h=$bh anchor=$a"
+                }
                 continue
             }
 
@@ -1141,6 +1165,7 @@ class YoloDetector private constructor(
                 ),
             )
         }
+        firstInvalidSample = firstInvalidSampleThisFrame ?: firstInvalidSample
         return out
     }
 

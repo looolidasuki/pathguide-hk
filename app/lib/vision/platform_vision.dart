@@ -245,6 +245,7 @@ class PlatformVision {
         detectionCount: _asInt(r['detectionCount']) ?? 0,
         invalidDetections: _asInt(r['invalidDetections']) ?? 0,
         invalidSample: (r['invalidSample'] as String?) ?? '',
+        invalidByReason: _asIntMap(r['invalidByReason']),
         anchors: _asInt(r['anchors']) ?? 0,
         channels: _asInt(r['channels']) ?? 0,
         transposed: r['transposed'] == true,
@@ -296,5 +297,17 @@ class PlatformVision {
     if (v is double) return v;
     if (v is int) return v.toDouble();
     return null;
+  }
+
+  /// 把原生回传的 `Map<Object?, Object?>` 转成 `Map<String, int>`，逐项防御式解析。
+  static Map<String, int> _asIntMap(Object? raw) {
+    if (raw is! Map) return const <String, int>{};
+    final out = <String, int>{};
+    raw.forEach((k, v) {
+      if (k is! String) return;
+      final n = _asInt(v);
+      if (n != null) out[k] = n;
+    });
+    return out;
   }
 }
