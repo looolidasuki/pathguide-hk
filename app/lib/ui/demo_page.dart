@@ -315,6 +315,31 @@ class _DemoPageState extends State<DemoPage> {
                   ),
                 ),
               ),
+            // 输入/输出缓冲的真实内容。只在出现无效检测时显示，避免平时刷屏。
+            if (_diagnostics!.invalidDetections > 0) ...<Widget>[
+              if (_diagnostics!.inputStats.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: SizedBox(
+                    width: 200,
+                    child: SelectableText(
+                      '输入 ${_diagnostics!.inputStats}',
+                      style: style.copyWith(color: Colors.cyan, fontSize: 9),
+                    ),
+                  ),
+                ),
+              if (_diagnostics!.outputStats.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 2),
+                  child: SizedBox(
+                    width: 200,
+                    child: SelectableText(
+                      '输出 ${_diagnostics!.outputStats}',
+                      style: style.copyWith(color: Colors.cyan, fontSize: 9),
+                    ),
+                  ),
+                ),
+            ],
             if (_diagnostics!.analyzeErrors > 0 &&
                 _diagnostics!.analyzeError.isNotEmpty)
               Padding(

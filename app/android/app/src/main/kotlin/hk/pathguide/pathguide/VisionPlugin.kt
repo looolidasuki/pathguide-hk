@@ -263,6 +263,8 @@ class VisionPlugin(
                     "invalidDetections" to (detector?.invalidCount ?: 0L),
                     "invalidSample" to (detector?.firstInvalidSample ?: ""),
                     "invalidByReason" to (detector?.invalidByReason?.toMap() ?: emptyMap<String, Long>()),
+                    "inputStats" to (detector?.inputStats ?: ""),
+                    "outputStats" to (detector?.outputStats ?: ""),
                     "threshold" to threshold.toDouble(),
                     "anchors" to (detector?.anchorCount ?: 0),
                     "channels" to (detector?.channelCount ?: 0),
@@ -811,6 +813,16 @@ class YoloDetector private constructor(
     private val inputBuffer: ByteBuffer
     private val outputBuffer: ByteBuffer
 
+    /**
+     * 输入缓冲的 **FloatBuffer 视图**。
+     *
+     * 用视图而不是 `ByteBuffer.putFloat()` + 手动 `position()`：
+     * 后者要自己算字节偏移（`(row * width + col) * 3 * 4`），错一处就会
+     * 越写越偏，而且**不报错**。视图的 put 会自动推进指针，只有「写满为止」
+     * 一种失败模式，容易发现。
+     */
+    private val inputFloats: java.nio.FloatBuffer
+
     /** 输入缓冲字节数与单元素字节数，供启动时校验与诊断。 */
     var inputBufferSize: Int = 0
         private set
@@ -875,6 +887,20 @@ class YoloDetector private constructor(
     @Volatile var firstInvalidSample: String = ""
         private set
 
+    /**
+     * 输入缓冲的真实统计（min / max / 越界个数 / 前 6 个值）。
+     *
+     * 加它的原因：真机上输出分数出现**负值**（sigmoid 不可能为负），而同一个
+     * 模型在电脑上对任意输入都输出合法值。要继续定位就必须知道**写进张量的
+     * 到底是什麼**——只看输出无法区分「输入坏了」与「输出读错了」。
+     */
+    @Volatile var inputStats: String = ""
+        private set
+
+    /** 输出缓冲的真实统计（min / max / 非有限个数 / 前 8 个值）。 */
+    @Volatile var outputStats: String = ""
+        private set
+
     init {
         val inShape = interpreter.getInputTensor(0).shape()
         require(inShape.size == 4) { "输入张量应为 4 维，实际 ${inShape.toList()}" }
@@ -916,6 +942,7 @@ class YoloDetector private constructor(
                 "若为 1 说明模型是量化模型（int8），预处理需要相应改动"
         }
         outputBufferSize = outputBuffer.capacity()
+        inputFloats = inputBuffer.asFloatBuffer()
 
         Log.i(
             VisionPlugin.TAG,
@@ -978,31 +1005,87 @@ class YoloDetector private constructor(
             // 训练时 Ultralytics 用 114/255 ≈ 0.447 的灰边填充；如果这里留 0（黑边），
             // 填充区域与训练分布不一致，会拉低置信度。这一点与「灰度输入」是同一类
             // 问题：预处理必须和训练时逐项对齐，差一项都不报错，只是分数变低。
+            // 用 FloatBuffer 视图顺序写入，避免手动算字节偏移。
+            // 顺序是「先填满填充色，再逐行覆盖真实像素」——填充色与真实内容
+            // 都需要写入，所以分两趟：先整幅填 PAD，再把真实区域覆盖回去。
             val padValue = PAD / 255f
-            for (i in 0 until inputSize * inputSize) {
-                inputBuffer.putFloat(padValue).putFloat(padValue).putFloat(padValue)
+            inputFloats.clear()
+            val totalPixels = inputSize * inputSize
+            var filled = 0
+            while (filled < totalPixels) {
+                inputFloats.put(padValue).put(padValue).put(padValue)
+                filled++
             }
-            inputBuffer.rewind()
-            // 把写指针移到填充区域内真实内容的起点，之后逐像素 putFloat 覆盖真实内容
-            inputBuffer.position((padY * inputSize + padX) * 3 * 4)
-
+            // 现在把真实内容覆盖到 [padY, padY+newH) x [padX, padX+newW) 区域。
+            // 用绝对下标定位（视图没有 position 语义上的字节偏移问题）。
             for (dy in 0 until newH) {
-                // 每行末尾要跳过右侧填充，直接按绝对位置定位更可靠
-                val rowStart = ((padY + dy) * inputSize + padX) * 3 * 4
-                inputBuffer.position(rowStart)
+                val rowBase = ((padY + dy) * inputSize + padX) * 3
                 for (dx in 0 until newW) {
-                    putRgb(
+                    val idx = rowBase + dx * 3
+                    val (r, g, b) = sampleRgb(
                         y, u, v, frameWidth, frameHeight, uvRowStride, uvPixelStride,
                         rot, dx, dy, newW, newH,
                     )
+                    inputFloats.put(idx, r)
+                    inputFloats.put(idx + 1, g)
+                    inputFloats.put(idx + 2, b)
                 }
             }
+            inputFloats.rewind()
             inputBuffer.rewind()
+
+            // ---- 诊断：抓输入缓冲的真实内容 ----
+            // 真机曾出现「输出分数为负、前 1631 个锚点正常之后全是垃圾」，
+            // 而同一个模型在电脑上对任意输入都输出合法值（越界 0/8400）。
+            // 因此必须在真机上直接看**写进去的到底是什么**，而不是继续推理。
+            if (inputFloats.capacity() >= 12) {
+                var mn = Float.MAX_VALUE
+                var mx = -Float.MAX_VALUE
+                var bad = 0
+                var k = 0
+                while (k < inputFloats.capacity()) {
+                    val v = inputFloats.get(k)
+                    if (!v.isFinite() || v < 0f || v > 1f) bad++
+                    if (v < mn) mn = v
+                    if (v > mx) mx = v
+                    k += 1
+                }
+                inputStats = "min=%.3f max=%.3f 越界=%d/%d 前6个=[%.3f,%.3f,%.3f,%.3f,%.3f,%.3f]"
+                    .format(
+                        mn, mx, bad, inputFloats.capacity(),
+                        inputFloats.get(0), inputFloats.get(1), inputFloats.get(2),
+                        inputFloats.get(3), inputFloats.get(4), inputFloats.get(5),
+                    )
+            }
 
             outputBuffer.rewind()
             val t0 = System.nanoTime()
             interpreter.run(inputBuffer, outputBuffer)
             lastInferenceMs = (System.nanoTime() - t0) / 1_000_000.0
+
+            // ---- 诊断：抓输出缓冲的真实内容 ----
+            // 与输入诊断配套，用来区分「输入坏了」和「输出读错了」。
+            run {
+                val ob = outputBuffer.asFloatBuffer()
+                var mn = Float.MAX_VALUE
+                var mx = -Float.MAX_VALUE
+                var bad = 0
+                var k = 0
+                while (k < ob.capacity()) {
+                    val x = ob.get(k)
+                    if (!x.isFinite()) { bad++ } else {
+                        if (x < mn) mn = x
+                        if (x > mx) mx = x
+                    }
+                    k += 1
+                }
+                outputStats = "min=%.3f max=%.3f 非有限=%d/%d 前8个=[%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f]"
+                    .format(
+                        mn, mx, bad, ob.capacity(),
+                        ob.get(0), ob.get(1), ob.get(2), ob.get(3),
+                        ob.get(4), ob.get(5), ob.get(6), ob.get(7),
+                    )
+            }
 
             val raw = decode(threshold, scale, srcW, srcH)
             return nms(raw, 0.45f, 100)
@@ -1020,7 +1103,20 @@ class YoloDetector private constructor(
      * 位图顺时针旋转满足 `destX = SRC_H-1-sy`、`destY = SRC_W-1-sx`；
      * 反解即下面的采样式。**方向搞反的表现是框整体镜像错位，不会报错。**
      */
-    private fun putRgb(
+    /**
+     * 取 (dx, dy) 处的 RGB（已归一化到 [0,1]），**只计算不写缓冲**。
+     *
+     * 之所以只返回数值、由调用方顺序写入：写缓冲的位置管理一旦出错就会
+     * 越写越偏且不报错（真机出现过「前 1631 个锚点正常、之后全是垃圾」）。
+     * 把「算」和「写」分开，写入点只有一处且是顺序的。
+     *
+     * 映射链：letterbox 图 -> 正立帧（撤缩放）-> 原始帧（逆旋转）-> YUV 采样 -> RGB。
+     *
+     * 逆旋转方向必须对：`rotationDegrees` 表示「顺时针转这么多度才正立」。
+     * 位图顺时针旋转满足 `destX = SRC_H-1-sy`、`destY = SRC_W-1-sx`；
+     * 反解即下面的采样式。**方向搞反的表现是框整体镜像错位，不会报错。**
+     */
+    private fun sampleRgb(
         y: ByteArray,
         u: ByteArray,
         v: ByteArray,
@@ -1033,7 +1129,7 @@ class YoloDetector private constructor(
         dy: Int,
         newW: Int,
         newH: Int,
-    ) {
+    ): Triple<Float, Float, Float> {
         val outW = frameWidthOrRotated(frameWidth, frameHeight, rotationDegrees)
         val outH = frameHeightOrRotated(frameWidth, frameHeight, rotationDegrees)
         val ux = dx * outW / newW
@@ -1054,21 +1150,15 @@ class YoloDetector private constructor(
         val uVal = if (uvIndex in u.indices) u[uvIndex].toInt() and 0xFF else 128
         val vVal = if (uvIndex in v.indices) v[uvIndex].toInt() and 0xFF else 128
 
-        // 标准 BT.601 YUV -> RGB
+        // 标准 BT.601 YUV -> RGB，输出归一化到 [0,1]。
+        // 模型输入是 float32，每个像素 3 个 float；写成 byte 会让字节数差 4 倍。
         val yf = yVal - 16
         val uf = uVal - 128
         val vf = vVal - 128
-        val r = 1.164f * yf + 1.596f * vf
-        val g = 1.164f * yf - 0.392f * uf - 0.813f * vf
-        val b = 1.164f * yf + 2.017f * uf
-        // ★ 必须写 float（4 字节），不能写 byte（1 字节）。
-        // 模型输入张量是 float32，每个像素 3 个 float = 12 字节。
-        // 写成 put(byte) 会得到「4915200 字节的张量 vs 1228800 字节的缓冲」
-        // 这类 IllegalArgumentException —— 差值正好是 4 倍，就是这里露出来的。
-        inputBuffer
-            .putFloat(((r.coerceIn(0f, 255f)) / 255f))
-            .putFloat(((g.coerceIn(0f, 255f)) / 255f))
-            .putFloat(((b.coerceIn(0f, 255f)) / 255f))
+        val r = (1.164f * yf + 1.596f * vf).coerceIn(0f, 255f) / 255f
+        val g = (1.164f * yf - 0.392f * uf - 0.813f * vf).coerceIn(0f, 255f) / 255f
+        val b = (1.164f * yf + 2.017f * uf).coerceIn(0f, 255f) / 255f
+        return Triple(r, g, b)
     }
 
     private fun frameWidthOrRotated(w: Int, h: Int, rot: Int): Int =

@@ -54,6 +54,8 @@ class VisionDiagnostics {
     required this.invalidDetections,
     required this.invalidSample,
     required this.invalidByReason,
+    required this.inputStats,
+    required this.outputStats,
     required this.anchors,
     required this.channels,
     required this.transposed,
@@ -109,6 +111,14 @@ class VisionDiagnostics {
   /// 三种原因（分数越界 / 坐标非有限 / 宽高非正）指向完全不同的故障，
   /// 只有总数时无法区分。
   final Map<String, int> invalidByReason;
+
+  /// 输入缓冲的真实统计（min / max / 越界个数 / 前几个值）。
+  ///
+  /// 与 [outputStats] 配套：只看输出无法区分「输入坏了」与「输出读错了」。
+  final String inputStats;
+
+  /// 输出缓冲的真实统计（min / max / 非有限个数 / 前几个值）。
+  final String outputStats;
 
   /// 模型张量布局，用于核对解码假设。
   final int anchors;
