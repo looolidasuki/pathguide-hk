@@ -56,6 +56,7 @@ class VisionDiagnostics {
     required this.invalidByReason,
     required this.inputStats,
     required this.outputStats,
+    required this.decodeStats,
     required this.bufferState,
     required this.anchors,
     required this.channels,
@@ -120,6 +121,12 @@ class VisionDiagnostics {
 
   /// 输出缓冲的真实统计（min / max / 非有限个数 / 前几个值）。
   final String outputStats;
+
+  /// 解码统计：模型**原始输出**的数值范围与**解码后**的分数范围分开报。
+  ///
+  /// raw 正常而 decoded 异常 → 索引/步长算错；
+  /// raw 本身就异常 → 缓冲内容不对。
+  final String decodeStats;
 
   /// 输入/输出缓冲的 position / limit / capacity 快照。
   ///

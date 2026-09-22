@@ -265,6 +265,7 @@ class VisionPlugin(
                     "invalidByReason" to (detector?.invalidByReason?.toMap() ?: emptyMap<String, Long>()),
                     "inputStats" to (detector?.inputStats ?: ""),
                     "outputStats" to (detector?.outputStats ?: ""),
+                    "decodeStats" to (detector?.decodeStats ?: ""),
                     "bufferState" to (detector?.bufferState ?: ""),
                     "threshold" to threshold.toDouble(),
                     "anchors" to (detector?.anchorCount ?: 0),
@@ -908,6 +909,19 @@ class YoloDetector private constructor(
         private set
 
     /**
+     * 解码统计：模型**原始输出**的数值范围与**解码后**的分数范围分开报。
+     *
+     * 这个区分是关键：真机上出现过 `score=-386`（sigmoid 不可能为负），
+     * 而在电脑上用同一套解码假设（transposed=True、stride=5）读同一个模型
+     * 完全正常（score 0.0001~0.9158）。
+     *
+     *   raw 正常 + decoded 异常 -> 索引/步长算错
+     *   raw 本身异常            -> 缓冲内容不对（写输入或调模型的问题）
+     */
+    @Volatile var decodeStats: String = ""
+        private set
+
+    /**
      * 输入/输出缓冲的 position / limit / capacity 快照。
      *
      * 真机上出现过 `IndexOutOfBoundsException: index=0 out of bounds (limit=0)`
@@ -1243,6 +1257,18 @@ class YoloDetector private constructor(
         val out = ArrayList<Detection>(64)
         // 每帧重置「第一个无效样本」，否则会一直显示很久以前的旧值。
         var firstInvalidSampleThisFrame: String? = null
+
+        // ---- 解码统计 ----
+        // 把「解码后的分数」与「缓冲原始值」分开统计，用于区分：
+        //   raw 正常但 decoded 异常 -> 索引/步长算错
+        //   raw 本身就异常           -> 缓冲内容不对（写入或模型调用问题）
+        var rawMin = Float.MAX_VALUE
+        var rawMax = -Float.MAX_VALUE
+        var decodedMin = Float.MAX_VALUE
+        var decodedMax = -Float.MAX_VALUE
+        var bestAnchor = -1
+        var bestAnchorScore = -Float.MAX_VALUE
+
         // ★ 必须先 rewind 再取 FloatBuffer 视图。
         // interpreter.run() 会把 outputBuffer 的 position 推到末尾；此时
         // asFloatBuffer() 产生的视图 limit = (limit - position)/4 = 0，
@@ -1270,6 +1296,23 @@ class YoloDetector private constructor(
             val cy = if (transposed) fb.get(a * stride + 1) else fb.get(numAnchors + a)
             val bw = if (transposed) fb.get(a * stride + 2) else fb.get(2 * numAnchors + a)
             val bh = if (transposed) fb.get(a * stride + 3) else fb.get(3 * numAnchors + a)
+
+            // 统计模型**原始输出**的数值范围（解码前）。与解码后的范围对照，
+            // 能区分「索引算错」和「缓冲内容不对」。
+            for (raw in arrayOf(bestScore, cx, cy, bw, bh)) {
+                if (raw.isFinite()) {
+                    if (raw < rawMin) rawMin = raw
+                    if (raw > rawMax) rawMax = raw
+                }
+            }
+            if (bestScore > bestAnchorScore) {
+                bestAnchorScore = bestScore
+                bestAnchor = a
+            }
+            if (bestScore.isFinite()) {
+                if (bestScore < decodedMin) decodedMin = bestScore
+                if (bestScore > decodedMax) decodedMax = bestScore
+            }
 
             // ★ 无效值检测。分数必在 [0,1]（模型最后一层是 sigmoid），
             // 坐标必须是有限值，宽高必须为正。
@@ -1322,6 +1365,18 @@ class YoloDetector private constructor(
             )
         }
         firstInvalidSample = firstInvalidSampleThisFrame ?: firstInvalidSample
+        // 解码统计。raw 与 decoded 分开报：
+        //   raw 正常 + decoded 异常 -> 索引/步长问题
+        //   raw 本身异常            -> 缓冲内容问题（写输入或调模型）
+        decodeStats = ("raw[%.3f,%.3f] decoded[%.3f,%.3f] best=%.3f@anchor%d " +
+            "transposed=%b stride=%d anchors=%d classes=%d")
+            .format(
+                if (rawMin <= rawMax) rawMin else 0f,
+                if (rawMin <= rawMax) rawMax else 0f,
+                if (decodedMin <= decodedMax) decodedMin else 0f,
+                if (decodedMin <= decodedMax) decodedMax else 0f,
+                bestAnchorScore, bestAnchor, transposed, stride, numAnchors, numClasses,
+            )
         return out
     }
 

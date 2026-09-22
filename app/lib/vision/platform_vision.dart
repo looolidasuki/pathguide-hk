@@ -248,6 +248,7 @@ class PlatformVision {
         invalidByReason: _asIntMap(r['invalidByReason']),
         inputStats: (r['inputStats'] as String?) ?? '',
         outputStats: (r['outputStats'] as String?) ?? '',
+        decodeStats: (r['decodeStats'] as String?) ?? '',
         bufferState: (r['bufferState'] as String?) ?? '',
         anchors: _asInt(r['anchors']) ?? 0,
         channels: _asInt(r['channels']) ?? 0,

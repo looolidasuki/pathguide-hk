@@ -315,6 +315,18 @@ class _DemoPageState extends State<DemoPage> {
                   ),
                 ),
               ),
+            // 任何诊断都显示时，一并显示解码统计（raw vs decoded 的范围对照）。
+            if (_diagnostics!.decodeStats.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: SizedBox(
+                  width: 210,
+                  child: SelectableText(
+                    _diagnostics!.decodeStats,
+                    style: style.copyWith(color: Colors.lightGreenAccent, fontSize: 8),
+                  ),
+                ),
+              ),
             // 输入/输出缓冲的真实内容。只在出现无效检测时显示，避免平时刷屏。
             if (_diagnostics!.invalidDetections > 0) ...<Widget>[
               if (_diagnostics!.inputStats.isNotEmpty)
