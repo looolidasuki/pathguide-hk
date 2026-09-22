@@ -75,14 +75,6 @@ class VisionPlugin(
         /** 期望输入边长；模型若声明了固定形状则以模型为准。 */
         const val EXPECTED_INPUT_SIZE = 640
 
-        /**
-         * letterbox 填充值。**必须与训练时一致**。
-         *
-         * Ultralytics 的预处理用 114 灰填充；这里若用 0（黑）或别的值，
-         * 填充区域与训练分布不符，会拉低置信度且不报错。
-         */
-        const val PAD = 114
-
         /** 相机权限请求码。 */
         private const val REQ_CAMERA = 7301
     }
@@ -758,6 +750,17 @@ class YoloDetector private constructor(
     expectedInput: Int,
 ) {
     companion object {
+        /**
+         * letterbox 填充值。**必须与训练时一致**。
+         *
+         * Ultralytics 的预处理用 114 灰填充；若这里用 0（黑边）或别的值，
+         * 填充区域与训练分布不符，会拉低置信度且不报错。
+         *
+         * 定义在本类的 companion 里而不是 VisionPlugin 的：只有本类的
+         * detectYuv 用它，放错类会编译不过（顶层类之间不能互访 companion 成员）。
+         */
+        const val PAD = 114
+
         /**
          * 从**文件路径**构建，用内存映射。
          *
