@@ -290,13 +290,29 @@ class _DemoPageState extends State<DemoPage> {
               Text('分析错误 ${_diagnostics!.analyzeErrors}',
                   style: style.copyWith(color: Colors.redAccent)),
             Text(
-              '最高分   ${_diagnostics!.frameMaxScore.toStringAsFixed(3)}',
+              '分数     ${_diagnostics!.frameMinScore.toStringAsFixed(2)}'
+              '~${_diagnostics!.frameMaxScore.toStringAsFixed(2)}',
               style: style.copyWith(
-                color: _diagnostics!.frameMaxScore >= _threshold
-                    ? Colors.greenAccent
-                    : Colors.orangeAccent,
+                // 模型最后一层是 sigmoid，分数必在 [0,1]。超过 1 就是解码错了。
+                color: _diagnostics!.frameMaxScore > 1.0
+                    ? Colors.redAccent
+                    : (_diagnostics!.frameMaxScore >= _threshold
+                        ? Colors.greenAccent
+                        : Colors.orangeAccent),
               ),
             ),
+            if (_diagnostics!.invalidDetections > 0)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: SizedBox(
+                  width: 190,
+                  child: SelectableText(
+                    '无效检测 ${_diagnostics!.invalidDetections}\n'
+                    '${_diagnostics!.invalidSample}',
+                    style: style.copyWith(color: Colors.redAccent, fontSize: 9),
+                  ),
+                ),
+              ),
             if (_diagnostics!.analyzeErrors > 0 &&
                 _diagnostics!.analyzeError.isNotEmpty)
               Padding(

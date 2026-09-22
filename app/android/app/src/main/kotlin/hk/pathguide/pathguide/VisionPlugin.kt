@@ -137,6 +137,14 @@ class VisionPlugin(
     @Volatile var lastMaxScore: Float = 0f
         private set
 
+    /** 最近一帧的最低置信度。与 max 一起显示成 `min~max`，一眼能看出范围是否正常。 */
+    @Volatile var lastMinScore: Float = 0f
+        private set
+
+    /** 最近一帧的检测数（经阈值与无效值过滤后）。 */
+    @Volatile var lastDetectionCount: Int = 0
+        private set
+
     private var cameraExecutor: ExecutorService? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
@@ -250,7 +258,14 @@ class VisionPlugin(
                     "frameHeight" to lastFrameHeight,
                     "frameFormat" to lastFrameFormat,
                     "frameMaxScore" to lastMaxScore.toDouble(),
+                    "frameMinScore" to lastMinScore.toDouble(),
+                    "detectionCount" to lastDetectionCount,
+                    "invalidDetections" to (detector?.invalidCount ?: 0L),
+                    "invalidSample" to (detector?.lastInvalid ?: ""),
                     "threshold" to threshold.toDouble(),
+                    "anchors" to (detector?.anchorCount ?: 0),
+                    "channels" to (detector?.channelCount ?: 0),
+                    "transposed" to (detector?.isTransposed ?: false),
                 ),
             )
             else -> result.notImplemented()
@@ -581,6 +596,8 @@ class VisionPlugin(
             lastFrameHeight = h
             lastFrameFormat = "YUV420 $fmt uvStride=${uPlane.rowStride}/${uPlane.pixelStride}"
             lastMaxScore = detections.maxOfOrNull { it.score } ?: 0f
+            lastMinScore = detections.minOfOrNull { it.score } ?: 0f
+            lastDetectionCount = detections.size
             // 成功一帧才清除跳过原因。**不要每帧开头清空**——那样错误信息会
             // 被下一帧覆盖，用户永远看不到（真机上就是这样丢掉线索的）。
             lastAnalyzeSkip = ""
@@ -816,6 +833,36 @@ class YoloDetector private constructor(
     @Volatile var classOffset: Int = 0
 
     @Volatile var lastInferenceMs: Double = 0.0
+        private set
+
+    /**
+     * 被判定为无效而丢弃的检测数（分数不在 [0,1]、坐标为非有限值、宽高非正）。
+     *
+     * 注：计数与样本由 [VisionPlugin] 持有而不是本类——对外报状态的是插件，
+     * 放在本类会导致插件读不到（顶层类之间无法互访实例成员，编译期就会报错）。
+     */
+
+    /** 对外暴露 numAnchors / channels / transposed，便于核对解码假设。 */
+    val anchorCount: Int get() = numAnchors
+    val channelCount: Int get() = numClasses + 4
+    val isTransposed: Boolean get() = transposed
+
+    /**
+     * 被判定为无效而丢弃的检测**累计数**。
+     *
+     * 存在的原因：真机上曾出现「HUD 显示十几个检测框、屏幕上却一个框都没有」，
+     * 以及「分数 1.0 几」——而模型的最后一层是 sigmoid，分数不可能超过 1。
+     * 两者都指向「解码读错了通道或步长」，但当时没有任何计数能确认。
+     *
+     * 定义在本类而不是 [VisionPlugin]：递增发生在 [decode] 里，
+     * 跨顶层类访问实例成员编译不过（这一点已经被本地编译门禁抓到过）。
+     * 插件侧通过 `detector?.invalidCount` 读取。
+     */
+    @Volatile var invalidCount: Long = 0
+        private set
+
+    /** 最近一个无效检测的原始数值，用于定位读错通道的问题。 */
+    @Volatile var lastInvalid: String = ""
         private set
 
     init {
@@ -1055,6 +1102,19 @@ class YoloDetector private constructor(
             val cy = if (transposed) fb.get(a * stride + 1) else fb.get(numAnchors + a)
             val bw = if (transposed) fb.get(a * stride + 2) else fb.get(2 * numAnchors + a)
             val bh = if (transposed) fb.get(a * stride + 3) else fb.get(3 * numAnchors + a)
+
+            // ★ 无效值检测。分数必在 [0,1]（模型最后一层是 sigmoid），
+            // 坐标必须是有限值。出现过就说明**读错了通道或步长**，
+            // 这种情况继续解码只会产出一堆垃圾框，不如直接丢弃并计数，
+            // 让 HUD 上能看见「无效 N」。
+            if (bestScore > 1f || bestScore < 0f ||
+                !cx.isFinite() || !cy.isFinite() || !bw.isFinite() || !bh.isFinite() ||
+                bw <= 0f || bh <= 0f
+            ) {
+                invalidCount++
+                lastInvalid = "score=$bestScore cx=$cx cy=$cy w=$bw h=$bh"
+                continue
+            }
 
             if (scale <= 0f) continue
             // 第 1 步：模型坐标 -> 正立帧像素

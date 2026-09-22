@@ -49,6 +49,13 @@ class VisionDiagnostics {
     required this.frameHeight,
     required this.frameFormat,
     required this.frameMaxScore,
+    required this.frameMinScore,
+    required this.detectionCount,
+    required this.invalidDetections,
+    required this.invalidSample,
+    required this.anchors,
+    required this.channels,
+    required this.transposed,
   });
 
   final bool modelReady;
@@ -80,6 +87,26 @@ class VisionDiagnostics {
   /// 这是区分「模型没给高分」与「阈值卡太严」的关键：
   /// 若它明显高于阈值却仍无框，问题在过滤或映射；若它本身极低，问题在模型或输入。
   final double frameMaxScore;
+
+  /// 最近一帧的最低置信度。与 [frameMaxScore] 一起看范围是否正常。
+  ///
+  /// 模型最后一层是 sigmoid，分数必在 [0,1]。若 max > 1，
+  /// 说明**解码读错了通道或步长**——这是硬性判据，不需要猜。
+  final double frameMinScore;
+
+  /// 最近一帧的检测数（阈值与无效值过滤后）。
+  final int detectionCount;
+
+  /// 被判定为无效而丢弃的检测累计数。
+  final int invalidDetections;
+
+  /// 最近一个无效检测的原始数值，用于定位读错通道。
+  final String invalidSample;
+
+  /// 模型张量布局，用于核对解码假设。
+  final int anchors;
+  final int channels;
+  final bool transposed;
 
   @override
   String toString() => 'analyzed=$analyzedFrames errors=$analyzeErrors '

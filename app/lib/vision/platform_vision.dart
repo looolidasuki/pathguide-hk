@@ -241,6 +241,13 @@ class PlatformVision {
         frameHeight: _asInt(r['frameHeight']) ?? 0,
         frameFormat: (r['frameFormat'] as String?) ?? '',
         frameMaxScore: _asDouble(r['frameMaxScore']) ?? 0,
+        frameMinScore: _asDouble(r['frameMinScore']) ?? 0,
+        detectionCount: _asInt(r['detectionCount']) ?? 0,
+        invalidDetections: _asInt(r['invalidDetections']) ?? 0,
+        invalidSample: (r['invalidSample'] as String?) ?? '',
+        anchors: _asInt(r['anchors']) ?? 0,
+        channels: _asInt(r['channels']) ?? 0,
+        transposed: r['transposed'] == true,
       );
     } on PlatformException {
       return null;
