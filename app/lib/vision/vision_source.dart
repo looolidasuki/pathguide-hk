@@ -44,6 +44,7 @@ class VisionDiagnostics {
     required this.analyzedFrames,
     required this.analyzeErrors,
     required this.skippedReason,
+    required this.analyzeError,
     required this.frameWidth,
     required this.frameHeight,
     required this.frameFormat,
@@ -61,6 +62,12 @@ class VisionDiagnostics {
 
   /// 最近一帧被跳过的原因。空串表示正常处理。
   final String skippedReason;
+
+  /// 最近一次分析异常的类型与消息。空串表示没发生异常。
+  ///
+  /// 与 [skippedReason] 分开是刻意的：混用会让错误信息被下一帧覆盖，
+  /// 真机上就是这样把线索丢掉的。
+  final String analyzeError;
 
   final int frameWidth;
   final int frameHeight;

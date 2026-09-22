@@ -236,6 +236,7 @@ class PlatformVision {
         analyzedFrames: _asInt(r['analyzedFrames']) ?? 0,
         analyzeErrors: _asInt(r['analyzeErrors']) ?? 0,
         skippedReason: (r['skippedReason'] as String?) ?? '',
+        analyzeError: (r['analyzeError'] as String?) ?? '',
         frameWidth: _asInt(r['frameWidth']) ?? 0,
         frameHeight: _asInt(r['frameHeight']) ?? 0,
         frameFormat: (r['frameFormat'] as String?) ?? '',

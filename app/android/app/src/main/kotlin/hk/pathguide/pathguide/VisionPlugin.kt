@@ -114,6 +114,16 @@ class VisionPlugin(
     @Volatile var lastAnalyzeSkip: String = "尚未收到任何帧"
         private set
 
+    /**
+     * 最近一次分析异常的类型与消息。
+     *
+     * 与 [lastAnalyzeSkip] 分开保存是刻意的：曾把两者混用，导致错误信息被下一帧
+     * 的清空逻辑覆盖，用户永远看不到原因——真机上就是这样丢掉线索的。
+     * 这个字段**只在成功分析的帧里清除**。
+     */
+    @Volatile var lastAnalyzeError: String = ""
+        private set
+
     @Volatile var lastFrameWidth: Int = 0
         private set
     @Volatile var lastFrameHeight: Int = 0
@@ -235,6 +245,7 @@ class VisionPlugin(
                     "analyzedFrames" to analyzedFrames,
                     "analyzeErrors" to analyzeErrors,
                     "skippedReason" to lastAnalyzeSkip,
+                    "analyzeError" to lastAnalyzeError,
                     "frameWidth" to lastFrameWidth,
                     "frameHeight" to lastFrameHeight,
                     "frameFormat" to lastFrameFormat,
@@ -529,29 +540,33 @@ class VisionPlugin(
             if (det == null) { lastAnalyzeSkip = "模型未就绪"; return }
             if (currentPreview == null) { lastAnalyzeSkip = "预览未就绪"; return }
             if (det.isBusy) { lastAnalyzeSkip = "上一帧仍在推理"; return }
-            lastAnalyzeSkip = ""
 
             val w = image.width
             val h = image.height
             val rotation = image.imageInfo.rotationDegrees
+            val fmt = "planes=${image.planes.size} ${w}x$h rot=$rotation"
             if (image.planes.size < 3) {
-                lastAnalyzeSkip = "帧平面数 ${image.planes.size} < 3"
-                Log.w(TAG, "帧平面数 ${image.planes.size} < 3，无法做 YUV->RGB，丢弃该帧")
+                lastAnalyzeSkip = "帧平面数 ${image.planes.size} < 3（$fmt）"
                 return
             }
             val yPlane = image.planes[0]
             val uPlane = image.planes[1]
             val vPlane = image.planes[2]
-            val yBytes = copyPlane(yPlane.buffer, yPlane.rowStride, w, h, yPlane.pixelStride)
+            val yBytes = copyPlane(
+                yPlane.buffer, yPlane.rowStride, w, h, yPlane.pixelStride,
+                "Y(row=$w h=$h rs=${yPlane.rowStride} ps=${yPlane.pixelStride} lim=${yPlane.buffer.limit()})",
+            )
             // UV 平面是 2x2 下采样，按半宽半高取
             val cw = (w + 1) / 2
             val ch = (h + 1) / 2
-            val uBytes = copyPlane(uPlane.buffer, uPlane.rowStride, cw, ch, uPlane.pixelStride)
-            val vBytes = copyPlane(vPlane.buffer, vPlane.rowStride, cw, ch, vPlane.pixelStride)
-            if (yBytes == null || uBytes == null || vBytes == null) {
-                lastAnalyzeSkip = "取平面失败"
-                return
-            }
+            val uBytes = copyPlane(
+                uPlane.buffer, uPlane.rowStride, cw, ch, uPlane.pixelStride,
+                "U(rs=${uPlane.rowStride} ps=${uPlane.pixelStride} lim=${uPlane.buffer.limit()})",
+            )
+            val vBytes = copyPlane(
+                vPlane.buffer, vPlane.rowStride, cw, ch, vPlane.pixelStride,
+                "V(rs=${vPlane.rowStride} ps=${vPlane.pixelStride} lim=${vPlane.buffer.limit()})",
+            )
 
             val t0 = System.nanoTime()
             val detections = det.detectYuv(
@@ -564,9 +579,12 @@ class VisionPlugin(
             val ms = (System.nanoTime() - t0) / 1_000_000.0
             lastFrameWidth = w
             lastFrameHeight = h
-            lastFrameFormat = "YUV420 planes=${image.planes.size} rot=$rotation " +
-                "uvStride=${uPlane.rowStride}/${uPlane.pixelStride}"
+            lastFrameFormat = "YUV420 $fmt uvStride=${uPlane.rowStride}/${uPlane.pixelStride}"
             lastMaxScore = detections.maxOfOrNull { it.score } ?: 0f
+            // 成功一帧才清除跳过原因。**不要每帧开头清空**——那样错误信息会
+            // 被下一帧覆盖，用户永远看不到（真机上就是这样丢掉线索的）。
+            lastAnalyzeSkip = ""
+            lastAnalyzeError = ""
 
             val sink = eventSink ?: run { lastAnalyzeSkip = "EventSink 未连接"; return }
             val payload = mapOf(
@@ -575,6 +593,7 @@ class VisionPlugin(
                 "frameWidth" to w,
                 "frameHeight" to h,
                 "analyzedFrames" to analyzedFrames,
+                "analyzeErrors" to analyzeErrors,
                 "skippedReason" to lastAnalyzeSkip,
                 "frameMaxScore" to lastMaxScore.toDouble(),
                 "frameFormat" to lastFrameFormat,
@@ -582,8 +601,11 @@ class VisionPlugin(
             ContextCompat.getMainExecutor(context).execute { sink.success(payload) }
         } catch (e: Exception) {
             analyzeErrors++
-            lastAnalyzeSkip = "异常 ${e.javaClass.simpleName}: ${e.message}"
-            Log.w(TAG, "分析帧失败", e)
+            // 用 message 而不是 toString，避免刷屏；同时保留类型。
+            lastAnalyzeError =
+                "${e.javaClass.simpleName}: ${e.message ?: "(无消息)"}"
+            lastAnalyzeSkip = lastAnalyzeError
+            Log.w(TAG, "分析帧失败 #$analyzeErrors：$lastAnalyzeError", e)
         } finally {
             image.close()
         }
@@ -595,6 +617,15 @@ class VisionPlugin(
      * `rowStride` 可能大于逻辑宽度（硬件按 16/32 字节对齐），也可能带
      * `pixelStride`。按 `rowStride` 逐行定位是**必须**的：直接顺序读会在
      * 非对齐设备上产生斜纹伪影，而且不报错。
+     *
+     * ## 防御性要点
+     *
+     * 真机上出现过「每帧都抛异常」的情况，300+ 次连续失败，而当时只报了个
+     * 计数、看不出原因。所以这里对每个可能不合法的输入都显式检查并**返回
+     * 具体原因**，而不是让异常冒泡：
+     *  - `rowStride` 为 0 或负数（部分设备的 UV 平面会这样）
+     *  - `buffer.limit()` 小于 `rowStride`（读第一行就越界）
+     *  - 请求尺寸为 0
      */
     private fun copyPlane(
         buffer: java.nio.ByteBuffer,
@@ -602,38 +633,60 @@ class VisionPlugin(
         width: Int,
         height: Int,
         pixelStride: Int,
-    ): ByteArray? {
+        what: String,
+    ): ByteArray {
+        require(width > 0 && height > 0) { "$what 尺寸非法 ${width}x$height" }
+        require(rowStride > 0) { "$what rowStride=$rowStride 非法" }
+        val stride0 = pixelStride.coerceAtLeast(1)
+
+        val limit = buffer.limit()
         val out = ByteArray(width * height)
         buffer.rewind()
-        val stride0 = pixelStride.coerceAtLeast(1)
+
+        // 紧凑布局：每行数据连续且无填充
         if (rowStride == width * stride0) {
-            // 紧凑布局：可直接连续读
-            val need = out.size * stride0
             if (stride0 == 1) {
-                buffer.get(out, 0, min(out.size, buffer.remaining()))
-            } else {
-                var o = 0
-                var i = 0
-                while (o < out.size && i + stride0 <= buffer.remaining()) {
-                    out[o++] = buffer.get(i)
-                    i += stride0
+                if (limit < out.size) {
+                    throw IllegalStateException("$what 数据不足：limit=$limit 需要 ${out.size}")
                 }
+                buffer.get(out, 0, out.size)
+                return out
             }
-            if (need <= 0) return null
+            var o = 0
+            var i = 0
+            while (o < out.size) {
+                if (i >= limit) throw IllegalStateException("$what 数据不足（pixelStride 读）i=$i limit=$limit")
+                out[o++] = buffer.get(i)
+                i += stride0
+            }
             return out
         }
-        val row = ByteArray(rowStride.coerceAtLeast(width * stride0))
+
+        // 带行填充：逐行定位。行缓冲区按 rowStride 与逻辑行宽取大者，
+        // 并对每行实际可读长度做检查——不检查就会 BufferUnderflow。
+        val rowLen = maxOf(rowStride, width * stride0)
+        val row = ByteArray(rowLen)
         var o = 0
         for (y in 0 until height) {
             val pos = y * rowStride
-            if (pos >= buffer.limit()) break
+            if (pos >= limit) {
+                throw IllegalStateException(
+                    "$what 第 $y 行越界：pos=$pos limit=$limit rowStride=$rowStride",
+                )
+            }
             buffer.position(pos)
-            val n = min(row.size, buffer.remaining())
+            val n = min(rowLen, limit - pos)
+            if (n <= 0) throw IllegalStateException("$what 第 $y 行无可读数据 n=$n")
             buffer.get(row, 0, n)
             var x = 0
             while (x < width) {
                 val src = x * stride0
-                if (src >= n || o >= out.size) break
+                if (src >= n) {
+                    throw IllegalStateException(
+                        "$what 第 $y 行第 $x 列越界：src=$src n=$n " +
+                            "(rowStride=$rowStride pixelStride=$stride0 width=$width)",
+                    )
+                }
                 out[o++] = row[src]
                 x++
             }

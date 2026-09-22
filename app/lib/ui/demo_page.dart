@@ -297,10 +297,30 @@ class _DemoPageState extends State<DemoPage> {
                     : Colors.orangeAccent,
               ),
             ),
+            if (_diagnostics!.analyzeErrors > 0 &&
+                _diagnostics!.analyzeError.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: SizedBox(
+                  width: 190,
+                  child: SelectableText(
+                    // 异常的完整类型与消息直接摆在屏幕上。
+                    // 真机上没有 logcat 可用，这行文字是唯一的线索来源。
+                    _diagnostics!.analyzeError,
+                    style: style.copyWith(color: Colors.redAccent, fontSize: 9),
+                  ),
+                ),
+              ),
             if (_diagnostics!.skippedReason.isNotEmpty)
-              Text(
-                '跳过     ${_diagnostics!.skippedReason}',
-                style: style.copyWith(color: Colors.orangeAccent, fontSize: 10),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: SizedBox(
+                  width: 190,
+                  child: SelectableText(
+                    _diagnostics!.skippedReason,
+                    style: style.copyWith(color: Colors.orangeAccent, fontSize: 9),
+                  ),
+                ),
               ),
           ],
           Text(
