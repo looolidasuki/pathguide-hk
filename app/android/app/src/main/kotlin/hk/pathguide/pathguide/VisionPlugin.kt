@@ -321,21 +321,31 @@ class VisionPlugin(
             // 所以用**文件内存映射**：既满足要求，又省掉一次 10 MB 的内存拷贝。
             // 这也正是当初该直接用文件路径、而不是先在 Dart 侧读成字节的原因之一。
             val det = YoloDetector.fromFile(f, EXPECTED_INPUT_SIZE)
-            det.classOffset = offset
+            // 多类模型若仍带着单类偏移（如 bin=7），所有 id 会整体错位且不报错。
+            // 只在真正的单类模型上接受非零偏移。
+            var appliedOffset = offset
+            if (det.numClasses != 1 && offset != 0) {
+                Log.w(
+                    TAG,
+                    "多类模型（${det.numClasses} 类）忽略 classOffset=$offset，强制为 0",
+                )
+                appliedOffset = 0
+            }
+            det.classOffset = appliedOffset
             detector = det
             loadedModelPath = path
             startCameraIfPossible()
             Log.i(
                 TAG,
                 "模型已加载：$path（${f.length() / 1024} KB, ${det.numClasses} 类, " +
-                    "类偏移 $offset）",
+                    "类偏移 $appliedOffset）",
             )
             mapOf(
                 "loaded" to true,
                 "classes" to det.numClasses,
                 "inputSize" to det.inputSize,
                 "modelPath" to path,
-                "classOffset" to offset,
+                "classOffset" to appliedOffset,
             )
         } catch (e: Exception) {
             Log.w(TAG, "模型加载失败：$path", e)

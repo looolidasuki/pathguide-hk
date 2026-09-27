@@ -9,23 +9,88 @@ class VisionFrame {
     required this.inferenceMs,
     required this.frameWidth,
     required this.frameHeight,
-    required this.queueDepth,
   });
 
   final List<Detection> detections;
 
-  /// 原生侧单帧推理耗时（毫秒）。**不含**取帧与格式转换。
+  /// 单帧推理耗时（毫秒）。**不含**取帧与格式转换。
   final double inferenceMs;
 
-  /// 这一帧的原始尺寸（旋转之前）。
+  /// 这一帧的**原始**尺寸（旋转之前）。
+  ///
+  /// 保留它是给诊断用的：`frameSize` 是旋转后的尺寸，两者不一致往往是
+  /// 「框整体偏移」的第一嫌疑。
   final int frameWidth;
   final int frameHeight;
+}
 
-  /// 当前排队等待推理的帧数。持续 > 1 说明推理跟不上相机帧率，
-  /// 必须丢弃旧帧而不是排队——排队会让画面延迟越积越大。
-  final int queueDepth;
+/// 一次初始化尝试的结果。
+///
+/// 为什么用返回值而不是抛异常：模型缺失、相机被占用、权限被拒都要在界面上
+/// 显示**可操作的原因**，而不是把界面打崩。抛异常的实现最终还是要被
+/// 调用方 catch 后转成文案，不如在类型上就写清楚。
+class VisionSourceStatus {
+  const VisionSourceStatus({required this.ok, required this.message, this.error});
 
-  int get frameArea => frameWidth * frameHeight;
+  final bool ok;
+
+  /// 面向用户的说明（成功也要有，例如「模型已加载，24 类」）。
+  final String message;
+
+  /// 失败细节，供诊断面板显示。成功时为 null。
+  final String? error;
+
+  @override
+  String toString() => 'VisionSourceStatus(ok=$ok, message=$message, error=$error)';
+}
+
+/// 检测结果来源的抽象接口。
+///
+/// ## 这层抽象到底约束了什么（曾经是假的）
+///
+/// 本文件原先写着「`lib/` 下除实现之外的代码只依赖 [VisionSource]」，
+/// 但 `PlatformVision` **从未实现**该接口，UI 里通篇是
+/// `_platform.xxx` 与 `_mock?.xxx` 两套并行分支。后果：
+/// - 换平台要做两遍（一遍原生、一遍抄 UI 分支）；
+/// - 没有任何机制保证两个实现行为一致；
+/// - 平台特有的几何量（旋转角）被硬编码进 UI。
+///
+/// 现在**两个实现都必须 implements [VisionSource]**，由
+/// `test/vision_source_contract_test.dart` 断言，UI 只持有一个该类型的引用。
+abstract class VisionSource {
+  /// 显示名，用于界面提示当前用的是哪个来源。
+  String get displayName;
+
+  /// 归一化坐标系下的帧尺寸（= **旋转到位之后**的帧尺寸）。
+  ///
+  /// 画框必须用它，不能用预览控件的尺寸：前者决定坐标含义，后者只决定显示。
+  Size get frameSize;
+
+  /// 把原始帧转正所需的**顺时针**旋转角度（0/90/180/270）。
+  ///
+  /// 必须在接口上，因为它是**平台量**：Android 的 `ImageProxy` 与 iOS 的
+  /// `AVCaptureConnection` 会给出不同值。曾经把它硬编码在 UI 里
+  /// （`static const int _rotationDegrees = 90`），换个机型或换 iOS 就错。
+  int get rotationDegrees;
+
+  /// 检测结果流。实现方负责抽帧与过滤，流里给出的框都已过 [threshold]。
+  Stream<VisionFrame> get frames;
+
+  /// 初始化：加载模型、请求权限、启动相机。
+  ///
+  /// 失败通过返回值的 [VisionSourceStatus.ok] 表达，**不抛异常**。
+  Future<VisionSourceStatus> initialize();
+
+  /// 置信度门槛，取值被夹在 [0, 1]。
+  double get threshold;
+  set threshold(double value);
+
+  /// 诊断快照。不支持的实现（如假数据源）返回 `null`，UI 据此隐藏面板。
+  ///
+  /// 返回 `Future` 而不是同步值：真实实现的诊断要跨平台通道取。
+  Future<VisionDiagnostics?> diagnostics();
+
+  Future<void> dispose();
 }
 
 /// 原生侧的诊断快照。
@@ -144,35 +209,4 @@ class VisionDiagnostics {
   String toString() => 'analyzed=$analyzedFrames errors=$analyzeErrors '
       'skip="$skippedReason" frame=${frameWidth}x$frameHeight '
       'maxScore=${frameMaxScore.toStringAsFixed(3)}';
-}
-
-/// 检测结果来源的抽象接口。
-///
-/// `lib/` 下除本文件与 `platform_vision_source.dart` 之外的代码
-/// **只依赖这个接口**，不依赖相机、不依赖平台通道。因此：
-/// - UI、画框、播报、防抖逻辑可以用 [VisionSource] 的假实现单独开发和测试；
-/// - Android 与 iOS 各自实现一次原生层，Dart 侧零改动。
-///
-/// 这层抽象是「MacBook 上补 iOS」的前提，见
-/// `docs/superpowers/plans/2026-09-22-flutter-android-env.md` §6。
-abstract class VisionSource {
-  /// 归一化坐标系下的帧尺寸（= 旋转到位之后的帧尺寸）。
-  ///
-  /// 画框必须用它，**不能用预览控件的尺寸**：前者决定坐标含义，后者只决定显示。
-  Size get frameSize;
-
-  /// 检测结果流。实现方负责抽帧，不必每帧都推理。
-  Stream<VisionFrame> get frames;
-
-  /// 初始化。抛异常表示模型缺失或相机不可用，调用方须展示明确提示。
-  Future<void> initialize();
-
-  /// 置信度门槛，[0, 1]。
-  set threshold(double value);
-  double get threshold;
-
-  /// 推理时是否把输入水平镜像（前置相机需要）。
-  set mirrored(bool value);
-
-  Future<void> dispose();
 }

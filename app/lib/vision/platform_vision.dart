@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart';
 
 import 'detection.dart';
 import 'platform_contract.dart';
+import 'single_class_map.dart';
 import 'vision_source.dart';
 
 /// 模型在 **Flutter AssetBundle** 中的 key，与 pubspec.yaml 里声明的一致。
@@ -12,185 +14,162 @@ import 'vision_source.dart';
 /// `assets/models/detector.tflite`，而 APK 条目是
 /// `assets/flutter_assets/assets/models/detector.tflite`。
 /// 传给 Android `AssetManager.open()` 时还要去掉开头的 `assets/`
-/// （它会自动加前缀）——这个歧义正是我们改用 rootBundle 读取的原因。
+/// （它会自动加前缀）——这个歧义正是我们改用 rootBundle 读取的原因：
+/// 实测某些 ROM（Redmi / Android 16 / HyperOS）上 `AssetManager.open()`
+/// 读该路径**必然 FileNotFoundException**，而同一次运行里 `assets.list()`
+/// 递归又能列出它。
 const String defaultModelAssetKey = 'assets/models/detector.tflite';
 
 /// 平台原生视觉能力（Android CameraX + LiteRT）。
 ///
-/// ## 这一层只做两件事
+/// ## 它现在真正实现了 [VisionSource]
+///
+/// 改造前本类**没有**实现该接口，UI 里通篇是 `_platform.xxx` 与
+/// `_mock?.xxx` 两套并行分支。后果是换平台要做两遍，而且没有任何机制保证
+/// 两个实现行为一致。现在它 implements [VisionSource]，
+/// 由 `test/vision_source_contract_test.dart` 断言。
+///
+/// ## 职责边界
 ///
 /// 1. **把原生回包翻成 Dart 对象**，并做防御式解析——原生是另一个语言写的，
 ///    少一个键、类型不对都不该让 App 崩，只该退化成「本帧无结果」。
-/// 2. **暴露一个干净的状态**（[isReady] / [error] / [frameSize]）给 UI。
+/// 2. **暴露干净状态**（[initialize] 的返回值、[diagnostics]）给 UI。
 ///
 /// 所有字符串键名都取自 [VisionKeys]，不在这里另写一份。
-class PlatformVision {
+class PlatformVision implements VisionSource {
   PlatformVision({
     MethodChannel? method,
     EventChannel? events,
+    this.rotationDegrees = 90,
   })  : _method = method ?? const MethodChannel(kVisionChannel),
         _events = events ?? const EventChannel(kFrameChannel);
 
   final MethodChannel _method;
   final EventChannel _events;
 
+  /// 把原始帧转正所需的顺时针角度。
+  ///
+  /// 默认 90：Android 后置相机在竖屏下输出横屏帧，需顺时针转 90° 才正立。
+  /// 做成构造参数而不是常量：它是**平台量**，iOS 的 AVFoundation 与不同机型
+  /// 会给出不同值。曾经它被硬编码在 UI 里，换个机型就会整体错位。
+  @override
+  final int rotationDegrees;
+
   Stream<VisionFrame>? _frames;
   bool _loaded = false;
-  String? _error;
-  int _numClasses = 0;
+  String? _loadError;
   int _inputSize = 0;
+  int _modelClassCount = 0;
+  int _classOffset = 0;
+  double _threshold = 0.30;
+
+  /// 最近一帧的**原始**尺寸（旋转之前），用于推出 [frameSize]。
+  int _rawFrameWidth = 0;
+  int _rawFrameHeight = 0;
+
+  /// 模型输出维度（原始，未偏移）。单类模型这里是 1，多类模型是 24。
+  int get modelClassCount => _modelClassCount;
+
+  /// 传给原生的类别 id 偏移（0 表示不偏移）。
+  int get classOffset => _classOffset;
+
+  /// 模型输入边长。
+  int get inputSize => _inputSize;
 
   /// 模型是否已成功加载。
   bool get isReady => _loaded;
 
   /// 最近一次失败原因。为空表示没有失败。
-  String? get error => _error;
+  String? get error => _loadError;
 
-  /// 模型输出维度。与 `kNumClasses` 不一致即为模型与类别表不匹配。
-  int get numClasses => _numClasses;
+  @override
+  String get displayName => '相机';
 
-  /// 模型输入边长。
-  int get inputSize => _inputSize;
+  /// **旋转之后**的帧尺寸——归一化坐标的坐标系。
+  ///
+  /// 优先用真实帧尺寸；还没收到帧时用默认的 1280x720 占位，
+  /// 这样首帧到达之前画框不会 NaN，也不会画在错误的位置上。
+  @override
+  Size get frameSize {
+    final w = _rawFrameWidth > 0 ? _rawFrameWidth : 1280;
+    final h = _rawFrameHeight > 0 ? _rawFrameHeight : 720;
+    return rotationDegrees % 180 == 90
+        ? Size(h.toDouble(), w.toDouble())
+        : Size(w.toDouble(), h.toDouble());
+  }
+
+  @override
+  double get threshold => _threshold;
+
+  /// 写入即夹紧并**同时推给原生**。
+  ///
+  /// 阈值只在原生侧生效（低分框不过通道，省掉每帧的序列化开销），
+  /// Dart 侧不再重复过滤——两处各过滤一次时，不一致的表现是
+  /// 「滑动条不生效」或「框数对不上」，且不报错。
+  @override
+  set threshold(double value) {
+    _threshold = value.clamp(0.0, 1.0);
+    unawaited(_pushThreshold(_threshold));
+  }
 
   /// 检测结果流。只允许订阅一次。
+  @override
   Stream<VisionFrame> get frames => _frames ??= _events
       .receiveBroadcastStream()
       .where((event) => event is Map)
       .map((event) => _parseFrame(event as Map));
 
-  /// 模型输出的原始类别数，**不做偏移**。
-  ///
-  /// 单类模型这里是 1；多类模型是 24。UI 用它与 [classOffset] 一起算出
-  /// 「这个模型实际能识别几类」，并据此提示用户。
-  int get modelClassCount => _modelClassCount;
-  int _modelClassCount = 0;
+  /// 启动预览、请求权限、加载模型。返回可展示的结果，**不抛异常**。
+  @override
+  Future<VisionSourceStatus> initialize() async {
+    // 1) 订阅结果流（必须在相机启动前，否则会丢首帧）
+    _frames ??= _events
+        .receiveBroadcastStream()
+        .where((event) => event is Map)
+        .map((event) => _parseFrame(event as Map));
 
-  /// 传给原生的类别 id 偏移（0 表示不偏移）。
-  int get classOffset => _classOffset;
-  int _classOffset = 0;
+    // 2) 请求权限并启动原生相机预览
+    final started = await _startPreview();
 
-  /// 加载模型。
-  ///
-  /// [classOffset] 会被传给原生，原生把它加到模型输出的每个类别 id 上再回传。
-  /// 单类模型（只认垃圾桶，输出 id 0）要传 `bin` 的原始 id（7），
-  /// 否则界面会把垃圾桶标成 `kLabels[0]` 即「天橋入口」。
-  Future<bool> loadModel({String? assetKey, int classOffset = 0}) async {
-    _classOffset = classOffset;
-    final key = assetKey ?? defaultModelAssetKey;
-    String? filePath;
-    try {
-      filePath = await _materializeModelToDisk(key);
-    } catch (e) {
-      _loaded = false;
-      _error = '把模型写入应用目录失败：${e.runtimeType}: $e';
-      return false;
+    // 3) 加载模型。先按「多类模型」试（偏移 0），拿到真实类别数后再决定偏移：
+    //    单类模型输出 id 0，而项目类别表里 0 是 footbridge_entrance，
+    //    不偏移就会把垃圾桶标成「天橋入口」——框对、名字错、不报错。
+    var ok = await _loadModel(0);
+    if (ok && _modelClassCount == 1) {
+      final offset = singleClassProjectId ?? 0;
+      if (offset > 0) {
+        ok = await _loadModel(offset);
+      }
     }
-    return _loadFromPath(filePath, classOffset);
-  }
 
-  /// 把 Flutter 资源落盘到应用私有目录，返回绝对路径。
-  ///
-  /// 目录来自 `path_provider` 会引入额外依赖（且它会拖入 objective_c，
-  /// 见 pubspec 的说明），所以这里直接用原生提供的目录：
-  /// 由 [VisionMethods.modelDir] 返回，已保证可写。
-  Future<String> _materializeModelToDisk(String assetKey) async {
-    final dir = await _method.invokeMethod<String>(VisionMethods.modelDir);
-    if (dir == null || dir.isEmpty) {
-      throw StateError('原生未返回可写的模型目录');
-    }
-    final data = await rootBundle.load(assetKey);
-    final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
-
-    final target = '$dir/detector.tflite';
-    // 已存在且大小一致就跳过写盘：模型是 10 MB，每次启动都写没必要。
-    //
-    // 注意类型：原生返回的是 kotlin Long，平台通道会映射成 Dart int。
-    // 但若在原生侧返回的是 Int 以外的整数类型，泛型写错会**静默得到 null**，
-    // 于是每次启动都重写一遍——所以要显式处理 null 并把类型放宽。
-    final Object? existingRaw = await _method.invokeMethod<Object?>(
-      VisionMethods.fileSize,
-      <String, Object>{VisionKeys.path: target},
-    );
-    final existing = existingRaw is num ? existingRaw.toInt() : -1;
-    if (existing == bytes.length) {
-      return target;
-    }
-    await _method.invokeMethod<void>(
-      VisionMethods.writeFile,
-      <String, Object>{VisionKeys.path: target, VisionKeys.bytes: bytes},
-    );
-    return target;
-  }
-
-  Future<bool> _loadFromPath(String? filePath, int classOffset) async {
-    try {
-      final reply = await _method.invokeMethod<Map<Object?, Object?>>(
-        VisionMethods.loadModel,
-        filePath == null ? null : <String, Object>{
-          VisionKeys.model: filePath,
-          VisionKeys.classOffset: classOffset,
-        },
+    if (!ok) {
+      return VisionSourceStatus(
+        ok: false,
+        message: '模型未加载',
+        error: _loadError,
       );
-      _loaded = reply?[VisionKeys.loaded] == true;
-      _modelClassCount = _asInt(reply?[VisionKeys.classes]) ?? 0;
-      _numClasses = _modelClassCount;
-      _inputSize = _asInt(reply?[VisionKeys.inputSize]) ?? 0;
-      _error = _loaded ? null : (reply?['error'] as String? ?? '未知原因');
-      return _loaded;
-    } on PlatformException catch (e) {
-      _loaded = false;
-      _error = '${e.code}: ${e.message}';
-      return false;
-    } on MissingPluginException {
-      // 在 iOS 上尚未实现 VisionPlugin 时会走到这里，这是**预期**的。
-      _loaded = false;
-      _error = '当前平台尚未实现视觉插件（iOS 待补，见环境文档 §6.4）';
-      return false;
     }
-  }
-
-  /// 回放/调试用的单帧推理（传原始 Y 平面字节）。
-  ///
-  /// 实时相机路径不走这里——那条路在原生侧直接把结果推 EventChannel，
-  /// 避免每帧搬运整帧字节。
-  Future<({List<Detection> detections, double inferenceMs})> detectGray({
-    required Uint8List gray,
-    required int frameWidth,
-    required int frameHeight,
-    required int rotationDegrees,
-    required double threshold,
-  }) async {
-    final reply = await _method.invokeMethod<Map<Object?, Object?>>(
-      VisionMethods.detect,
-      <String, Object>{
-        VisionKeys.bytes: gray,
-        VisionKeys.frameWidth: frameWidth,
-        VisionKeys.frameHeight: frameHeight,
-        VisionKeys.rotationDegrees: rotationDegrees,
-        VisionKeys.threshold: threshold,
-      },
-    );
-    return (
-      detections: _parseDetections(reply?[VisionKeys.detections]),
-      inferenceMs: _asDouble(reply?[VisionKeys.inferenceMs]) ?? 0,
-    );
-  }
-
-  /// 更新原生侧阈值。
-  ///
-  /// 阈值必须在原生侧生效：低分框若仍跨越通道传过来，每帧白白多一次
-  /// 序列化与分配。Dart 侧再过滤一次只是为了让滑动条响应更快。
-  Future<void> setThreshold(double value) async {
-    try {
-      await _method.invokeMethod<void>(
-        VisionMethods.setThreshold,
-        <String, Object>{VisionKeys.threshold: value},
+    if (!started) {
+      // 模型好了但相机没起来：仍是失败，但要区分原因，
+      // 否则用户会以为是模型问题。
+      return const VisionSourceStatus(
+        ok: false,
+        message: '相机未启动',
+        error: '模型已加载，但原生相机未启动：可能未授予权限，或被其他程序占用',
       );
-    } on PlatformException {
-      // 原生侧未实现该方法时静默忽略；UI 的滑动条仍按 Dart 侧过滤工作。
-    } on MissingPluginException {
-      // 同上（iOS 尚未实现时）。
     }
+    final mapping = resolveMapping(
+      modelClassCount: _modelClassCount,
+      singleClassOriginalId: singleClassProjectId,
+      singleClassName: singleClassProjectName ?? '',
+    );
+    return VisionSourceStatus(
+      ok: true,
+      message: '模型已加载（类别数 $_modelClassCount'
+          '${_classOffset > 0 ? "，偏移到类别 $_classOffset" : ""}'
+          '，输入 $_inputSize）'
+          '${mapping != null ? "；${mapping.describe()}" : ""}',
+    );
   }
 
   /// 请求原生侧申请权限并启动相机预览。返回是否真的启动了。
@@ -201,7 +180,7 @@ class PlatformVision {
   ///
   /// 加超时的原因：权限对话框若因 Activity 重建等原因没有回调，
   /// Future 会永不完成。宁可超时给出明确提示，也不要卡在「正在初始化」。
-  Future<bool> startPreview() async {
+  Future<bool> _startPreview() async {
     try {
       final reply = await _method
           .invokeMethod<Map<Object?, Object?>>(VisionMethods.startPreview)
@@ -217,11 +196,8 @@ class PlatformVision {
     }
   }
 
-  /// 查询原生侧状态与**诊断计数**。
-  ///
-  /// 存在的原因：曾出现「相机预览正常，但推理一次都没执行」的情况，
-  /// 而当时界面上没有任何计数可用，只能靠反复重新构建来猜问题在哪。
-  /// 这类信息必须能在屏幕上看到，而不是要求用户去读 logcat。
+  /// 诊断快照。不支持时返回 `null`（本实现支持）。
+  @override
   Future<VisionDiagnostics?> diagnostics() async {
     try {
       final r = await _method.invokeMethod<Map<Object?, Object?>>(
@@ -261,27 +237,128 @@ class PlatformVision {
     }
   }
 
-  Future<void> release() async {
+  Future<void> _pushThreshold(double value) async {
+    try {
+      await _method.invokeMethod<void>(
+        VisionMethods.setThreshold,
+        <String, Object>{VisionKeys.threshold: value},
+      );
+    } on PlatformException {
+      // 原生侧未实现该方法时静默忽略：滑动条仍可用，只是不省序列化开销。
+    } on MissingPluginException {
+      // 同上（iOS 尚未实现时）。
+    }
+  }
+
+  /// 加载模型。
+  ///
+  /// ## 为什么由 Dart 读资源再交给原生
+  ///
+  /// 实测原生 `AssetManager.open()` 在部分 ROM 上读不到 `flutter_assets`
+  /// 下的资源。Flutter 自己的资源系统是可靠的（`AssetManifest.bin` 里明确
+  /// 列有该 key），所以改为：**Dart 用 rootBundle 读出字节 -> 写入应用私有
+  /// 目录 -> 原生读文件**，彻底绕开 AssetManager 的路径歧义。
+  ///
+  /// 代价：启动时多一次写盘。用「已存在且大小一致就跳过」避免重复写。
+  Future<bool> _loadModel(int classOffset) async {
+    _classOffset = classOffset;
+    String? filePath;
+    try {
+      filePath = await _materializeModelToDisk(defaultModelAssetKey);
+    } catch (e) {
+      _loaded = false;
+      _loadError = '把模型写入应用目录失败：${e.runtimeType}: $e';
+      return false;
+    }
+
+    try {
+      final reply = await _method.invokeMethod<Map<Object?, Object?>>(
+        VisionMethods.loadModel,
+        filePath == null
+            ? null
+            : <String, Object>{
+                VisionKeys.model: filePath,
+                VisionKeys.classOffset: classOffset,
+              },
+      );
+      _loaded = reply?[VisionKeys.loaded] == true;
+      _modelClassCount = _asInt(reply?[VisionKeys.classes]) ?? 0;
+      _inputSize = _asInt(reply?[VisionKeys.inputSize]) ?? 0;
+      _loadError = _loaded ? null : (reply?['error'] as String? ?? '未知原因');
+      return _loaded;
+    } on PlatformException catch (e) {
+      _loaded = false;
+      _loadError = '${e.code}: ${e.message}';
+      return false;
+    } on MissingPluginException {
+      _loaded = false;
+      _loadError = '当前平台尚未实现视觉插件（iOS 待补，见环境文档 §6.4）';
+      return false;
+    }
+  }
+
+  Future<String> _materializeModelToDisk(String assetKey) async {
+    final dir = await _method.invokeMethod<String>(VisionMethods.modelDir);
+    if (dir == null || dir.isEmpty) {
+      throw StateError('原生未返回可写的模型目录');
+    }
+    final data = await rootBundle.load(assetKey);
+    final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+    final target = '$dir/detector.tflite';
+    // 已存在且大小一致就跳过写盘：模型约 10 MB，每次启动都写没必要。
+    //
+    // 注意类型：原生返回 kotlin Long，平台通道映射成 Dart int。
+    // 泛型若写死 <int> 而原生返回别的整数类型，会**静默得到 null**，
+    // 于是每次启动都重写——所以要显式处理 null 并把类型放宽。
+    final Object? existingRaw = await _method.invokeMethod<Object?>(
+      VisionMethods.fileSize,
+      <String, Object>{VisionKeys.path: target},
+    );
+    final existing = existingRaw is num ? existingRaw.toInt() : -1;
+    if (existing == bytes.length) {
+      return target;
+    }
+    await _method.invokeMethod<void>(
+      VisionMethods.writeFile,
+      <String, Object>{VisionKeys.path: target, VisionKeys.bytes: bytes},
+    );
+    return target;
+  }
+
+  @override
+  Future<void> dispose() async {
     try {
       await _method.invokeMethod<void>(VisionMethods.release);
     } on PlatformException {
       // 释放失败不影响退出。
+    } on MissingPluginException {
+      // 同上。
     }
     _loaded = false;
   }
 
   VisionFrame _parseFrame(Map<Object?, Object?> raw) {
+    final w = _asInt(raw[VisionKeys.frameWidth]) ?? 0;
+    final h = _asInt(raw[VisionKeys.frameHeight]) ?? 0;
+    if (w > 0 && h > 0) {
+      _rawFrameWidth = w;
+      _rawFrameHeight = h;
+    }
     return VisionFrame(
       detections: _parseDetections(raw[VisionKeys.detections]),
       inferenceMs: _asDouble(raw[VisionKeys.inferenceMs]) ?? 0,
-      frameWidth: _asInt(raw[VisionKeys.frameWidth]) ?? 0,
-      frameHeight: _asInt(raw[VisionKeys.frameHeight]) ?? 0,
-      queueDepth: _asInt(raw['queueDepth']) ?? 0,
+      frameWidth: w,
+      frameHeight: h,
     );
   }
 
   /// 防御式解析：[Detection.fromMap] 对缺键/错类型返回 null 并在此被过滤，
   /// 因此单个坏框不会丢掉整帧结果。
+  ///
+  /// 这里**不再按阈值过滤**——阈值已在原生侧生效（低分框不过通道）。
+  /// 两处各过滤一次时，不一致的表现是「滑动条不生效」或「框数对不上」，
+  /// 且不报错。过滤只保留一处。
   static List<Detection> _parseDetections(Object? raw) {
     if (raw is! List) return const [];
     return raw

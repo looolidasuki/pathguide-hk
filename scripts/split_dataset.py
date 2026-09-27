@@ -270,6 +270,9 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--include-unlabelled", action="store_true",
                     help="也纳入缺标签的图像（默认仅用已标注的）")
+    ap.add_argument("--dataset-dir", type=Path, default=DATASET_DIR,
+                    help="数据集根目录（含 images/ labels/ manifest.csv）。"
+                         "单类库请指向 data/dataset_single_bin，避免覆盖主库 yaml。")
     args = ap.parse_args()
 
     total_ratio = sum(args.ratios)
@@ -277,12 +280,14 @@ def main() -> int:
         print(f"ratios 之和必须为 1.0，当前为 {total_ratio}")
         return 1
 
-    print(f"seed={args.seed}")
-    result = run_split(ratios=tuple(args.ratios), seed=args.seed,
+    dataset_dir = args.dataset_dir.resolve()
+    print(f"seed={args.seed}  dataset={dataset_dir}")
+    result = run_split(dataset_dir=dataset_dir,
+                       ratios=tuple(args.ratios), seed=args.seed,
                        include_unlabelled=args.include_unlabelled)
     if result == 1:
         return 1
-    print(f"split -> {SPLIT_PATH}")
+    print(f"split -> {dataset_dir / 'split.json'}")
     print(f"yaml  -> {YAML_PATH}")
     return 0
 

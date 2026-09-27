@@ -72,6 +72,27 @@ def image_size(path: Path) -> tuple[int, int] | None:
         return None
 
 
+def missing_label_fatals(n_images: int, missing: int) -> list[str]:
+    """缺镜像标签何时升级为致命错误。
+
+    Ultralytics 在标签路径镜像错误时会得到 0 实例且**不报错**。
+    全缺或过半缺时必须拦下训练，不能只写警告。
+    """
+    if n_images <= 0 or missing <= 0:
+        return []
+    if missing == n_images:
+        return [
+            "全部图像缺少镜像标签文件（疑似 labels 未按 images/<src>/ 放置；"
+            "训练会静默得到 0 实例）"
+        ]
+    if missing * 2 >= n_images:
+        return [
+            f"超过半数图像缺标签文件（{missing}/{n_images}），"
+            "疑似目录结构未镜像"
+        ]
+    return []
+
+
 def main() -> int:
     classes = load_classes()
     class_names = [c["name_en"] for c in classes]
@@ -134,8 +155,12 @@ def main() -> int:
     for cid in range(n_classes):
         if class_counts.get(cid, 0) == 0:
             warnings.append(f"类别 {class_names[cid]}(id={cid}) 没有任何标注框")
-    if missing_labels:
-        warnings.append(f"{missing_labels} 张图像没有对应标签文件（标注未完成，或需生成空标签作为负样本）")
+    fatal.extend(missing_label_fatals(len(images), missing_labels))
+    if missing_labels and missing_labels * 2 < len(images):
+        warnings.append(
+            f"{missing_labels} 张图像没有对应标签文件"
+            "（标注未完成，或需生成空标签作为负样本）"
+        )
     if unreadable:
         warnings.append(f"{unreadable} 张图像无法读取")
 

@@ -10,11 +10,15 @@ import '../tts/flutter_tts_speaker.dart';
 import '../vision/detection.dart';
 import '../vision/mock_vision_source.dart';
 import '../vision/platform_vision.dart';
-import '../vision/single_class_map.dart';
 import '../vision/vision_preview.dart';
 import '../vision/vision_source.dart';
 
-/// 检测来源：真实相机（原生 CameraX + LiteRT）或假数据。
+/// 界面可切换的检测来源种类。
+///
+/// 这个枚举只用来渲染「相机 / 假数据」两个按钮，**不参与运行期分派**——
+/// 分派由 [_DemoPageState._makeSource] 完成，之后 UI 只持有一个
+/// [VisionSource]。曾经 UI 里通篇是 `_platform.xxx` 与 `_mock?.xxx` 两套
+/// 并行分支，换平台要把每个分支抄一遍，且两个实现的行为无一致性保证。
 enum SourceMode {
   /// 真实相机，Android 走原生 CameraX。
   camera,
@@ -35,39 +39,48 @@ class DemoPage extends StatefulWidget {
 }
 
 class _DemoPageState extends State<DemoPage> {
-  final PlatformVision _platform = PlatformVision();
   final FlutterTtsSpeaker _speaker = FlutterTtsSpeaker();
   late final Announcer _announcer = Announcer(speaker: _speaker);
 
   StreamSubscription<VisionFrame>? _sub;
 
   SourceMode _mode = SourceMode.camera;
-  MockVisionSource? _mock;
+
+  /// **界面唯一持有的检测来源。**
+  ///
+  /// 相机与假数据都是 [VisionSource]，UI 不再需要知道用的是哪一个
+  /// （只有渲染预览时按 [_mode] 决定显示相机视图还是网格背景）。
+  VisionSource? _source;
 
   double _threshold = 0.30;
   bool _speakEnabled = true;
   bool _showLabels = true;
 
   List<Detection> _detections = const <Detection>[];
-  Size _frameSize = const Size(1280, 720);
-  /// 当前帧的旋转角。目前固定 90°：Android 后置相机在竖屏下输出横屏帧，
-  /// 需顺时针转 90° 才正立。HUD 常显它，框画偏时这是第一嫌疑。
-  static const int _rotationDegrees = 90;
 
   double _inferenceMs = 0;
   double _fps = 0;
   DateTime _lastFrameAt = DateTime.now();
 
   String _status = '正在初始化…';
-  bool _modelReady = false;
+  String? _statusError;
+
+  /// 本次初始化是否成功。用于状态栏配色与错误面板显示。
+  bool _sourceReady = false;
   String? _ttsLanguage;
 
-  /// 模型能力的一句话说明（单类模型时提醒「其余类别不会出框」）。
-  String? _modelNote;
-
   /// 原生侧诊断快照，定时轮询后显示在 HUD 上。
+  /// 假数据源的 [VisionSource.diagnostics] 返回 null，此时面板自动隐藏。
   VisionDiagnostics? _diagnostics;
   Timer? _diagTimer;
+
+  /// 帧尺寸与旋转角都来自 [VisionSource]，不在 UI 里写常量。
+  ///
+  /// `frameSize` 已经是**旋转之后**的尺寸，可直接用于 `DisplayFit`。
+  Size get _frameSize =>
+      _source?.frameSize ?? const Size(1280, 720);
+
+  int get _rotationDegrees => _source?.rotationDegrees ?? 0;
 
   @override
   void initState() {
@@ -77,8 +90,8 @@ class _DemoPageState extends State<DemoPage> {
 
   Future<void> _bootstrap() async {
     await _initSpeaker();
-    await _requestCamera();
-    await _startCameraSource();
+    if (!Platform.isAndroid && !Platform.isIOS) return;
+    await _switchSource(SourceMode.camera);
   }
 
   Future<void> _initSpeaker() async {
@@ -93,70 +106,73 @@ class _DemoPageState extends State<DemoPage> {
     });
   }
 
-  /// 请求相机权限并启动预览。
+  /// 按种类构造一个检测来源。
   ///
-  /// 权限申请**在原生侧**完成（见 `VisionPlugin.requestPermissionThenStart`）。
-  /// 刻意不用 permission_handler：它会传递引入 `objective_c`，而那个包的
-  /// build hook 在含空格的路径上会让 `flutter test` 直接失败。
-  Future<void> _requestCamera() async {
-    if (!Platform.isAndroid && !Platform.isIOS) return;
-    final started = await _platform.startPreview();
-    if (!mounted) return;
-    if (!started) {
-      setState(() => _status = '相机未启动：可能未授予权限，或设备被其他程序占用');
+  /// 这是**唯一**出现具体实现类名的地方。新增平台（iOS）或新增来源种类时，
+  /// 只改这一处，UI 其余部分不动。
+  VisionSource _makeSource(SourceMode mode) {
+    switch (mode) {
+      case SourceMode.camera:
+        return PlatformVision();
+      case SourceMode.mock:
+        // 假源的原始帧尺寸与旋转角与相机实现保持一致，
+        // 这样「假数据下框画对了」才能推出「相机下也会画对」。
+        return MockVisionSource(
+          frameSize: const Size(1280, 720),
+          rotationDegrees: 90,
+          threshold: _threshold,
+        );
     }
   }
 
-  Future<void> _startCameraSource() async {
+  /// 切换检测来源：停旧的、起新的、重接流与诊断轮询。
+  Future<void> _switchSource(SourceMode mode) async {
     await _sub?.cancel();
-
-    // 单类模型需要把它的 0 映射回项目类别表里的真实 id。
-    // 这里先按「单类模型」假设去加载，拿到模型真实类别数后再据此提示。
-    final ok = await _platform.loadModel(
-      classOffset: singleClassProjectId ?? 0,
-    );
-    if (!mounted) return;
-
-    final mapping = resolveMapping(
-      modelClassCount: _platform.modelClassCount,
-      singleClassOriginalId: singleClassProjectId,
-      singleClassName: singleClassProjectName ?? '',
-    );
-    setState(() {
-      _modelReady = ok;
-      _modelNote = ok && mapping != null ? mapping.describe() : null;
-      _status = ok
-          ? '模型已加载（模型类别数 ${_platform.modelClassCount}'
-              '${_platform.classOffset > 0 ? "，已偏移到类别 ${_platform.classOffset}" : ""}'
-              '，输入 ${_platform.inputSize}）'
-          : '模型未加载：${_platform.error ?? "未知原因"}';
-    });
-    _sub = _platform.frames.listen(_onFrame, onError: (Object e) {
-      if (mounted) setState(() => _status = '推理流出错：$e');
-    });
-
-    // 轮询原生诊断计数。相机链路的失败点在界面上长得一模一样，
-    // 必须靠这些计数区分（分析帧为 0 / 有错误 / 最高分太低）。
     _diagTimer?.cancel();
-    _diagTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
-      final d = await _platform.diagnostics();
-      if (mounted && d != null) setState(() => _diagnostics = d);
-    });
-  }
+    _announcer.reset();
 
-  Future<void> _startMockSource() async {
-    await _sub?.cancel();
-    await _platform.release();
-    final mock = MockVisionSource(threshold: _threshold);
-    _mock = mock;
-    await mock.initialize();
-    _sub = mock.frames.listen(_onFrame);
+    final old = _source;
+    await old?.dispose();
+
+    final source = _makeSource(mode);
+    _source = source;
+
     if (mounted) {
       setState(() {
-        _modelReady = false;
-        _status = '假数据模式：验证坐标映射与防抖，不接模型';
+        _mode = mode;
+        _detections = const <Detection>[];
+        _diagnostics = null;
+        _status = '正在初始化（${source.displayName}）…';
+        _statusError = null;
+        _sourceReady = false;
       });
     }
+
+    // 先接流再初始化：否则首帧可能丢。
+    _sub = source.frames.listen(_onFrame, onError: (Object e) {
+      if (mounted) setState(() => _status = '推理流出错：$e');
+    });
+    final status = await source.initialize();
+
+    // ★ 阈值必须在 initialize 之后写。
+    // PlatformVision 的 threshold setter 会把值推给原生；若在 initialize 前写，
+    // 原生相机尚未启动，推送会被静默忽略——于是「初始阈值」实际没生效，
+    // 要等用户拖一次滑动条才对上。这类时序错误不报错。
+    source.threshold = _threshold;
+
+    if (!mounted) return;
+    setState(() {
+      _sourceReady = status.ok;
+      _status = status.message;
+      _statusError = status.error;
+    });
+
+    // 诊断轮询。假数据源返回 null，面板会自动隐藏——
+    // 不会像以前那样在假数据模式下仍去轮询一个不存在的原生设备。
+    _diagTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
+      final d = await source.diagnostics();
+      if (mounted && d != null) setState(() => _diagnostics = d);
+    });
   }
 
   void _onFrame(VisionFrame frame) {
@@ -165,24 +181,15 @@ class _DemoPageState extends State<DemoPage> {
     final dt = now.difference(_lastFrameAt).inMicroseconds;
     _lastFrameAt = now;
 
-    // 阈值在原生侧已生效，这里再过滤一次只为滑动条即时响应。
-    final visible = frame.detections
-        .where((d) => d.score >= _threshold)
-        .toList(growable: false);
-
+    // **不再按阈值过滤**：阈值已在来源内部生效（原生侧丢弃低分框，
+    // 假源同样按 threshold 过滤）。两处各过滤一次时，不一致的表现是
+    // 「滑动条不生效」或「框数对不上」，且不报错。
     _announcer.enabled = _speakEnabled;
-    if (_speakEnabled) _announcer.onFrame(visible);
+    if (_speakEnabled) _announcer.onFrame(frame.detections);
 
     setState(() {
-      _detections = visible;
+      _detections = frame.detections;
       _inferenceMs = frame.inferenceMs;
-      if (frame.frameWidth > 0 && frame.frameHeight > 0) {
-        // 原生回传的是**原始**帧尺寸（旋转之前），旋转角是把它转正所需角度。
-        _frameSize = Size(
-          frame.frameWidth.toDouble(),
-          frame.frameHeight.toDouble(),
-        );
-      }
       if (dt > 0) {
         // 指数平滑：瞬时值抖动太大，看不出真实帧率。
         final inst = 1e6 / dt;
@@ -195,8 +202,7 @@ class _DemoPageState extends State<DemoPage> {
   void dispose() {
     _diagTimer?.cancel();
     _sub?.cancel();
-    _mock?.dispose();
-    _platform.release();
+    _source?.dispose();
     _speaker.stop();
     super.dispose();
   }
@@ -223,10 +229,10 @@ class _DemoPageState extends State<DemoPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final viewSize = Size(constraints.maxWidth, constraints.maxHeight);
-        // DisplayFit 必须用**旋转后**的帧尺寸构造：归一化坐标在旋转之后
-        // 才与屏幕方向一致。用错尺寸的表现是框被拉伸，且不报错。
-        final rotated = rotatedFrameSize(_frameSize, _rotationDegrees);
-        final fit = DisplayFit.contain(frame: rotated, view: viewSize);
+        // [VisionSource.frameSize] **已经是旋转之后**的尺寸，所以这里
+        // 不再调用 rotatedFrameSize —— 旋转量的唯一来源是来源本身，
+        // UI 不持有任何几何常量。
+        final fit = DisplayFit.contain(frame: _frameSize, view: viewSize);
         final mapped = mapDetectionsToScreen(
           detections: _detections,
           rotationDegrees: _rotationDegrees,
@@ -259,12 +265,35 @@ class _DemoPageState extends State<DemoPage> {
     return CustomPaint(painter: _GridPainter());
   }
 
+  /// 几何一致性检查：**分析流尺寸**与**预览流尺寸**是否一致。
+  ///
+  /// ## 为什么需要这条
+  ///
+  /// 预览由 CameraX 自己缩放显示，而框的位置由 Dart 用分析流的尺寸算出。
+  /// 两条流的宽高比若不同，画面与框就会**系统性错位**——而且不报错。
+  /// 这是「预览和框对不上」这类问题最难查的一种成因，所以显式检查。
+  ///
+  /// 返回 null 表示一致（或无数据可判）。
+  String? _geometryWarning() {
+    final d = _diagnostics;
+    if (d == null || d.frameWidth <= 0 || d.frameHeight <= 0) return null;
+    // d.frameWidth/Height 是**原始**帧尺寸；来源报的 frameSize 已是旋转后，
+    // 所以比较时把来源的也转回原始尺寸。
+    final raw = rotatedFrameSize(_frameSize, _rotationDegrees);
+    final same = raw.width.round() == d.frameWidth &&
+        raw.height.round() == d.frameHeight;
+    if (same) return null;
+    return '几何不一致：画框用 ${raw.width.round()}x${raw.height.round()}，'
+        '分析流实际 ${d.frameWidth}x${d.frameHeight} → 框会整体偏移';
+  }
+
   Widget _perfPanel() {
     final style = const TextStyle(
       color: Colors.white,
       fontSize: 12,
       fontFeatures: <FontFeature>[FontFeature.tabularFigures()],
     );
+    final geo = _geometryWarning();
     return _glass(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -273,6 +302,17 @@ class _DemoPageState extends State<DemoPage> {
           Text('FPS      ${_fps.toStringAsFixed(1)}', style: style),
           Text('推理     ${_inferenceMs.toStringAsFixed(1)} ms', style: style),
           Text('检测框   ${_detections.length}', style: style),
+          if (geo != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: SizedBox(
+                width: 210,
+                child: SelectableText(
+                  geo,
+                  style: style.copyWith(color: Colors.redAccent, fontSize: 9),
+                ),
+              ),
+            ),
           // ---- 诊断计数：这几个数字直接指出链路卡在哪一环 ----
           // 「分析帧」为 0（红色）说明相机分析回路根本没跑起来；
           // 「最高分」低于阈值（橙色）说明模型没给出高分，问题在模型或输入；
@@ -443,7 +483,7 @@ class _DemoPageState extends State<DemoPage> {
   // ------------------------------------------------------------- 状态条
 
   Widget _statusBar() {
-    final color = _modelReady ? Colors.greenAccent : Colors.orangeAccent;
+    final color = _sourceReady ? Colors.greenAccent : Colors.orangeAccent;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -454,7 +494,7 @@ class _DemoPageState extends State<DemoPage> {
           Row(
             children: <Widget>[
               Icon(
-                _modelReady ? Icons.check_circle : Icons.warning_amber,
+                _sourceReady ? Icons.check_circle : Icons.warning_amber,
                 size: 16,
                 color: color,
               ),
@@ -473,12 +513,12 @@ class _DemoPageState extends State<DemoPage> {
           // 失败原因单独一块，**完整**显示，且长按可复制。
           // 理由：这类错误只在真机上出现，用户没有 logcat 可用；
           // 把完整文本摆在屏幕上、允许复制，比让他去翻日志现实得多。
-          if (!_modelReady && _platform.error != null)
+          if (!_sourceReady && _statusError != null)
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: GestureDetector(
                 onLongPress: () async {
-                  await Clipboard.setData(ClipboardData(text: _platform.error!));
+                  await Clipboard.setData(ClipboardData(text: _statusError!));
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -502,7 +542,7 @@ class _DemoPageState extends State<DemoPage> {
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              '模型加载失败（长按复制）',
+                              '${_source?.displayName ?? "来源"}初始化失败（长按复制）',
                               style: TextStyle(color: color, fontSize: 11,
                                                fontWeight: FontWeight.w600),
                             ),
@@ -512,7 +552,7 @@ class _DemoPageState extends State<DemoPage> {
                       ),
                       const SizedBox(height: 4),
                       SelectableText(
-                        _platform.error!,
+                        _statusError!,
                         style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 10,
@@ -521,19 +561,6 @@ class _DemoPageState extends State<DemoPage> {
                       ),
                     ],
                   ),
-                ),
-              ),
-            ),
-          if (_modelReady && _modelNote != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(
-                // 这条不是客套话：单类模型只会亮一个类别，
-                // 不写清楚会被当成模型坏了。
-                _modelNote!,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.55),
-                  fontSize: 11,
                 ),
               ),
             ),
@@ -563,9 +590,10 @@ class _DemoPageState extends State<DemoPage> {
                   label: _threshold.toStringAsFixed(2),
                   onChanged: (v) {
                     setState(() => _threshold = v);
-                    _mock?.threshold = v;
-                    // 原生侧也更新，否则低分框仍会跨通道传过来。
-                    _platform.setThreshold(v);
+                    // 只写一处：来源自己负责把阈值应用到它的过滤逻辑
+                    // （相机推给原生、假源在 Dart 内过滤）。
+                    // UI 不再各写一份——两处各写是「滑动条不生效」的成因。
+                    _source?.threshold = v;
                   },
                 ),
               ),
@@ -596,14 +624,11 @@ class _DemoPageState extends State<DemoPage> {
                   ],
                   selected: <SourceMode>{_mode},
                   onSelectionChanged: (s) async {
-                    final mode = s.first;
-                    setState(() => _mode = mode);
-                    _announcer.reset();
-                    if (mode == SourceMode.camera) {
-                      await _startCameraSource();
-                    } else {
-                      await _startMockSource();
-                    }
+                    // 不再按种类写两个分支去调各自的启动函数：
+                    // 切换来源统一走 _switchSource，它内部同等地处理
+                    // 「停旧的、起新的、重接流与诊断」。
+                    if (s.first == _mode) return;
+                    await _switchSource(s.first);
                   },
                 ),
               ),

@@ -1,6 +1,21 @@
-from check_labels import parse_box, validate_line
+from check_labels import missing_label_fatals, parse_box, validate_line
 
 N = 16
+
+
+def test_all_missing_labels_is_fatal():
+    msgs = missing_label_fatals(10, 10)
+    assert msgs and "全部图像" in msgs[0]
+
+
+def test_majority_missing_labels_is_fatal():
+    msgs = missing_label_fatals(10, 5)
+    assert msgs and "超过半数" in msgs[0]
+
+
+def test_few_missing_labels_is_not_fatal():
+    assert missing_label_fatals(10, 2) == []
+    assert missing_label_fatals(10, 0) == []
 
 
 def test_valid_line_has_no_errors():

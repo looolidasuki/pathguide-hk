@@ -102,6 +102,43 @@ def step_check_labels() -> dict:
     return {"fatal": fatal}
 
 
+def step_check_review_sync() -> None:
+    """若存在 X-AnyLabeling 复核目录，禁止用过期 YOLO 标签开训。
+
+    GUI 只写同名 JSON；忘了 `xlabel_io emit` 时训练会静默用旧 txt。
+    """
+    banner("4b/8", "复核 JSON ↔ YOLO 标签同步检查")
+    xtest_root = REPO_ROOT / "data" / "xtest"
+    labels_root = DATASET_DIR / "labels"
+    if not xtest_root.is_dir():
+        print("未找到 data/xtest，跳过复核同步检查。")
+        return
+    stale: list[str] = []
+    json_files = sorted(xtest_root.rglob("*.json"))
+    if not json_files:
+        print("data/xtest 下无 JSON，跳过。")
+        return
+    for jp in json_files:
+        rel = jp.relative_to(xtest_root)
+        txt = labels_root / rel.with_suffix(".txt")
+        if not txt.exists():
+            stale.append(f"{rel.as_posix()} → 缺少 {txt.relative_to(REPO_ROOT).as_posix()}")
+            continue
+        if jp.stat().st_mtime > txt.stat().st_mtime + 1.0:
+            stale.append(f"{rel.as_posix()} 新于对应 YOLO 标签（请先 emit）")
+    if stale:
+        print("复核结果尚未回写到数据集，训练已中止：")
+        for s in stale[:20]:
+            print(f"  - {s}")
+        if len(stale) > 20:
+            print(f"  ...另有 {len(stale) - 20} 条")
+        print("请执行例如：")
+        print("  python scripts/xlabel_io.py emit --json-dir data/xtest/<src> "
+              "--labels-out data/dataset/labels/<src>")
+        raise SystemExit(2)
+    print(f"复核同步检查通过：{len(json_files)} 个 JSON 均不新于对应 YOLO 标签。")
+
+
 def step_train(args: argparse.Namespace) -> Path:
     banner("5/8", f"训练 YOLOv8n（{args.epochs} epochs, imgsz={args.imgsz}, batch={args.batch}, workers={args.workers}）")
     from ultralytics import YOLO
@@ -376,6 +413,7 @@ def main() -> int:
     step_manifest()
     step_split(args)
     step_check_labels()
+    step_check_review_sync()
     best = step_train(args)
     summary = step_eval(args, best)
 
