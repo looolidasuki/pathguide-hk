@@ -61,23 +61,55 @@ def load_target_classes() -> list[dict]:
 def suggest_override(source_names: list[str], targets: list[dict]) -> dict[str, int]:
     """给出类别映射建议，并**标出哪些是猜的**。
 
-    Roboflow 的 `person` / `people` / `pedestrian` 都指向本项目的 pedestrian，
-    但这是**语义判断**，不是自动匹配能保证的——所以要打印出来给人确认，
-    而不是静静地替人决定。
+    Roboflow 的类别名来自许多个上游数据集拼起来，同一样东西会有多种写法。
+    实测 `chris-law/people-detection-o4rdr-nlryq` 声明了 **63 个**类别，
+    其中「人」就有 8 种写法：person / persons / people / Pedestrian /
+    Pedestrians / Pessoa（葡）/ Persona（西·意）/ player（?）。
+
+    这里只映射**语义无歧义**的写法。「人」的各语言同义词是无歧义的；
+    而下面这些**故意不映射**，因为它们与本项目的类不等价，
+    而映射错会让每帧标签都错（不报错）：
+
+    | 数据集里的类 | 为什么不映射 |
+    |---|---|
+    | `Cyclist` / `cyclist` | 是**骑车的人**（人+车），不是本项目的 `bicycle`（单車，一个障碍物）。映过去会让「骑车的人」被念成「單車」 |
+    | `player` | 体育场景里的「人」，还是「球员」这一角色？歧义 |
+    | `head` / `face` / `helmet` | 是身体部位/穿戴物，不是人 |
+    | `Signboard` | 通常是店铺招牌，本项目的 `sign_pictogram` 是**指示牌**、`billboard` 是廣告看板，均不等价 |
+    | `Stopper` | 语义不明（门挡？车位挡？） |
+    | `diningtable` / `chair` | 本项目的 `table`(34) 是「桌椅」；COCO 的 dining table 与本项目 `table` 的**语义已知不等价**，不应再扩大这个偏差 |
+    | `0`~`6` | **无名数字类**，语义未知，无法映射 |
+    | `high` / `medium` / `low` | 疑似人潮密度或置信度分档，不是物件类 |
+    | `dianzhuan` / `jatuh` / `berdiri` | 语义不明（`jatuh`/`berdiri` 是印尼语的跌到/站立，来自跌倒检测数据集） |
+    | 车辆类（`car`/`car`/`auto`/`truck`/`bus`/`motorbike`/`train`…） | 本项目类别表**没有**车辆类 |
+
+    这些类的框会被 `import_roboflow.py` 跳过，并且**会打印出来**——
+    跳过是有意的，静默丢弃才是问题。
     """
     ALIASES = {
+        # 「人」的各语言/各写法同义词——语义无歧义
         "person": "pedestrian",
+        "persons": "pedestrian",
         "people": "pedestrian",
+        "pedestrian": "pedestrian",
         "pedestrians": "pedestrian",
+        "pessoa": "pedestrian",      # 葡萄牙语
+        "persona": "pedestrian",     # 西班牙语 / 意大利语
         "human": "pedestrian",
+        # 单車
         "bike": "bicycle",
+        "bikes": "bicycle",
         "bicycle": "bicycle",
         "bicycles": "bicycle",
+        # 垃圾桶
         "trash": "bin",
         "trash bin": "bin",
+        "trashbin": "bin",
         "garbage bin": "bin",
-        "bin": "bin",
         "litter bin": "bin",
+        "bin": "bin",
+        "rubbish bin": "bin",
+        "waste bin": "bin",
     }
     by_en = {c["name_en"].lower(): c["id"] for c in targets}
     out: dict[str, int] = {}
@@ -186,15 +218,36 @@ def main() -> int:
                 (".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"))
     print(f"  图像 {n_img} 张")
 
-    ov_json = json.dumps(ov, ensure_ascii=False)
-    print("\n下一步（先 dry-run 看清映射，再真正写入）：")
-    print(f"  python scripts\\import_roboflow.py --dir \"{loc}\" --dry-run"
-          + (f" --class-override '{ov_json}'" if ov else ""))
+    # 把建议的映射**写到数据集旁边**。
+    #
+    # 为什么写文件而不是只打印一条命令：忘了传 --class-override 时，
+    # import_roboflow.py 只做精确名匹配，于是 person / Persona / Pessoa /
+    # people / persons / bike 这些**数据大头**会被跳过。它会打印未映射警告，
+    # 但如果人不看输出，就会以为导入成功了。
+    # 写成文件以后，导入命令里只需给一个路径，既不会漏也不会打错
+    # （Windows 上 PowerShell 还会吃掉命令行 JSON 里的双引号）。
+    ov_path = loc / "_class_override.json"
+    ov_path.write_text(json.dumps(ov, ensure_ascii=False, indent=2) + "\n",
+                       encoding="utf-8")
+    print(f"  类别映射建议已写入：{ov_path.relative_to(REPO_ROOT)}")
+    if not ov:
+        print("  [警告] 没有任何类别能映射到本项目类别表，导入会跳过全部框。")
+
+    print("\n下一步（先 dry-run 看清映射与框数，再真正写入）：")
+    print(f"  python scripts\\import_roboflow.py --dir \"{loc}\" --dry-run "
+          f"--class-override-file \"{ov_path}\"")
+    print()
     print(f"  python scripts\\import_roboflow.py --dir \"{loc}\" "
-          f"--source-folder roboflow_{args.project}"
-          + (f" --class-override '{ov_json}'" if ov else ""))
-    print("\n注意：--source-folder 填**实际采集点位**，否则同一批照片会被当成同一来源，")
-    print("      分组划分时会泄漏。Roboflow 不知道哪几张来自同一地点。")
+          f"--source-folder roboflow_{args.project} "
+          f"--class-override-file \"{ov_path}\"")
+    print("\n注意 1：**必须带 --class-override-file**。不带的话 import_roboflow.py 只做"
+          "精确名匹配，")
+    print("        person / Persona / Pessoa / people / persons / bike 等变体会被跳过——"
+          "那正是数据的大头。")
+    print("注意 2：--source-folder 填**实际采集点位**。这个数据集是多个上游数据集拼起来的，")
+    print("        它自带的 train/valid/test 是**逐图随机**划分的，同一段视频的相邻帧")
+    print("        很可能被分到两边。所以建议**整份当一个来源**（一个名字），")
+    print("        让它整体进训练集，别让它污染本项目的验证集。")
     return 0
 
 

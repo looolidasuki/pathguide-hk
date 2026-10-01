@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import tempfile
 import zipfile
@@ -44,30 +45,69 @@ SPLIT_DIRS = ("train", "valid", "val", "test")
 
 
 def read_yaml_names(yaml_path: Path) -> list[str]:
-    """从 Roboflow 的 data.yaml 读类别名（不依赖 pyyaml，格式简单）。"""
+    """从 Roboflow 的 data.yaml 读类别名（不依赖 pyyaml，格式简单）。
+
+    ## 这里踩过的坑（本脚本最贵的一个 bug）
+
+    最初的实现假定「`names:` 下面的列表项一定是缩进的」，
+    于是遇到非缩进的块序列就立刻 `break`：
+
+        names:
+        - '0'          ← 第 0 列！第一个列表项就 break 了
+        - Bicycle
+        nc: 53
+
+    结果 `names` 返回**空列表**。而空列表的后果不是报错，是一路安静地错下去：
+
+        source_names 为空 -> 类别映射为空 -> 每个框都被判定为「未映射」而跳过
+        -> 但脚本仍然写标签文件（空文件）-> 7261 张图配 7261 个空标签
+
+    空标签在 YOLO 里是**有效负样本**（「这张图里什么都没有」），
+    所以这等于往训练集里灌几千张错误的负样本，**不报错、不崩溃**，
+    只是训练出来的模型对所有这些类都视而不见。
+
+    Roboflow 导出的 YAML 恰恰就是非缩进写法，所以这个 bug 一碰真实数据就触发。
+
+    现在支持三种写法，并且**只认列表项/缩进映射**，其它情况才算块结束：
+    1. 单行：`names: ['a', 'b']`
+    2. 非缩进块序列：`- 'a'`（Roboflow 的实际写法）
+    3. 缩进映射：`  0: 'a'`
+    """
     names: list[str] = []
     if not yaml_path.exists():
         return names
+
     text = yaml_path.read_text(encoding="utf-8", errors="replace")
     in_names = False
     for raw in text.splitlines():
         line = raw.rstrip()
-        if line.strip().startswith("names:"):
-            in_names = True
-            tail = line.split("names:", 1)[1].strip()
-            if tail.startswith("["):          # 单行写法 names: ['a', 'b']
-                items = tail.strip("[]").split(",")
-                names = [x.strip().strip("'\"") for x in items if x.strip()]
-                break
+        stripped = line.strip()
+
+        if not in_names:
+            if stripped.startswith("names:"):
+                in_names = True
+                tail = stripped.split("names:", 1)[1].strip()
+                if tail.startswith("["):          # 单行写法 names: ['a', 'b']
+                    items = tail.strip("[]").split(",")
+                    names = [x.strip().strip("'\"") for x in items if x.strip()]
+                    return names
+                if tail:                          # names: 后面跟标量，不是我们要的写法
+                    return names
             continue
-        if in_names:
-            if not line.startswith((" ", "\t")):
-                break
-            s = line.strip()
-            if ":" in s:
-                names.append(s.split(":", 1)[1].strip().strip("'\""))
-            elif s.startswith("- "):
-                names.append(s[2:].strip().strip("'\""))
+
+        # --- 已在 names 块内 ---
+        if not stripped:                          # 空行跳过，不当作块结束
+            continue
+        if stripped.startswith("- "):             # 非缩进或缩进的块序列项
+            names.append(stripped[2:].strip().strip("'\""))
+            continue
+        # 缩进的 key: value 形式
+        if line[:1] in (" ", "\t") and ":" in stripped:
+            names.append(stripped.split(":", 1)[1].strip().strip("'\""))
+            continue
+        # 既不是列表项、也不是缩进映射 -> names 块结束（如顶格的 nc: / roboflow:）
+        break
+
     return [n for n in names if n]
 
 
@@ -118,6 +158,16 @@ def main() -> int:
                          "**建议指定实际采集点位**，否则同一批照片会被当成同一来源。")
     ap.add_argument("--class-override", default=None,
                     help='JSON 映射，处理类别名对不上的情况，如 {"bin": 7}')
+    ap.add_argument("--class-override-file", default=None,
+                    help="从 JSON 文件读类别映射。**推荐**：fetch_roboflow.py 会把建议的映射"
+                         "写到数据集旁边的 _class_override.json，用文件可避免手打 JSON 出错"
+                         "（Windows 上 PowerShell 还会吃掉 JSON 里的双引号）")
+    ap.add_argument("--exclude-name-regex", default=None,
+                    help="排除原始文件名匹配此正则的图片。用于合规：第三方聚合数据里"
+                         "可能混有许可证不可用的来源。**但请注意**：Roboflow 导出会把"
+                         "来源身份抹掉（只留原名 + 哈希），所以文件名只是一个**猜测**，"
+                         "不能作为「已排除某来源」的依据。真要合规，请改用单一来源、"
+                         "许可证明确的数据集。")
     ap.add_argument("--dry-run", action="store_true", help="只检查与报告，不写入")
     ap.add_argument("--clear", action="store_true",
                     help="写入前清空输出目录的 images/ 与 labels/")
@@ -157,7 +207,18 @@ def main() -> int:
     print(f"\nRoboflow 声明类别 {len(source_names)} 个："
           + (", ".join(source_names) if source_names else "(未找到 data.yaml)"))
 
-    override = json.loads(args.class_override) if args.class_override else {}
+    if args.class_override and args.class_override_file:
+        print("--class-override 与 --class-override-file 只能给一个")
+        return 1
+    if args.class_override_file:
+        of = Path(args.class_override_file).expanduser()
+        if not of.exists():
+            print(f"未找到映射文件：{of}")
+            return 1
+        override = json.loads(of.read_text(encoding="utf-8"))
+        print(f"从文件读类别映射：{of}")
+    else:
+        override = json.loads(args.class_override) if args.class_override else {}
     mapping, unmatched = map_class(source_names, target_classes, override)
     if mapping:
         print("\n类别映射：")
@@ -172,6 +233,8 @@ def main() -> int:
 
     pairs: list[tuple[Path, Path, str]] = []
     per_split: Counter[str] = Counter()
+    exclude_re = re.compile(args.exclude_name_regex) if args.exclude_name_regex else None
+    excluded = 0
     for split in SPLIT_DIRS:
         img_dir = root / split / "images"
         lbl_dir = root / split / "labels"
@@ -180,9 +243,15 @@ def main() -> int:
         for img in sorted(img_dir.rglob("*")):
             if not img.is_file() or img.suffix.lower() not in IMAGE_EXTS:
                 continue
+            if exclude_re is not None and exclude_re.search(img.name):
+                excluded += 1
+                continue
             lbl = lbl_dir / img.relative_to(img_dir).with_suffix(".txt")
             pairs.append((img, lbl, split))
             per_split[split] += 1
+
+    if excluded:
+        print(f"\n按 --exclude-name-regex 排除了 {excluded} 张（合规用途）")
 
     if not pairs:
         print(f"\n在 {root} 下未找到任何 train/valid/test 的 images/")

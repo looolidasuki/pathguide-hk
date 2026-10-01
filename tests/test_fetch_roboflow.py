@@ -131,3 +131,40 @@ def test_空类别列表不会崩():
 @pytest.mark.parametrize("name", ["garbage bin", "trash bin", "litter bin", "bin"])
 def test_垃圾桶的各种写法都映到_7(name):
     assert suggest_override([name], load_target_classes())[name] == 7
+
+
+@pytest.mark.parametrize("name", ["persons", "Pessoa", "Persona", "human"])
+def test_人的各语言写法都映到_6(name):
+    """实测 chris-law/people-detection 声明了 63 个类，其中「人」有 8 种写法。
+
+    漏掉其中任何一种，都会让那部分框被**静默跳过**——
+    而跳过的人框不会报错，只会让训练集里少一批人。
+    """
+    assert suggest_override([name], load_target_classes())[name] == 6
+
+
+@pytest.mark.parametrize("name", [
+    "Cyclist",     # 骑车的人 ≠ 单車（障碍物）
+    "cyclist",
+    "player",      # 歧义：人？还是球员？
+    "head", "face", "helmet",   # 身体部位/穿戴物
+    "Signboard",   # 招牌 ≠ 指示牌
+    "Stopper",     # 语义不明
+    "diningtable", "chair",     # 与本项目 table(桌椅) 不等价
+    "0", "1", "6",              # 无名数字类
+    "high", "medium", "low",    # 疑似密度/置信度分档
+    "dianzhuan", "jatuh", "berdiri",
+    "car", "Car", "auto", "truck", "bus", "motorbike",   # 本项目无车辆类
+])
+def test_这些类别必须保持不映射(name):
+    """这条守的是「好心加别名」这类改动。
+
+    把 `Cyclist` 映成 `bicycle` 看起来很方便，但骑车的人是「人+车」，
+    映过去会让视障用户听到「單車」而实际前方是一个骑过来的人——
+    误报的代价不对称。同理车辆类：本项目的类别表里根本没有车辆。
+    宁可让这些框被跳过并打印警告，也不要猜。
+    """
+    assert name not in suggest_override([name], load_target_classes()), (
+        f"{name} 被映射了。若确实要映射，请先确认语义等价并在 "
+        f"suggest_override 的说明表里删掉对应的「不映射」理由。"
+    )
