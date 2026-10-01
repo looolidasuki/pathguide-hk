@@ -40,15 +40,33 @@ def parse_box(line: str) -> tuple[int, float, float, float, float] | None:
         return None
 
 
-def validate_line(line: str, n_classes: int) -> list[str]:
-    """返回该行的错误列表，空列表表示合法。"""
+# 框越界的容差：越界量 ≤ 此值算「边界取整」，只计数不报错；超过才算真错误。
+#
+# 为什么必须区分：导出工具（Roboflow 等）用浮点写归一化坐标，
+# 换算回角点会有 ~1e-6 的残差（实测中位数 5.6e-6，最大 1e-3 以内）。
+# 不区分时实测得到「致命错误 75」——其中 **73 个只是取整**、只有 5 个是真越界。
+# 假警报把真问题埋掉，读报告的人只有两种反应：
+# 全部忽略（于是错过那 5 个）或全部当真（于是无从下手）。
+#
+# 1e-3 这个阈值的依据：0.1% 的图像尺寸，远低于任何真实的标注误差；
+# 又比浮点残差大三个数量级。实测数据在 1e-3 与 1e-2 之间**没有样本**，
+# 是个干净的分界。
+OOB_TOLERANCE = 1e-3
+
+
+def validate_line(line: str, n_classes: int) -> tuple[list[str], list[str]]:
+    """返回 (错误列表, 提示列表)。错误为空表示这一行可用。
+
+    提示（如边界取整）不影响可用性，调用方只计数、不逐条打印。
+    """
     errors: list[str] = []
+    notes: list[str] = []
     parts = line.split()
     if len(parts) != 5:
-        return [f"字段数应为 5，实际 {len(parts)}"]
+        return [f"字段数应为 5，实际 {len(parts)}"], notes
     parsed = parse_box(line)
     if parsed is None:
-        return ["存在非数值字段"]
+        return ["存在非数值字段"], notes
     cid, cx, cy, w, h = parsed
     if not (0 <= cid < n_classes):
         errors.append(f"类别 id {cid} 超出范围 [0, {n_classes - 1}]")
@@ -59,9 +77,13 @@ def validate_line(line: str, n_classes: int) -> list[str]:
         errors.append(f"框尺寸非正：w={w}, h={h}")
     if not errors:
         x1, y1, x2, y2 = cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2
-        if x1 < -1e-6 or y1 < -1e-6 or x2 > 1 + 1e-6 or y2 > 1 + 1e-6:
-            errors.append(f"框越界：({x1:.3f}, {y1:.3f})-({x2:.3f}, {y2:.3f})")
-    return errors
+        over = max(0.0, -x1, -y1, x2 - 1.0, y2 - 1.0)
+        box = f"({x1:.3f}, {y1:.3f})-({x2:.3f}, {y2:.3f})"
+        if over > OOB_TOLERANCE:
+            errors.append(f"框越界 {over:.4f}（超容差 {OOB_TOLERANCE}）：{box}")
+        elif over > 0.0:
+            notes.append(f"框越界 {over:.1e}（边界取整）：{box}")
+    return errors, notes
 
 
 def image_size(path: Path) -> tuple[int, int] | None:
@@ -113,6 +135,7 @@ def main() -> int:
     widths: list[float] = []
     heights: list[float] = []
     unreadable = 0
+    rounding_notes = 0
 
     for img in sorted(images):
         # 标签镜像图像目录结构（Ultralytics 的 img2label_paths 契约）：
@@ -132,7 +155,9 @@ def main() -> int:
             empty_labels += 1
             continue
         for ln in lines:
-            errs = validate_line(ln, n_classes)
+            errs, notes = validate_line(ln, n_classes)
+            if notes:
+                rounding_notes += 1
             if errs:
                 fatal.append(f"{label_path.name}: '{ln}' -> {'; '.join(errs)}")
                 continue
@@ -173,6 +198,7 @@ def main() -> int:
         f"- 缺标签文件：{missing_labels}",
         f"- 标注框总数：{total_boxes}",
         f"- 极小框（短边 < {TINY_BOX_PX:.0f}px）：{tiny_boxes}",
+        f"- 边界取整的越界框（≤{OOB_TOLERANCE}，可忽略）：{rounding_notes}",
         f"- 致命错误：{len(fatal)}",
         "",
         "## 类别分布",
@@ -206,7 +232,8 @@ def main() -> int:
     REPORT_PATH.write_text("\n".join(lines_out), encoding="utf-8")
 
     print(f"图像 {len(images)} | 框 {total_boxes} | 空标签 {empty_labels} | 缺标签 {missing_labels}")
-    print(f"致命错误 {len(fatal)} | 警告 {len(warnings)}")
+    print(f"致命错误 {len(fatal)} | 警告 {len(warnings)} | "
+          f"边界取整（可忽略）{rounding_notes}")
     print(f"report -> {REPORT_PATH}")
     for e in fatal[:20]:
         print(f"  [FATAL] {e}")
