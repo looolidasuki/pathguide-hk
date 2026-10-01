@@ -1,27 +1,14 @@
 import 'labels.dart';
 
-/// **当前放进 App 的那个模型**，它的每个输出类别对应项目类别表里的哪一类。
-///
-/// 顺序 = 模型输出的本地索引顺序；值 = 该项目类别表 `kLabels` 里的真实 id。
-/// 因此 `modelClassIds[0]` 是「模型第 0 类其实是哪一类」。
-///
-/// 改这里 = 换模型。取值必须与训练时数据集 `classes.json` 里各类的
-/// `original_id` **顺序一致**（`scripts/build_multiclass_dataset.py` 会写出来）。
-///
-/// ## 为什么必须显式声明
-///
-/// TFLite 里**没有**「这个模型是用哪些 class-id 训的」这个元数据，
-/// App 只能靠这里声明。**声明错了不会报错**，只会把垃圾桶标成别的类别名——
-/// 框对、名字错、不报错。所以：
-///
-/// - 下面的测试断言它与数据集的 `classes.json` 一致；
-/// - `scripts/export_tflite.py` 也在导出时交叉核对长度与取值。
-///
-/// ## 与「单类偏移」的区别
-///
-/// 早先只有一个类，用「加一个常数偏移」就够了。3 类以上偏移表达不了
-/// （除非恰好连续），所以改成映射表——它同时覆盖单类场合（长度 1）。
-const List<int> modelClassIds = <int>[6, 11, 7]; // pedestrian, bicycle, bin
+// 模型本地索引 -> 项目类别真实 id 的映射规则。
+//
+// ⚠️ **映射表本身不再写在这个文件里**，而是随模型一起下发，见
+// `model_manifest.dart` 的 `ModelManifest.modelClassIds`。
+//
+// 早先它是本文件的一个编译期常量（`modelClassIds = [6, 11, 7]`）。本地开发
+// 没问题，但一旦模型可以从服务器下发（云端闭环），**服务端换了类别集而 App
+// 不知道**，于是每个框的名字都是错的且不报错。所以它的归属是「跟着模型走的
+// 清单」，而不是编译期常量。本文件只保留「怎么映射、怎么拒绝猜测」的规则。
 
 /// 模型与项目类别表之间的映射。
 ///
@@ -86,7 +73,7 @@ class ModelClassMapping {
 /// 这类错误在训练和演示里都极难发现。
 ModelClassMapping? resolveMapping({
   required int modelClassCount,
-  List<int> declared = modelClassIds,
+  required List<int> declared,
 }) {
   if (modelClassCount == kNumClasses) {
     return ModelClassMapping(

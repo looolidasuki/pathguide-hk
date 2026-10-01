@@ -38,7 +38,14 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_WEIGHTS = REPO_ROOT / "runs" / "pg_review_v0" / "weights" / "best.pt"
+# 默认权重 = **当前已发布的那一份**（runs/pg_poc3，3 类）。
+#
+# 这里必须指向已发布的 run，不能指向「最近跑过的 run」：
+# 旧的 runs/pg_review_v0 是**24 类**模型，而类别表后来扩到了 48 类、旧表已作废。
+# 若默认值还指着它，一条 `python export_tflite.py` 就会导出一个
+# 类别数与 classes.json 对不上的模型——而且**不报错**，只是每个框都标错类。
+DEFAULT_WEIGHTS = REPO_ROOT / "runs" / "pg_poc3" / "weights" / "best.pt"
+ASSETS_MANIFEST = REPO_ROOT / "app" / "assets" / "models" / "detector.json"
 ASSETS_MODEL = REPO_ROOT / "app" / "assets" / "models" / "detector.tflite"
 
 
@@ -129,24 +136,84 @@ def explain_output_shape(shape: list[int], num_classes: int | None,
     return "\n".join(lines)
 
 
-def dart_model_class_ids() -> list[int] | None:
-    """从 Dart 侧读 App 声明的类别映射表。
+def bundled_manifest_ids() -> tuple[int, list[int]] | None:
+    """读 App 当前**内置清单**里的类别数与映射，用于导出时交叉核对。
 
-    「两处声明必须一致」这类关系最容易漂移：模型是按某几个真实 id 训的，
-    而 App 里写的是什么只能靠对齐。在实际导出时交叉检查，比事后在真机上
-    发现「框对、名字错」便宜得多。
+    以前这里读的是 `model_class_map.dart` 里的编译期常量。那不行：
+    模型将来要从服务器下发，映射必须**跟着模型走**，所以它的归属是清单
+    （`app/assets/models/detector.json`），而不是 Dart 源码里的常量。
     """
-    p = REPO_ROOT / "app" / "lib" / "vision" / "model_class_map.dart"
+    p = REPO_ROOT / "app" / "assets" / "models" / "detector.json"
     if not p.exists():
         return None
-    m = re.search(r"modelClassIds\s*=\s*<int>\s*\[([^\]]*)\]",
-                  p.read_text(encoding="utf-8"))
-    if m is None:
+    import json
+    try:
+        d = json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
         return None
-    body = m.group(1).strip()
-    if not body:
-        return []
-    return [int(x) for x in re.findall(r"-?\d+", body)]
+    ids = d.get("modelClassIds")
+    if not isinstance(ids, list):
+        return None
+    return int(d.get("modelClassCount", len(ids))), [int(x) for x in ids]
+
+
+def write_manifest(model_path: Path, out_path: Path, dataset_dir: Path | None,
+                   imgsz: int, version: str, map50: float | None) -> int:
+    """写模型清单：**模型下发的单位是「模型 + 它的类别映射」**。
+
+    ## 为什么清单必须存在（本项目最容易踩的静默故障）
+
+    TFLite 里**没有**「这个模型是用哪些 class-id 训的」这个元数据。
+    以前这份信息写死在 `model_class_map.dart` 的一个常量里：本地开发没问题，
+    但模型一旦能从服务器下发，**服务端换了类别集而 App 不知道**，
+    于是每个框的名字都是错的，**而且不报错**。
+
+    所以清单必须带 `modelClassIds`，而它的来源是**训练数据集的
+    `classes.json`**（那份文件的 `original_id` 就是真实 id），不是手写。
+
+    返回 0 表示成功。
+    """
+    import hashlib
+    import json
+
+    if dataset_dir is None or not (dataset_dir / "classes.json").exists():
+        print(f"  !! 找不到 {dataset_dir}/classes.json，无法生成清单")
+        print("     清单里的 modelClassIds 必须来自训练数据集的类别表，不能手写")
+        return 1
+    ds = json.loads((dataset_dir / "classes.json").read_text(encoding="utf-8"))
+    classes = sorted(ds["classes"], key=lambda c: c["id"])
+    # 单类数据集用 original_id 记真实 id；多类数据集的 id 本身就是本地索引
+    ids = [int(c.get("original_id", c["id"])) for c in classes]
+
+    data = model_path.read_bytes()
+    manifest = {
+        "format": 1,
+        "version": version,
+        "file": model_path.name,
+        "bytes": len(data),
+        "sha256": hashlib.sha256(data).hexdigest(),
+        "inputSize": imgsz,
+        "modelClassCount": len(ids),
+        "modelClassIds": ids,
+        "trainedAt": version.split(".")[0],
+        "map50": map50,
+    }
+    # sourceDataset 只用于人追溯，**不进清单**：清单是要下发到手机上的资产，
+    # 里面出现 C:\Users\... 这种本机绝对路径既没意义又会泄露开发机布局。
+    # 追溯信息改由打印出来（见下面），需要的人从构建日志里取。
+    try:
+        dataset_label = str(dataset_dir.relative_to(REPO_ROOT))
+    except ValueError:
+        dataset_label = dataset_dir.name
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+                        encoding="utf-8")
+    print(f"已写模型清单 {out_path.relative_to(REPO_ROOT)}")
+    print(f"  {manifest['modelClassCount']} 类，modelClassIds={ids}，"
+          f"输入 {imgsz}，{len(data) / 1e6:.2f} MB")
+    print(f"  sha256 {manifest['sha256'][:16]}…（App 侧据此校验下载完整性）")
+    print(f"  映射来源数据集：{dataset_label}（不写进清单，只留在日志里）")
+    return 0
 
 
 def main() -> int:
@@ -157,6 +224,15 @@ def main() -> int:
     ap.add_argument("--copy-to-assets", action="store_true", default=True,
                     help="把导出的 tflite 复制到 app/assets/models/detector.tflite")
     ap.add_argument("--no-copy", dest="copy_to_assets", action="store_false")
+    ap.add_argument("--dataset", default="data/dataset_poc3",
+                    help="训练数据集目录（含 classes.json）。清单里的 modelClassIds 从这里取")
+    ap.add_argument("--deploy", default="int8", choices=["int8", "float32"],
+                    help="部署哪一个：int8（默认，实测同精度更快）或 float32")
+    ap.add_argument("--version", default=None, help="清单版本号，默认取当天日期")
+    ap.add_argument("--map50", type=float, default=None,
+                    help="本次训练的 mAP50，仅写进清单便于现场判断模型质量（可选）")
+    ap.add_argument("--no-manifest", action="store_true",
+                    help="不生成模型清单（仅调试用；正式导出必须生成）")
     args = ap.parse_args()
 
     weights = Path(args.weights)
@@ -220,7 +296,8 @@ def main() -> int:
 
     print("\n=== 张量形状校验 ===")
     problems = 0
-    declared = dart_model_class_ids()
+    bundled = bundled_manifest_ids()
+    declared = bundled[1] if bundled else None
     for name, path in outputs.items():
         if not path.exists():
             print(f"[{name}] 文件不存在：{path}")
@@ -239,16 +316,33 @@ def main() -> int:
                                    class_names))
 
     if args.copy_to_assets:
-        src = outputs.get("float32")
+        # 部署哪一个：实测 416 int8 与 float32 精度几乎一致（IoU 0.966 vs 0.963）
+        # 但 int8 更快（268 ms vs 324 ms）且体积 1/3.7，所以默认部署 int8。
+        want = args.deploy
+        src = outputs.get(want) or outputs.get("float32")
         if src and src.exists():
             ASSETS_MODEL.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src, ASSETS_MODEL)
-            print(f"\n已复制到 {ASSETS_MODEL.relative_to(REPO_ROOT)} "
+            print(f"\n已复制 {want} 到 {ASSETS_MODEL.relative_to(REPO_ROOT)} "
                   f"({ASSETS_MODEL.stat().st_size / 1e6:.2f} MB)")
-            print("提示：先让 float32 在真机上出框，之后再换 int8 并对比精度。")
         else:
-            print("\n没有可复制的 float32 产物，跳过。")
+            print(f"\n没有可复制的产物（要 {want}），跳过。")
             problems += 1
+
+    # 清单必须与模型**一起**产出：App 靠它把本地索引翻成真实 id。
+    if not args.no_manifest and ASSETS_MODEL.exists():
+        from datetime import date
+        version = args.version or f"{date.today().isoformat()}.1"
+        ds_dir = Path(args.dataset)
+        if not ds_dir.is_absolute():
+            ds_dir = REPO_ROOT / ds_dir
+        rc = write_manifest(ASSETS_MODEL, ASSETS_MANIFEST, ds_dir,
+                            args.imgsz, version, args.map50)
+        if rc == 0 and bundled:
+            if bundled[1] != json.loads(ASSETS_MANIFEST.read_text(encoding="utf-8"))["modelClassIds"]:
+                print("  注意：App 内置清单的 modelClassIds 与本次导出不同，"
+                      "新清单已覆盖到 assets（App 下次构建即生效）。")
+        problems += rc
 
     return 1 if problems else 0
 

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 // Size 来自 dart:ui。分析器曾提示此导入「多余」（理由：services.dart 已提供
 // 全部用到的符号），但那依赖 flutter 内部的再导出链——我核对了
 // services.dart 与 asset_bundle.dart 的 export 列表，没有直接看到 Size。
@@ -10,9 +10,9 @@ import 'dart:ui' show Size;
 import 'package:flutter/services.dart';
 
 import 'detection.dart';
-import 'labels.dart';
 import 'platform_contract.dart';
 import 'model_class_map.dart';
+import 'model_manifest.dart';
 import 'vision_source.dart';
 
 /// 模型在 **Flutter AssetBundle** 中的 key，与 pubspec.yaml 里声明的一致。
@@ -26,6 +26,9 @@ import 'vision_source.dart';
 /// 读该路径**必然 FileNotFoundException**，而同一次运行里 `assets.list()`
 /// 递归又能列出它。
 const String defaultModelAssetKey = 'assets/models/detector.tflite';
+
+/// 模型清单的资源 key。清单与模型**一起**下发，缺一不可。
+const String defaultModelManifestKey = 'assets/models/detector.json';
 
 /// 平台原生视觉能力（Android CameraX + LiteRT）。
 ///
@@ -139,25 +142,40 @@ class PlatformVision implements VisionSource {
     // 2) 请求权限并启动原生相机预览
     final started = await _startPreview();
 
-    // 3) 加载模型。**先按「不映射」加载**，拿到模型真实的类别数；
-    //    再与声明表对照决定是否重载。
+    // 3) 读**模型清单**。清单与模型同源下发，里面写着「本地索引 -> 真实 id」。
     //
-    //    为什么要先拿类别数：TFLite 里没有「这个模型是用哪些 class-id 训的」
-    //    元数据，只能靠 model_class_map.dart 里声明。先读形状再校验，
-    //    才能在「模型与声明不符」时**报错**，而不是安静地把框标错类。
-    var ok = await _loadModel(const <int>[]);
-    ModelClassMapping? mapping = ok
-        ? resolveMapping(modelClassCount: _modelClassCount)
-        : null;
-    if (ok && mapping == null) {
-      // 类别数与声明表对不上：宁可失败也不猜。
+    //    为什么不能像以前那样在代码里写一个常量：模型将来要从服务器下发，
+    //    服务端一旦换类别集而 App 不知道，就会把每个框标成别的类且不报错。
+    //    所以这份信息必须跟着模型走，App 只负责校验，不猜。
+    final parsed = parseModelManifest(
+      await rootBundle.loadString(defaultModelManifestKey),
+    );
+    if (!parsed.ok) {
       return VisionSourceStatus(
         ok: false,
-        message: '模型与类别映射声明不符',
-        error: '模型报告 $_modelClassCount 类，而 modelClassIds 声明了 '
-            '${modelClassIds.length} 个（${modelClassIds.join(",")}）。'
-            '两者必须一致——猜一个映射会把框标成别的类，而且不会报错。'
-            '${_modelClassCount == kNumClasses ? "（类别数等于项目类别表时应声明空表）" : ""}',
+        message: '模型清单有问题',
+        error: parsed.error,
+      );
+    }
+    final manifest = parsed.manifest!;
+
+    // 4) 加载模型。**先按「不映射」加载**，拿到模型真实的类别数，再与清单对照。
+    //    先读形状再校验，才能在「模型与清单不符」时**报错**而不是安静地标错类。
+    var ok = await _loadModel(const <int>[]);
+    ModelClassMapping? mapping =
+        ok ? resolveMapping(
+                modelClassCount: _modelClassCount,
+                declared: manifest.modelClassIds,
+              ) : null;
+    if (ok && mapping == null) {
+      // 模型与清单对不上：宁可失败也不猜。
+      return VisionSourceStatus(
+        ok: false,
+        message: '模型与清单不符',
+        error: '模型报告 $_modelClassCount 类，而清单（${manifest.version}）声明 '
+            'modelClassCount=${manifest.modelClassCount}、'
+            'modelClassIds=${manifest.modelClassIds}。两者必须一致——'
+            '猜一个映射会把框标成别的类，而且不会报错。',
       );
     }
     if (ok && mapping != null && !mapping.identity) {

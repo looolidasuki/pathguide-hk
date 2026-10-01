@@ -10,7 +10,8 @@ import 'package:pathguide/vision/model_class_map.dart';
 void main() {
   group('identity：模型类别数已等于项目类别表', () {
     test('不需要映射，输出即真实 id', () {
-      final m = resolveMapping(modelClassCount: kNumClasses)!;
+      // 类别数正好等于项目表时，声明表可以留空——空表只在这个条件下合法。
+      final m = resolveMapping(modelClassCount: kNumClasses, declared: const <int>[])!;
       expect(m.identity, isTrue);
       expect(m.ids, isEmpty);
       for (final id in <int>[0, 6, 7, 47]) {
@@ -19,7 +20,7 @@ void main() {
     });
 
     test('越界返回 null 而不是原样放行', () {
-      final m = resolveMapping(modelClassCount: kNumClasses)!;
+      final m = resolveMapping(modelClassCount: kNumClasses, declared: const <int>[])!;
       expect(m.appIdFor(-1), isNull);
       expect(m.appIdFor(kNumClasses), isNull);
     });
@@ -85,23 +86,9 @@ void main() {
       expect(resolveMapping(modelClassCount: 2, declared: const <int>[7, 7]), isNull);
     });
 
-    test('默认用文件里声明的 modelClassIds', () {
-      // 不加 declared 参数时应使用 modelClassIds 这个常量
-      final m = resolveMapping(modelClassCount: modelClassIds.length);
-      expect(m, isNotNull);
-      expect(m!.ids, modelClassIds);
-    });
   });
 
-  test('当前声明表与类别表一致（换模型时必须同步改这里）', () {
-    // 这条断言的意义：modelClassIds 是「这个模型是用哪些 id 训的」的唯一声明，
-    // 而 TFLite 里没有这个元数据。改模型必须改它，否则框对名字错。
-    expect(modelClassIds, isNotEmpty);
-    for (final id in modelClassIds) {
-      expect(labelOf(id), isNotNull, reason: 'id $id 不在类别表里');
-    }
-    expect(modelClassIds.toSet().length, modelClassIds.length, reason: '不能重复');
-    // 当前的 3 类模型：行人、自行车、垃圾桶
-    expect(modelClassIds, <int>[6, 11, 7]);
-  });
+  // 映射表本身（「模型是用哪些 id 训的」）已移到**模型清单**里，
+  // 由 app/test/model_manifest_test.dart 校验——它必须跟着模型走，
+  // 而不是写死在 Dart 源码里，否则服务端换类别集时 App 会静默标错类。
 }

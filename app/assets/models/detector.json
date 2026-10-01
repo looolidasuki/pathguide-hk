@@ -1,0 +1,16 @@
+{
+  "format": 1,
+  "version": "2026-10-02.1",
+  "file": "detector.tflite",
+  "bytes": 2871365,
+  "sha256": "38e56bdd46f90d8fcd48f615393171137bbf51aba0b070559d035751052e2e4b",
+  "inputSize": 416,
+  "modelClassCount": 3,
+  "modelClassIds": [
+    6,
+    11,
+    7
+  ],
+  "trainedAt": "2026-10-02",
+  "map50": 0.744
+}

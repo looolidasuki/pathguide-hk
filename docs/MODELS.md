@@ -1,0 +1,193 @@
+# 模型清单 / MODELS
+
+> **这份文档是「项目里有哪些模型、每个是什么、用在哪、能不能信」的唯一入口。**
+> 里面每个数字都标了来源文件或生成命令；没有来源的数字不写进这份文档。
+>
+> 最后更新：2026-10-02
+
+---
+
+## 0. 一句话结论
+
+**端上只跑一个模型**：3 类（行人 / 自行车 / 垃圾桶）的 YOLO11n 微调版，
+TFLite int8、输入 416、2.74 MiB，随 App 打包，**离线**运行。
+其余模型（COCO、YOLO-World、Grounding DINO、SAM 2.1、LocateAnything-3B）
+**只在训练/标注阶段在服务器上跑，永远不下发到手机**。
+
+---
+
+## 1. 端侧模型（当前发布版）
+
+| 项 | 值 |
+|---|---|
+| 模型文件 | `app/assets/models/detector.tflite` |
+| 清单一并下发 | `app/assets/models/detector.json` |
+| 格式 | TFLite，**full-int8** 量化 |
+| 输入 | `1×416×416×3` |
+| 输出 | `1×7×3549`，**channel-first**（转置布局） |
+| 模型类别数 | 3 |
+| 类别映射 `modelClassIds` | `[6, 11, 7]` → pedestrian / bicycle / bin |
+| 文件大小 | **2,871,365 B**（2.74 MiB） |
+| sha256 | `38e56bdd46f90d8fcd48f615393171137bbf51aba0b070559d035751052e2e4b` |
+| 版本 | `2026-10-02.1`（`trainedAt` 2026-10-02） |
+| mAP50（清单记） | 0.744 |
+| 训练来源 | `runs/pg_poc3/weights/best.pt` → `best_saved_model/best_int8.tflite` |
+| 训练配置 | `yolo11n.pt` 微调，60 轮，`imgsz=416`，`batch=16`，`seed=42` |
+| 数据集 | `data/dataset_poc3`（多来源合并，按帧合并标签，按类别组切分） |
+
+**来源可验证**：`app/assets/models/detector.tflite` 与
+`runs/pg_poc3/weights/best_saved_model/best_int8.tflite` **逐字节相同**
+（`tests/test_published_model.py::test_默认导出源就是端上那一份` 守这条）。
+
+### 1.1 逐类指标（val 划分，105 图 / 263 框）
+
+生成命令：`.\.venv\Scripts\python.exe scripts\val_published_model.py`
+落盘：`artifacts/metrics/pg_poc3_val.json`（`artifacts/` 是 gitignore 的构建产物，
+所以这份 JSON 不进仓库——上面的命令是用来**复现**它的，
+表里的数字全部抄自它，不是我另算的。）
+
+| 本地索引 | 项目 id | 类别 | **实例数** | P | R | mAP50 | mAP50-95 |
+|---:|---:|---|---:|---:|---:|---:|---:|
+| 0 | 6 | pedestrian 行人 | 242 | 0.747 | 0.718 | **0.790** | 0.536 |
+| 1 | 11 | bicycle 自行车 | **2** | 0.844 | 0.500 | 0.496 | 0.446 |
+| 2 | 7 | bin 垃圾桶 | 19 | 0.698 | 1.000 | **0.948** | 0.720 |
+| — | — | **总体** | 263 | 0.763 | 0.739 | **0.744** | 0.567 |
+
+> ⚠️ **自行车那一行不可引用。** 验证集里只有 **2 个**实例，
+> 任何基于 2 个样本的 mAP 都是噪声。这个类别真正的问题是
+> 「数据只有 13 帧 / 15 框」，不是「模型学不会」。
+> 引用这张表时**必须同时给出实例数**，否则会得出错误结论。
+
+> ⚠️ **这些数字是「对老师标注的保真度」，不是真准确率。**
+> 训练标签里行人来自 COCO 自动转换、垃圾桶来自人工复核，
+> 所以它衡量的是「模型像不像标签」，不是「模型对不对」。
+> 要拿到真准确率，需要**人工核验的抽样集（约 30 帧）**——尚未做。
+
+### 1.2 端上实测性能
+
+| 项 | 实测 |
+|---|---|
+| 单帧推理 | **268 ms**（416 int8，Snapdragon 685，纯 CPU） |
+| 真机帧率 | **3.6 ~ 3.9 FPS** |
+| 路径 | 640f32 776 ms → 416f32 324 ms → **416int8 268 ms** |
+| 加速器 | **无**。`litert:2.2.0` 的 `Interpreter$Options` 只有 `setNumThreads/setCancellable/setRuntime/setUseXNNPACK`，**没有 `addDelegate`、没有 `setUseNNAPI`**（javap 已核）；GPU 只能走新的 `CompiledModel` API，而 `litert-gpu` 最新只到 1.4.2、配不成对 |
+
+---
+
+## 2. 模型清单（`detector.json`）字段与校验
+
+**为什么清单必须存在**：TFLite 文件里**没有**「这个模型是用哪些 class-id 训的」
+这个元数据。这份信息以前写死在 `app/lib/vision/model_class_map.dart` 的一个常量里——
+本地开发没问题，但模型一旦能从服务器下发，**服务端换了类别集而 App 不知道**，
+于是每个框的名字都是错的，**而且不报错**。
+
+所以清单**跟着模型一起走**，`modelClassIds` 的来源是训练数据集的 `classes.json`
+（那份文件的 `original_id` 就是真实 id），**不是手写**。
+
+| 字段 | 含义 | 校验 |
+|---|---|---|
+| `format` | 清单格式版本 | 必须 `== 1`，不认识就报错（**不忽略未知字段**） |
+| `version` | 模型版本，用于下发比对 | 必填 |
+| `file` | 模型文件名 | 必填 |
+| `bytes` | 模型字节数 | 必填；与实际文件比对（防「换了模型忘重生成清单」） |
+| `sha256` | 模型哈希 | 必须 `^[0-9a-f]{64}$`；App 侧据此校验下载完整性 |
+| `inputSize` | 输入边长 | 必填 |
+| `modelClassCount` | 模型类别数 | 必填 |
+| `modelClassIds` | 本地索引 → 项目 id | 长度必须 `== modelClassCount`；id 必须在类别表内；**不得重复** |
+| `trainedAt` | 训练日期 | 由 `version` 前缀推出 |
+| `map50` | 训练/验证 mAP50 | 可空 |
+
+**空映射表只在一个条件下合法**：`modelClassCount == kNumClasses`（48）。
+此时本地索引就是项目 id，不需要映射。其余情况给空表 → **直接失败，不猜**。
+
+**故意不写进清单的**：数据集路径。清单是要下发到手机上的资产，
+里面出现 `C:\Users\...` 既没意义又泄露开发机布局；
+追溯信息改为在导出时打到日志里（`映射来源数据集：dataset_poc3`）。
+
+### 守这条不变量的是哪些测试
+
+| 测试 | 守什么 |
+|---|---|
+| `app/test/model_manifest_test.dart` | 字段解析、8 类拒绝、内置清单与内置模型同步（防漂移） |
+| `app/test/model_class_map_test.dart` | 映射逐项正确；长度不符 / 越界 / 重复 → 返回 `null` 而不是猜 |
+| `tests/test_published_model.py` | 默认导出源 == 端上那一份；清单与模型自洽；映射落在类别表内 |
+| `scripts/check_tflite_decode.py` | 模型布局 ↔ Kotlin 解码假设 ↔ 坐标换算三者一致 |
+
+---
+
+## 3. 老师模型（只在训练/标注阶段用，**不下发**）
+
+| 模型 | 用途 | 阶段 | 实测表现 |
+|---|---|---|---|
+| `yolo11n.pt`（COCO 预训练） | 微调起点 + COCO 预标 | 训练 / 预标 | COCO 只覆盖 48 类中的 **3 类**（bicycle 精确、pedestrian ↔ person、table ↔ dining table 语义不等价） |
+| `yolov8s-world.pt` | 零样本开放词表提案 | stage1 | 9 个核心类**零召回**（`stairs` 0.000）；不能单独当老师 |
+| `IDEA-Research/grounding-dino-tiny` | 宽覆盖预标 | 预标 | 48 类里 **46 类非零**（stairs 60%、step 60%、road_excavation 100%、tactile_paving 30%、barrier_fencing 83%）；但 **11.3 s/图**、约 **66 框/图**噪声 |
+| `sam2.1_t.pt` | 掩膜精修（把框修准） | stage2 | 已有代码，未接新老师 |
+| `nvidia/LocateAnything-3B` | VLM 裁剪验证「这里面有没有 <类别>」 | stage2 | 需 `transformers 4.57.1` + bf16；在 `.venv-vlm` 里跑 |
+
+**老师链的定位**：老师的作用是**把人工标注量从 33 h 降到 16.8 h**（48 类 × 250 框 ≈ 12,000 框），
+不是替代人工。**没有任何老师模型能直接给出可用的 48 类模型**——
+GDINO 覆盖广但噪声大，YOLO-World 对结构性障碍（楼梯、路障）零召回，
+COCO 只认识 3 类。所以保留**人工抽样质检**这一环。
+
+**蒸馏的结论**：用 COCO 模型蒸馏可以拿到「别人训练后的效果」的**一部分**——
+实测恢复老师 94% 的框——但**只能恢复老师认识的那些类**。
+老师不认识楼梯，蒸馏也变不出楼梯。所以蒸馏用于**省标注**，不用于**补类别**。
+
+---
+
+## 4. 历史 run（都不发布，留档说明为什么不用）
+
+| run | 类别数 | 轮数 | int8 大小 | sha256(前16) | 为什么不用 |
+|---|---:|---:|---:|---|---|
+| `pg_poc3` | **3** | 60 | 2,871,365 | `38e56bdd46f90d8f` | ✅ **当前发布** |
+| `pg_review_v0` | **24** | 100 | 2,991,099 | `b27be0338e36beda` | 用的是**已作废的 24 类表**；48 类表冻结后类别索引对不上 |
+| `pg_single_bin` | 1 | 100 | 2,869,369 | `3ebc47792155f0b2` | 单类验证用（垃圾桶），已被 3 类取代 |
+
+> ⚠️ `export_tflite.py` 的默认权重**曾经指向 `pg_review_v0`（24 类）**。
+> 于是一条普通的 `python scripts/export_tflite.py` 会导出一个类别数与
+> `configs/classes.json` 对不上的模型，**而且不报错**。
+> 已改为指向 `pg_poc3`，并由 `tests/test_published_model.py` 钉住。
+
+---
+
+## 5. 换模型的操作清单（照抄，别凭记忆）
+
+换一份端侧模型时，以下**五步缺一不可**，少一步就是静默错类：
+
+1. **训练** → `python scripts/train_yolo.py --data data/<数据集>/dataset.yaml --name <run>`
+2. **导出**（必须在 `.venv-export` 里，见 `scripts/export_tflite.py` 顶部说明）
+   → `python scripts/export_tflite.py --weights runs/<run>/weights/best.pt --dataset data/<数据集> --deploy int8 --version <日期>.1 --map50 <验证值>`
+   这一步会**同时**写模型和清单，并把清单打印出来核对。
+3. **核对形状**：导出脚本会打印 tflite 的输入/输出张量形状。类别数与布局
+   （`anchors_first = d1 > d2`）必须与 Kotlin 解码假设一致，否则先修再往下走。
+4. **跑门禁**：
+   - `python scripts/check_tflite_decode.py`（布局 ↔ Kotlin ↔ 坐标换算三者一致）
+   - `python -m pytest -q`（含 `test_published_model.py`：默认导出源 == 端上那一份）
+   - `cd app && flutter analyze && flutter test`（含清单防漂移）
+5. **真机验证** → `scripts/verify_on_device.ps1`（装包→唤醒→启动→截图→抓 HUD）
+   HUD 上必须看到 `classes=3`、`映射 [6, 11, 7]`、`invalid=0`。
+
+> **类别 id 只增不改**：`configs/classes.json` 的 1–22 已冻结。
+> 新增类别只能**追加**，绝不能重排——重排会让所有历史标签和已发布模型全部错位。
+
+---
+
+## 6. 将来：模型下发（未做）
+
+当前模型是**随 APK 打包**的。计划中的下发流程：
+
+```
+用户手机拍照 → 上传「未识别障碍物」图片 + 新路线
+   → 服务器侧大模型/VLM 标注 → 人工抽样质检
+   → 训练 → 评测门禁 → 打包【模型 + 清单】→ 下发到手机
+```
+
+**下发单位是「模型 + 清单」这一个整体**，不是单独的 `.tflite`。
+App 侧收到后：校验 `sha256` → 读 `modelClassIds` → 用清单里的映射解本地索引。
+`platform_vision.dart` 现在会先加载并校验清单，**清单与模型不符就拒绝启动**并显示原因
+（`模型清单有问题` / `模型与清单不符`），而不是猜一个映射继续跑。
+
+**注意**：「有没有检测到框」**不能**用作上传触发条件——
+实测 143,784 帧里 2,358 帧（**98%**）都有候选检测，
+所以这个条件会把几乎所有帧都传上去。触发判据尚未确定。

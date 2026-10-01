@@ -85,11 +85,14 @@ flutter:
   # 加载模型失败（界面会显示「模型未加载」），而不是崩溃。
   #
   # 模型由 scripts/export_tflite.py 生成并自动复制到这里。
-  # 当前内容是 float32 版（10.13 MB）。项目出口条件是 < 10 MB，
-  # 而同一份权重的 int8 版只有 2.85 MB——**先用 float32 验证链路能出框，
-  # 再换 int8 并对比精度损失**，见毕设设计 §10 的 M2 验收项。
+  # 当前内容是 **int8 版（2.87 MB，416 输入）**，实测与 float32 精度几乎一致
+  # （离线 IoU 0.966 vs 0.963）而延迟更低（真机 268 ms vs 324 ms）。
   assets:
     - assets/models/detector.tflite
+    # 模型清单：与模型**一起**下发，里面写着「本地索引 -> 真实类别 id」。
+    # 必须一并声明，否则 App 起不来（状态栏会显示「模型清单有问题」）。
+    # TFLite 里没有「这个模型是用哪些 class-id 训的」元数据，这份信息只能靠清单带。
+    - assets/models/detector.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

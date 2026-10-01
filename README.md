@@ -3,8 +3,11 @@
 为视障人士做的**手机端离线视觉导航助手**：用摄像头识别香港街头的设施与障碍物，
 用**粤语语音**播报。演示路线：**调景岭站 → 彩明苑天桥 → 彩明商场**。
 
-> **先读这份：** [`docs/PROJECT-STATUS.md`](docs/PROJECT-STATUS.md)
-> —— 项目框架、各部分功能、进度、预期产出、难点排序、下一步，都在那里，且每个数字都注明实测来源。
+> **先读这两份：**
+> [`docs/PROJECT-STATUS.md`](docs/PROJECT-STATUS.md)
+> —— 项目框架、各部分功能、进度、预期产出、难点排序、下一步，且每个数字都注明实测来源。
+> [`docs/MODELS.md`](docs/MODELS.md)
+> —— 模型清单：端上模型与老师模型、逐类指标（含实例数）、清单字段校验、换模型操作清单。
 
 ---
 
@@ -15,9 +18,10 @@ Android 真机（Xiaomi 2609FRA74T / Snapdragon 685）实测：
 | 指标 | 值 |
 |---|---|
 | 模型 | YOLO11n，**3 类**（行人 / 单车 / 垃圾桶），TFLite int8，416×416，2.87 MB |
-| 映射 | `modelClassIds = [6, 11, 7]`（本地索引 → 48 类表真实 id） |
+| 映射 | `modelClassIds = [6, 11, 7]`（本地索引 → 48 类表真实 id），**随模型清单下发，不写死在代码里** |
 | 推理 | **268 ms/帧**，**3.7 FPS**（纯 CPU；本机无 NNAPI/GPU delegate 可用） |
-| 逐类指标 | 垃圾桶 mAP50 **0.948**（召回 1.000）· 行人 0.790（标签来自 COCO，非人工） |
+| 逐类指标 | 垃圾桶 mAP50 **0.948**（召回 1.000，19 实例）· 行人 0.790（242 实例）· 自行车 **不可用**（val 仅 2 实例） |
+| 指标口径 | 以上是**对老师标注的保真度**，不是真实准确率；真实数字需人工核验的抽样集（约 30 帧，未做） |
 | 功能 | 实时画框 + 中文标签 + HUD 诊断 + 阈值滑条 + 粤语播报（分数门槛 0.70 才开口） |
 
 ---
@@ -52,8 +56,11 @@ python scripts\build_multiclass_dataset.py --out data\dataset_poc3 `
 # 训练（默认参数都带上踩过的坑：workers=0、seed 固定、imgsz 416）
 python scripts\train_yolo.py --data data\dataset_poc3\dataset.yaml --name pg_poc3 --epochs 60
 
-# 导出 TFLite（会交叉校验模型类别数与 App 的 modelClassIds 是否一致）
-.\.venv-export\Scripts\python.exe scripts\export_tflite.py --weights runs\pg_poc3\weights\best.pt --imgsz 416
+# 导出 TFLite：同时写出模型【和它的清单】
+# 清单里的类别映射来自数据集的 classes.json，不是手写 —— 类别错位不报错，只会每帧名字全错
+.\.venv-export\Scripts\python.exe scripts\export_tflite.py `
+    --weights runs\pg_poc3\weights\best.pt --dataset data\dataset_poc3 `
+    --deploy int8 --version 2026-10-02.1 --map50 0.744
 
 # 标注（双击也行）
 label.cmd
@@ -62,11 +69,12 @@ label.cmd
 ## 门禁（改代码后跑这些）
 
 ```powershell
-python -m pytest                          # 248 个测试
-cd app; flutter analyze; flutter test     # 64 个测试
+python -m pytest                          # 254 个测试
+cd app; flutter analyze; flutter test     # 77 个测试
 python scripts\check_kotlin_compiles.py   # Kotlin 编译检查（不需要 Gradle）
 python scripts\check_tflite_decode.py     # 模型 ↔ 原生解码假设的一致性
 python scripts\gen_dart_labels.py --check # 类别表是否与唯一的源同步
+python scripts\val_published_model.py     # 对端上那一份模型重跑 val，逐类指标落盘
 ```
 
 ---
@@ -82,6 +90,7 @@ app/                    Flutter App（Android 原生实现已完整；iOS 待补
 configs/                类别表唯一事实源（48 类）与别名表
 scripts/                数据采集、扫描选帧、老师预标、训练、导出、门禁、真机验证
 docs/PROJECT-STATUS.md  ★ 项目总览
+docs/MODELS.md          ★ 模型清单（端上模型、老师模型、逐类指标、换模型步骤）
 docs/superpowers/plans/ 逐日过程记录（含六处静默缺陷的复盘）
 data/                   数据集与素材（体积大，不入库）
 ```
