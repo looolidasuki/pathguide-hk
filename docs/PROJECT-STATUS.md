@@ -84,13 +84,14 @@
 | 模型清单改完后的真机复测 | ⏳ **未做**（2026-10-02 手机未连接）。已验证的替代证据：`flutter analyze` 0 问题、`flutter test` 77 全过、APK 内 `detector.json`(434 B) + `detector.tflite`(2,871,365 B) 都在且字节数与清单一致 |
 | 类别表 | 48 类，索引冻结；Dart/文本/标注工具配置全部由同一源生成 |
 | 数据集 | bin 44 图/122 框（人工复核）· pedestrian 488 帧/2218 框（COCO 自动）· bicycle 13 帧/15 框 |
-| 逐类指标 | **bin mAP50 0.948 / 召回 1.000** · pedestrian 0.790 · bicycle 无统计意义（val 仅 2 实例） |
+| 外部数据 | `data/raw/external/` **901 张**（16 类，Wikimedia Commons，HK 优先），**尚未使用**；无框，需老师预标 |
+| 门禁 | `pytest` **259** · `flutter test` **77** · `flutter analyze` 0 问题 · Kotlin 编译检查通过 · 模型↔源码一致性检查通过 · APK 内资产核对通过 |
+| 逐类指标 | **bin mAP50 0.948 / 召回 1.000**（19 实例）· pedestrian 0.790（242 实例）· bicycle **不可引用**（val 仅 **2** 实例）；总体 mAP50 **0.7445**，落盘 `artifacts/metrics/pg_poc3_val.json` |
 | 蒸馏可行性 | COCO person → 我们的模型：**老师框回收 94%**（零人工标签） |
 | 模型清单 | 模型 + 类别映射一起下发；**清单与模型不符就拒绝启动**（不再猜映射）。内置清单与模型逐字节对账，APK 内已验证 |
 | 视频扫描 | 143,784 帧 → 采样 2,397 → 候选 2,358 → 按类定额选中 **445 张**，1.7 分钟 |
 | 标注路径规划 | 48 类 × 250 实例 = 12,000 框；从零手工 ≈ **33 h**，按老师可用性分流后 ≈ **16.8 h** |
 | 零样本召回 | YOLO-World 对 9 个核心类**零召回**（`stairs` 最高分 0.000）→ 换成 GDINO：**48 类里 46 类非零**（`stairs` 出图率 60%、`tactile_paving` 30%、`road_excavation` 100%），只有 `scooter` 零检出 |
-| 门禁 | `pytest` **254** · `flutter test` **77** · `flutter analyze` 0 问题 · Kotlin 编译检查通过 · 模型↔源码一致性检查通过 · APK 内资产核对通过 |
 
 ### ⚠️ 进行中
 
@@ -164,10 +165,13 @@
 整条跑通一版 —— 这就是云端那一环的原型，**不需要先搭云服务器**。
 
 **② 补 `scooter`（唯一零检出的类）与 `bicycle`（数据死角）**
-走公开数据集（Roboflow 等）或专项实拍。
-⚠️ 当前 Roboflow 下载被**凭据**卡住：`.env.secret.ps1` 里的 `ROBOFLOW_API_KEY`
-已被吊销（HTTP 401），需要换一把有效 key、把数据集设为可协作访问，
-或手工下载 zip 放进 `data/raw/` 再跑 `scripts/import_roboflow.py`。
+`data/raw/external/` 里**已有 901 张外部图**（16 类，含 bicycle 60、scooter 60），
+但从未使用过，且是**整图无框**——需要先让老师预标链出框才能当训练标签。
+Commons 这条通道**不需要凭据**，是当前唯一能立刻推进的取数途径；
+但要注意其单物件图与香港街景的**域偏移**，必须与实拍帧混训并分开评测。
+⚠️ Roboflow 那条路仍被**凭据**卡住：`.env.secret.ps1` 里的 `ROBOFLOW_API_KEY`
+已被吊销（HTTP 401，实测确认），需要换一把有效 key、把数据集设为可协作访问，
+或手工下载 zip 放进 `data/raw/` 再跑 `scripts/import_roboflow.py --zip <文件>`。
 
 **③ 人工核验的抽样集（约 30 帧）**
 现在所有精度数字都是「对老师标注的保真度」。没有人工核过的小样本，
@@ -205,4 +209,6 @@
 | 演示只覆盖 3 类 | 模型当前 3 类 | 按 §6 逐步扩类，架构已支持 |
 | 模型下发通道未建 | 清单已就位，但服务器→手机的下载通道没有；当前模型随 APK 打包 | 清单格式已定，通道可后补 |
 | Roboflow 取数被凭据卡住 | `ROBOFLOW_API_KEY` 已被吊销（401） | 换有效 key / 设为可协作 / 手工下 zip 进 `data/raw/` |
+| **外部数据抓了没用** | `data/raw/external/` 已有 **901 张**（16 类，含 bicycle 60、scooter 60），**从未进过任何数据集**；且是整图无框 | 需走老师预标链出框；并注意 Commons 单物件图与香港街景的域偏移 |
+| 配置文件编码 | `configs/commons_sources.json` 曾带 BOM，使采集脚本直接失效 | 已去 BOM + 读取方改 `utf-8-sig` + 新增测试 |
 | 真机验证依赖手机在场且解锁 | 脚本会自动唤醒，锁屏时会明确报错 | 已处理 |

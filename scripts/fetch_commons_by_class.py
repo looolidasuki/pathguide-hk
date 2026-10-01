@@ -153,7 +153,12 @@ def main() -> int:
                     help="只采表外目标（用于验证哪些物件能靠网上数据冷启动）")
     args = ap.parse_args()
 
-    with SOURCES_PATH.open(encoding="utf-8") as f:
+    # utf-8-sig 而不是 utf-8：这份 JSON 曾经带 BOM（Windows 编辑器 /
+    # PowerShell 的 Set-Content -Encoding utf8 都会加），于是 json.load 直接抛
+    # 「Unexpected UTF-8 BOM」——一个配置文件被另存一次，采集脚本就全废了，
+    # 而且报错信息完全不提这是因为 BOM。utf-8-sig 对「有 BOM」和「没 BOM」
+    # 两种情况都能读，所以这里用它是纯收益。
+    with SOURCES_PATH.open(encoding="utf-8-sig") as f:
         cfg = json.load(f)
 
     jobs: list[tuple[str, list[str]]] = []
