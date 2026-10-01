@@ -120,6 +120,11 @@ service-account*.json
 *.tmp
 ~$*
 
+# 提交信息临时文件（`git commit -F` 用；曾被误提交一次，故加规则）
+/msg-*.txt
+/commitmsg.txt
+/commit-msg.txt
+
 # X-AnyLabeling
 # 它默认写 ~/.anylabelingrc（工作区外，受限环境被拒），需用 --config 指到工作区内。
 .anylabelingrc
