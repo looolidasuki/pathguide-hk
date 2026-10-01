@@ -84,12 +84,20 @@ abstract final class VisionKeys {
   static const String classes = 'classes';
   static const String inputSize = 'inputSize';
 
-  /// 类别 id 偏移：原生把它**加到模型输出的每个 id 上**再回传。
+  /// 类别索引映射表：原生按它把**模型本地索引**翻成**项目类别真实 id**。
   ///
-  /// 用于单类模型：它输出 id 0，而项目类别表里 id 0 是 `footbridge_entrance`。
-  /// 传 `bin` 的原始 id（7）作为偏移，Dart 之后画框/播报/查表全部无需改动。
-  /// 多类模型传 0。
-  static const String classOffset = 'classOffset';
+  /// 数组下标 = 模型输出的本地索引，值 = `kLabels` 里的真实 id。
+  /// 例：`[6, 11, 7]` 表示模型第 0/1/2 类分别是 pedestrian / bicycle / bin。
+  ///
+  /// 为什么不用「一个偏移量」：偏移只能表达「本地索引 + 常数」，
+  /// 3 类以上除非恰好连续就表达不了。映射表同时覆盖单类场合（长度 1）。
+  ///
+  /// **空数组表示不需要映射**（模型类别数已等于项目类别表，输出即真实 id）。
+  ///
+  /// 声明错了不会报错，只会把框标成别的类名——所以 Dart 侧
+  /// `resolveMapping()` 会先校验长度与取值，`scripts/export_tflite.py`
+  /// 也在导出时交叉核对。
+  static const String classIds = 'classIds';
 
   // ---- detect 入参 ----
   /// 帧的原始像素字节。Android 为 **NV21**（`Uint8List`，长度 = w*h*3/2）。

@@ -1,4 +1,4 @@
-"""跨模型文本标签归一。
+﻿"""跨模型文本标签归一。
 
 问题：YOLO-World 与 LocateAnything 输出的都是自由文本（"rubbish bin" / "trash bin"
 / "garbage can"），而 YOLO 标签只能用类别 id。两个模型的框要能比较，必须先归一到同一空间。
@@ -103,7 +103,7 @@ class LabelTaxonomy:
         'street_obstacle' 提问只确认 48%，换成 'rubbish bin' 确认 96%、
         'bin' 确认 100%。用类别名去问会把一半正确框判成误检。
 
-        返回 None 表示该类不该由 VLM 验证（如 ambiguous_vertical，
+        返回 None 表示该类不该由 VLM 验证（never_from_vlm 标记的占位类，目前无；
         它的定义就是「无法判定」，让 VLM 验证自相矛盾）。
         """
         c = self.classes[cid]
@@ -195,3 +195,4 @@ def iou_xyxy(a: tuple[float, float, float, float],
     area_b = max(0.0, b[2] - b[0]) * max(0.0, b[3] - b[1])
     union = area_a + area_b - inter
     return inter / union if union > 0 else 0.0
+

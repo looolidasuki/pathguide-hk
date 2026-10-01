@@ -20,7 +20,7 @@ class Label {
   /// P0 表示可能危险，播报可插队；P1 排队播。
   final String priority;
 
-  /// false 表示这是训练期占位类（如 ambiguous_vertical），不进播报。
+  /// false 表示这类东西不该播报（如 streetlight：到处都有、又不可行动）。
   final bool announced;
 
   @override
@@ -135,7 +135,7 @@ const List<Label> kLabels = <Label>[
   ),
   Label(
     id: 13,
-    nameEn: 'cart_trolley',
+    nameEn: 'push_cart',
     nameZh: '手推車',
     group: 'obstacle',
     priority: 'P1',
@@ -215,20 +215,212 @@ const List<Label> kLabels = <Label>[
   ),
   Label(
     id: 23,
-    nameEn: 'ambiguous_vertical',
-    nameZh: '垂直設施不明',
-    group: 'train_only',
+    nameEn: 'fork_in_road',
+    nameZh: '分岔路口',
+    group: 'guide',
     priority: 'P0',
+    announced: true,
+  ),
+  Label(
+    id: 24,
+    nameEn: 'caution_slippery',
+    nameZh: '小心地滑',
+    group: 'obstacle',
+    priority: 'P0',
+    announced: true,
+  ),
+  Label(
+    id: 25,
+    nameEn: 'crowds_of_people_queuing',
+    nameZh: '排隊人潮',
+    group: 'obstacle',
+    priority: 'P0',
+    announced: true,
+  ),
+  Label(
+    id: 26,
+    nameEn: 'fence',
+    nameZh: '圍欄',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 27,
+    nameEn: 'barrier_fencing',
+    nameZh: '工程圍網',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 28,
+    nameEn: 'scaffold',
+    nameZh: '鷹架',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 29,
+    nameEn: 'road_excavation',
+    nameZh: '掘路工程',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 30,
+    nameEn: 'power_distribution_box',
+    nameZh: '配電箱',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 31,
+    nameEn: 'goods',
+    nameZh: '街邊貨物',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 32,
+    nameEn: 'goods_rack',
+    nameZh: '貨物架',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 33,
+    nameEn: 'cardboard',
+    nameZh: '紙皮',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 34,
+    nameEn: 'table',
+    nameZh: '桌椅',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 35,
+    nameEn: 'roll_up_banner_stand',
+    nameZh: '易拉架',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 36,
+    nameEn: 'billboard',
+    nameZh: '廣告看板',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 37,
+    nameEn: 'traffic_cone_connector_rod',
+    nameZh: '交通錐連接杆',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 38,
+    nameEn: 'abrasion_resistant_steel_plates',
+    nameZh: '鋪路鋼板',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 39,
+    nameEn: 'hand_truck',
+    nameZh: '搬運手推車',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 40,
+    nameEn: 'pallet',
+    nameZh: '唧車',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 41,
+    nameEn: 'pushchair',
+    nameZh: '嬰兒車',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 42,
+    nameEn: 'broken_tree',
+    nameZh: '樹木',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 43,
+    nameEn: 'tree_root_on_the_road',
+    nameZh: '地面樹根',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 44,
+    nameEn: 'cycle_path',
+    nameZh: '單車徑',
+    group: 'guide',
+    priority: 'P2',
+    announced: true,
+  ),
+  Label(
+    id: 45,
+    nameEn: 'streetlight',
+    nameZh: '路燈',
+    group: 'obstacle',
+    priority: 'P2',
     announced: false,
+  ),
+  Label(
+    id: 46,
+    nameEn: 'sign_post',
+    nameZh: '標誌桿',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: false,
+  ),
+  Label(
+    id: 47,
+    nameEn: 'bucket',
+    nameZh: '水桶',
+    group: 'obstacle',
+    priority: 'P2',
+    announced: true,
   ),
 ];
 
 /// 模型输出维度。推理结果长度与之不符即为模型与类别表不匹配。
-const int kNumClasses = 24;
+const int kNumClasses = 48;
 
 /// 播报优先级顺序（先 announced，再 P0 → P1，再 id）。
 const List<int> kAnnouncementOrder = <int>[
-  0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 14, 17, 19, 21, 5, 10, 12, 13, 15, 16, 18, 20, 22, 23,
+  0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 14, 17, 19, 21, 23, 24, 25, 5, 10, 12, 13, 15, 16, 18, 20, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 47, 45, 46,
 ];
 
 /// 按 id 取类别。id 越界时返回 null —— 不要静默回退到 0，那会掩盖模型/类别表不匹配。

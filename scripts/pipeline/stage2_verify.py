@@ -1,4 +1,4 @@
-"""三段式自动预标 —— 第二段：SAM 修框 + LocateAnything 裁剪验证。
+﻿"""三段式自动预标 —— 第二段：SAM 修框 + LocateAnything 裁剪验证。
 
 **在 .venv-vlm 环境中运行**（需要 transformers 4.57.1 + LocateAnything）。
 
@@ -155,7 +155,7 @@ def main() -> int:
             return e["verdict"], e["raw"]
         query = tax.verify_query(cid)
         if query is None:
-            return None, ""          # 该类不参与 VLM 验证（如 ambiguous_vertical）
+            return None, ""          # 该类不参与 VLM 验证（never_from_vlm 标记的占位类）
         crop = crop_box(img, bbox).convert("RGB").resize((CROP_SIZE, CROP_SIZE))
         # 实测：必须是检测式说法；"Is there a X?" 会被回显成 ref 并框满全图
         q = f"Detect the following objects in the image: {query}."
@@ -315,3 +315,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

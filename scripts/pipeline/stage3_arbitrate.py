@@ -70,19 +70,21 @@ def build_priority(tax: LabelTaxonomy) -> dict[int, int]:
 
     v1 里靠「伞类垫底」区分优先级（street_obstacle 曾盖着垃圾桶/护柱/雪糕筒）。
     v2 删掉伞类后各类都是具体物件，**不再有系统性优先级差异**，因此默认同级。
-    仅保留两类特例：
-      - `ambiguous_vertical`（训练专用类）优先级最低——它是「分不清」的兜底，
-        不该抢走具体类别的框。
+    v3 删掉了训练期占位类 `ambiguous_vertical`（它曾是 95 分垫底的「分不清」兜底），
+    于是只剩一个特例：
       - `pedestrian` 降一档——它是移动障碍，与静止设施重叠时优先保留设施框，
         因为设施位置稳定、对导航更有用。
+
+    要给某类特殊优先级时，**在 `configs/classes.json` 里给该类加
+    `arbitration_priority` 字段**，不要在这里加 `name_en == ...` 分支：
+    写死名字的分支在类被删或改名后会**静默失效**——v3 删掉 ambiguous_vertical
+    时这条 95 分规则就是这样无声消失的（没有报错，只是行为变了）。
     """
     prio: dict[int, int] = {}
     for c in tax.classes:
         explicit = c.get("arbitration_priority")
         if explicit is not None:
             prio[c["id"]] = int(explicit)
-        elif c["name_en"] == "ambiguous_vertical":
-            prio[c["id"]] = 95
         elif c["name_en"] == "pedestrian":
             prio[c["id"]] = 20
         else:

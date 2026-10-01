@@ -57,6 +57,11 @@ data/dataset_*_demo/**
 data/_ablation_pre_review/**
 data/dataset_*/images/**
 data/dataset_*/labels/**
+# 上面两条只挡了图与标签，剩下的元数据（dataset.yaml / classes.json / rename_map.csv）
+# 仍会以「未跟踪目录」的形式冒出来。这些是**派生数据**，一条命令即可重建，
+# 且 yaml 里写的是本机绝对路径，入库没有意义。
+# 注意用 `dataset_*`（带下划线）以免连带挡掉主数据集 data/dataset/。
+data/dataset_*/**
 
 # 由源码 zip 手动安装的 CLIP 源码（见 scripts/env_setup.py 注释）
 vendor/
@@ -139,3 +144,7 @@ calibration_image_sample_data_*.npy*
 /analyze.txt
 /run_log.txt
 /flutter_*.log
+
+# 真机验证产物（截图、logcat 转存、构建日志）。
+# 每次验证都会重新生成，体积不小，不入库；脚本 verify_on_device.ps1 会重建它。
+/artifacts/

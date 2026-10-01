@@ -200,26 +200,28 @@ int quarterTurnsFromDegrees(int degrees) {
 /// 绘制用的居中偏移，供需要手动摆放叠加层时使用。
 Offset displayOffset(DisplayFit fit) => Offset(fit.dx, fit.dy);
 
-/// 把一帧的检测框从「归一化原始帧坐标」一路映射到屏幕像素。
+/// 把一帧的检测框从「归一化帧坐标」映射到屏幕像素。
 ///
-/// 这是唯一的映射入口：把旋转、letterbox 缩放、居中偏移串在一起，
-/// 避免各处自己算一遍而其中一处漏了旋转。
+/// ## 这里**刻意不做旋转**（曾经做了一次，是错的）
 ///
-/// [fit] 必须用**旋转后**的帧尺寸构造（见 [rotatedFrameSize]）。
+/// 约定：[Detection] 的归一化坐标与 [DisplayFit.frame] 都在**同一个正立坐标系**里
+/// （见 `VisionSource.frameSize`）。Android 原生在采样时已经把画面逐像素转正
+/// （`sampleRgb` 的逆旋转），检测框就诞生在这个正立坐标系里。
+///
+/// 早期版本的签名还带一个 `rotationDegrees` 参数，在映射前再调一次
+/// [rotateNormalized]。那是**重复旋转**：画面已经在原生转正，再转 90° 会让
+/// 整幅框相对画面偏移 90°。而且它不报错——框照样画得出来，只是位置全错。
+/// 删掉这个参数而不是「传 0」，是为了让这个错误在类型上就写不出来。
+///
+/// [rotateNormalized] 仍然保留：它是给**返回原始帧坐标**的来源用的
+/// （将来 iOS 若不改原生采样，就可能需要它）。
 List<({Detection detection, Rect rect})> mapDetectionsToScreen({
   required List<Detection> detections,
-  required int rotationDegrees,
   required DisplayFit fit,
 }) {
-  final q = quarterTurnsFromDegrees(rotationDegrees);
   return [
     for (final d in detections)
-      (
-        detection: d,
-        rect: fit.normalizedToScreen(
-          rotateNormalized(d.normalizedRect, quarterTurns: q),
-        ),
-      ),
+      (detection: d, rect: fit.normalizedToScreen(d.normalizedRect)),
   ];
 }
 

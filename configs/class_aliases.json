@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "note": "跨模型文本标签的归一表。YOLO-World / LocateAnything / Grounding DINO 输出的都是自由文本，必须归一到 configs/classes.json 的类别 id，否则模型间的框无法比较。新增说法时只改这里。",
   "matching": {
     "note": "归一顺序：精确别名 -> 词集合 Jaccard -> 字符相似度。低于阈值返回「未判定」而非强行归类——强行归类会产生错误标注，且训练时不报错。",
@@ -8,6 +8,7 @@
     "verify_query_note": "★ verify_query 是 VLM 裁剪验证时的提问词。**必须用具体物件名，不能用笼统类别名。** 实测（垃圾桶 52 个候选框）：用伞类名 street_obstacle 提问只确认 48%，换成 bin 确认 100%。",
     "gdin_note": "★ gdin_threshold 是 Grounding DINO 的**每类阈值**。实测各类分值分布差异极大：盲道 0.40 仍 36/36，楼梯 0.35 只剩 8/36，坡道最高分仅 0.35。统一阈值必然误检与漏检并存。",
     "gdin_prompt_note": "★★ Grounding DINO **每次只能发一个 prompt**。实测每组发 6 个 prompt 时产生 ##cala stairs / estor 等破损标签，且 estor 被错误映射成 shop_front。单 prompt 后异常降至 12/792。prompt 必须小写 + 句号结尾。",
+    "unmeasured_thresholds_note": "★ v3 新增的 25 类**还没有数据**，因此它们的 gdin_threshold 按同类近似值先填了一版，**没有实测依据**。每一类采到 30 张以上后必须用 gdin 跑到重标，否则零样本阶段的框数会失真。待重标的 id 见 unmeasured_thresholds。",
     "ambiguous_aliases": {
       "note": "这些说法无法从文本判断属于同名的户外类还是室内类（玻璃门 17/21、扶梯 2/19）。仅凭文字归类等于抛硬币，因此一律返回未决，交由上层用场景信息裁决。",
       "glass door": [17, 21],
@@ -18,6 +19,10 @@
       "escalators": [2, 19],
       "moving staircase": [2, 19]
     }
+  },
+  "unmeasured_thresholds": {
+    "note": "这些类的 gdin_threshold 尚未实测，采到数据后用 gdin 重标；在此之前零样本阶段的框数不可信。",
+    "ids": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
   },
   "classes": [
     {
@@ -60,6 +65,7 @@
     {
       "id": 6, "name_en": "pedestrian", "name_zh": "行人",
       "verify_query": "pedestrian", "gdin_threshold": 0.40,
+      "note": "单个行人。人潮另有 crowds_of_people_queuing(25)——两者处理方式不同（一个绕开、一个改道）。",
       "yolo_world_prompts": ["pedestrian", "person walking", "person", "people"],
       "la_aliases": ["pedestrian", "pedestrians", "person", "people", "man", "woman", "human", "walker", "walking person"]
     },
@@ -105,11 +111,11 @@
       "la_aliases": ["scooter", "scooters", "electric scooter", "kick scooter", "e-scooter"]
     },
     {
-      "id": 13, "name_en": "cart_trolley", "name_zh": "手推車",
-      "verify_query": "trolley", "gdin_threshold": 0.30,
-      "note": "合并 手推車 / 唧車 / 嬰兒車。三者形状差异大，**确认率若不达标应考虑拆类**。",
-      "yolo_world_prompts": ["hand cart", "a trolley", "a push cart", "a baby stroller", "a pram", "a hand truck"],
-      "la_aliases": ["trolley", "trolleys", "hand cart", "handcart", "push cart", "hand truck", "cart", "stroller", "baby stroller", "pram", "pushchair"]
+      "id": 13, "name_en": "push_cart", "name_zh": "手推車",
+      "verify_query": "push cart", "gdin_threshold": 0.30,
+      "note": "v3 由 cart_trolley 改名而来，**id 不变**（保住既有 2 个标注）。原来一个类盖住四种形状差异很大的东西，现在只指「人手推的载货小车」；唧车/嬰兒車/搬运车已拆到 pallet(40) / pushchair(41) / hand_truck(39)，相应的 prompt 与别名也已移走——**不移走的话同一个词会同时命中两类**。",
+      "yolo_world_prompts": ["push cart", "hand cart", "a trolley", "a shopping trolley", "a cart"],
+      "la_aliases": ["trolley", "trolleys", "hand cart", "handcart", "push cart", "cart", "shopping cart", "shopping trolley"]
     },
     {
       "id": 14, "name_en": "step", "name_zh": "台階",
@@ -140,7 +146,7 @@
     {
       "id": 18, "name_en": "door", "name_zh": "推拉門",
       "verify_query": "door", "gdin_threshold": 0.25,
-      "note": "非玻璃的推/拉门，与 glass_door 区分。",
+      "note": "非玻璃的推/拉门，与 glass_door 区分。推/拉/双向用 tag 表达（action:pull / action:push / action:both），**不拆类别**——拆开会让同一扇门在不同帧被标成不同类，而且推拉方向经常被遮挡。",
       "yolo_world_prompts": ["a push door", "a pull door", "a wooden door", "a metal door"],
       "la_aliases": ["door", "doors", "push door", "pull door", "wooden door", "metal door", "entrance door"]
     },
@@ -154,7 +160,7 @@
       "id": 20, "name_en": "sign_pictogram", "name_zh": "指示牌",
       "verify_query": "directional sign", "gdin_threshold": 0.25,
       "gdin_prompt": "sign",
-      "note": "图形标志牌。带文字的招牌走 OCR，不做检测类。",
+      "note": "图形标志牌。**只圈外框**，框内是哪个标志交给 crop_classifier；带文字的招牌走 OCR，不做检测类。",
       "yolo_world_prompts": ["directional sign", "a pictogram sign", "a wayfinding sign", "a floor directory"],
       "la_aliases": ["directional sign", "pictogram", "wayfinding sign", "floor directory", "sign", "signs", "signage"]
     },
@@ -172,21 +178,182 @@
       "yolo_world_prompts": ["shop front", "storefront", "shop facade", "store entrance"],
       "la_aliases": ["shop front", "storefront", "shop facade", "store front", "shop", "store", "shop entrance", "store entrance"]
     },
+
     {
-      "id": 23, "name_en": "ambiguous_vertical", "name_zh": "垂直設施不明",
-      "verify_query": null, "gdin_threshold": null,
-      "verify_query_note": "该类的定义就是「无法判定」，让 VLM 验证自相矛盾。只能由人工或时序规则产生。",
-      "never_from_vlm": true,
-      "yolo_world_prompts": ["stairs or escalator", "vertical access of unclear type"],
-      "la_aliases": ["stairs or escalator", "unclear stairs or escalator", "vertical access", "ambiguous vertical facility"]
+      "id": 23, "name_en": "fork_in_road", "name_zh": "分岔路口",
+      "verify_query": "fork in the road", "gdin_threshold": 0.25,
+      "note": "v3 接管了原 ambiguous_vertical 的槽位（那个占位类从未有标注，已删除）。定义见 configs/classes.json：地面标线或路缘分叉成两条可通行方向的点。",
+      "yolo_world_prompts": ["fork in the road", "a road junction", "a path splitting into two", "a forked walkway"],
+      "la_aliases": ["fork in the road", "road fork", "junction", "road junction", "path splitting", "forked path"]
+    },
+    {
+      "id": 24, "name_en": "caution_slippery", "name_zh": "小心地滑",
+      "verify_query": "wet floor sign", "gdin_threshold": 0.30,
+      "note": "黄色 A 字警示牌。PDF 注：冷气机滴水时可能出现在路中心。",
+      "yolo_world_prompts": ["wet floor sign", "a caution slippery sign", "a yellow warning sign on the floor"],
+      "la_aliases": ["wet floor sign", "caution slippery", "slippery floor sign", "caution sign"]
+    },
+    {
+      "id": 25, "name_en": "crowds_of_people_queuing", "name_zh": "排隊人潮",
+      "verify_query": "a queue of people", "gdin_threshold": 0.35,
+      "note": "PDF 注人潮有队头/队尾/横跨三种形态，框住整段人潮而不是单个人。",
+      "yolo_world_prompts": ["a crowd of people queueing", "a long queue", "a crowd blocking the pavement"],
+      "la_aliases": ["queue", "queuing crowd", "crowd of people", "long queue", "crowd blocking the path"]
+    },
+    {
+      "id": 26, "name_en": "fence", "name_zh": "圍欄",
+      "verify_query": "fence", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["fence", "a metal fence", "a pedestrian fence"],
+      "la_aliases": ["fence", "fences", "pedestrian fence", "metal fence", "barrier fence"]
+    },
+    {
+      "id": 27, "name_en": "barrier_fencing", "name_zh": "工程圍網",
+      "verify_query": "construction mesh fence", "gdin_threshold": 0.30,
+      "note": "工地绿色/蓝色网片围栏，与 metal fence 区分。",
+      "yolo_world_prompts": ["construction mesh fence", "a construction screen", "mesh barrier"],
+      "la_aliases": ["construction mesh", "mesh fence", "construction screen", "site fencing"]
+    },
+    {
+      "id": 28, "name_en": "scaffold", "name_zh": "鷹架",
+      "verify_query": "scaffolding", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["scaffolding", "a bamboo scaffold", "a building scaffold"],
+      "la_aliases": ["scaffold", "scaffolding", "bamboo scaffold", "building scaffold"]
+    },
+    {
+      "id": 29, "name_en": "road_excavation", "name_zh": "掘路工程",
+      "verify_query": "road excavation", "gdin_threshold": 0.30,
+      "note": "PDF 注「同時出現多種 label 應可辨識」——本类就是那个复合场景的单一标签，框住整个施工区域。",
+      "yolo_world_prompts": ["road excavation", "a dug up road", "a road works site"],
+      "la_aliases": ["road excavation", "road works", "dug up road", "excavation site"]
+    },
+    {
+      "id": 30, "name_en": "power_distribution_box", "name_zh": "配電箱",
+      "verify_query": "utility box", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["a utility box", "an electrical distribution box", "a power box on the pavement"],
+      "la_aliases": ["utility box", "distribution box", "electrical box", "power box"]
+    },
+    {
+      "id": 31, "name_en": "goods", "name_zh": "街邊貨物",
+      "verify_query": "goods placed on the street", "gdin_threshold": 0.30,
+      "note": "商家摆到街上的货，形态无定，是已知较难的一类。",
+      "yolo_world_prompts": ["goods placed on the street", "a pile of goods outside a shop", "boxes stacked on the pavement"],
+      "la_aliases": ["goods on the street", "street goods", "pile of goods", "boxes on the pavement", "shop goods"]
+    },
+    {
+      "id": 32, "name_en": "goods_rack", "name_zh": "貨物架",
+      "verify_query": "goods rack", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["a goods rack", "a display rack on the street", "a metal rack outside a shop"],
+      "la_aliases": ["goods rack", "display rack", "street rack", "metal rack"]
+    },
+    {
+      "id": 33, "name_en": "cardboard", "name_zh": "紙皮",
+      "verify_query": "cardboard", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["cardboard", "a stack of cardboard", "flattened cardboard boxes"],
+      "la_aliases": ["cardboard", "cardboard box", "cardboard boxes", "cardboard stack"]
+    },
+    {
+      "id": 34, "name_en": "table", "name_zh": "桌椅",
+      "verify_query": "table", "gdin_threshold": 0.30,
+      "note": "PDF 把桌椅算一类。",
+      "yolo_world_prompts": ["a table", "tables and chairs on the pavement", "a dining table"],
+      "la_aliases": ["table", "tables", "chair", "chairs", "table and chairs", "dining table"]
+    },
+    {
+      "id": 35, "name_en": "roll_up_banner_stand", "name_zh": "易拉架",
+      "verify_query": "roll up banner", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["a roll up banner", "a pull up banner stand", "a standing banner"],
+      "la_aliases": ["roll up banner", "pull up banner", "banner stand", "standing banner"]
+    },
+    {
+      "id": 36, "name_en": "billboard", "name_zh": "廣告看板",
+      "verify_query": "billboard", "gdin_threshold": 0.30,
+      "note": "座地灯箱/大型广告板。",
+      "yolo_world_prompts": ["a billboard", "a light box advertisement", "a large advertising board"],
+      "la_aliases": ["billboard", "advertising board", "light box", "advertisement board"]
+    },
+    {
+      "id": 37, "name_en": "traffic_cone_connector_rod", "name_zh": "交通錐連接杆",
+      "verify_query": "traffic cone bar", "gdin_threshold": 0.25,
+      "note": "细长物，与锥体常同现——采集时注意别只标锥体不标杆。",
+      "yolo_world_prompts": ["a traffic cone bar", "a connecting rod between traffic cones", "a cone connector bar"],
+      "la_aliases": ["cone bar", "traffic cone bar", "connecting rod", "cone connector"]
+    },
+    {
+      "id": 38, "name_en": "abrasion_resistant_steel_plates", "name_zh": "鋪路鋼板",
+      "verify_query": "steel road plate", "gdin_threshold": 0.25,
+      "note": "铺在路面上的钢板。既是障碍也是**湿滑面**，对盲杖使用者尤其危险。",
+      "yolo_world_prompts": ["a steel road plate", "a metal plate on the road", "a road plate covering a trench"],
+      "la_aliases": ["steel road plate", "road plate", "metal plate on the road", "steel plate"]
+    },
+    {
+      "id": 39, "name_en": "hand_truck", "name_zh": "搬運手推車",
+      "verify_query": "hand truck", "gdin_threshold": 0.30,
+      "note": "v3 从 cart_trolley 拆出。两轮直立式搬运车。",
+      "yolo_world_prompts": ["a hand truck", "a sack trolley", "a two wheeled trolley"],
+      "la_aliases": ["hand truck", "hand trucks", "sack trolley", "two wheeled trolley", "dolly"]
+    },
+    {
+      "id": 40, "name_en": "pallet", "name_zh": "唧車",
+      "verify_query": "pallet truck", "gdin_threshold": 0.30,
+      "note": "v3 从 cart_trolley 拆出。唧车（托盘搬运车）。",
+      "yolo_world_prompts": ["a pallet truck", "a pallet jack", "a forklift pallet"],
+      "la_aliases": ["pallet truck", "pallet jack", "pallet", "pallets", "forklift"]
+    },
+    {
+      "id": 41, "name_en": "pushchair", "name_zh": "嬰兒車",
+      "verify_query": "pushchair", "gdin_threshold": 0.30,
+      "note": "v3 从 cart_trolley 拆出。",
+      "yolo_world_prompts": ["a pushchair", "a baby stroller", "a pram"],
+      "la_aliases": ["pushchair", "stroller", "baby stroller", "pram", "baby carriage"]
+    },
+    {
+      "id": 42, "name_en": "broken_tree", "name_zh": "樹木",
+      "verify_query": "tree", "gdin_threshold": 0.30,
+      "yolo_world_prompts": ["a tree", "a roadside tree", "a tree trunk on the pavement"],
+      "la_aliases": ["tree", "trees", "roadside tree", "tree trunk"]
+    },
+    {
+      "id": 43, "name_en": "tree_root_on_the_road", "name_zh": "地面樹根",
+      "verify_query": "tree roots on the pavement", "gdin_threshold": 0.25,
+      "note": "贴地，视角依赖强，是已知较难的一类。",
+      "yolo_world_prompts": ["tree roots on the pavement", "roots lifting the pavement", "exposed tree roots"],
+      "la_aliases": ["tree roots", "roots on the road", "exposed roots", "tree root"]
+    },
+    {
+      "id": 44, "name_en": "cycle_path", "name_zh": "單車徑",
+      "verify_query": "cycle path", "gdin_threshold": 0.30,
+      "note": "地面标线类，与 zebra_crossing 同属路面标示。",
+      "yolo_world_prompts": ["a cycle path", "a bicycle lane", "a bike lane on the road"],
+      "la_aliases": ["cycle path", "cycle lane", "bicycle lane", "bike lane", "cycling path"]
+    },
+    {
+      "id": 45, "name_en": "streetlight", "name_zh": "路燈",
+      "verify_query": "streetlight", "gdin_threshold": 0.30,
+      "note": "announced=false：检测它只用于避撞与场景理解，不播报（到处都有，且不可行动）。",
+      "yolo_world_prompts": ["a streetlight", "a lamp post", "a street lamp"],
+      "la_aliases": ["streetlight", "street light", "lamp post", "lamp posts", "street lamp"]
+    },
+    {
+      "id": 46, "name_en": "sign_post", "name_zh": "標誌桿",
+      "verify_query": "sign post", "gdin_threshold": 0.25,
+      "note": "announced=false，理由同 streetlight。细长杆件密集出现。",
+      "yolo_world_prompts": ["a sign post", "a pole holding a traffic sign", "a metal sign pole"],
+      "la_aliases": ["sign post", "signpost", "sign pole", "traffic sign pole"]
+    },
+    {
+      "id": 47, "name_en": "bucket", "name_zh": "水桶",
+      "verify_query": "bucket", "gdin_threshold": 0.30,
+      "note": "PDF 注：冷气机滴水时可能出现在路中心。",
+      "yolo_world_prompts": ["a bucket", "a plastic bucket on the pavement", "a water bucket"],
+      "la_aliases": ["bucket", "buckets", "plastic bucket", "water bucket"]
     }
   ],
   "out_of_taxonomy_candidates": {
-    "note": "★ 类别发现用的「表外候选词」。这些**不是类别**，只是用来探测「画面里有没有我们没有的东西」。命中后写进 out_of_taxonomy.csv 交人决定是否扩表。实测在 Streetview.mp4 上 lamp post/tree/sign 出框率 100%——需按 gdin_threshold 过滤后再报。",
+    "note": "★ 类别发现用的「表外候选词」。这些**不是类别**，只是用来探测「画面里有没有我们没有的东西」。命中后写进 out_of_taxonomy.csv 交人决定是否扩表。v3 把已经成为正式类别的词移走了（tree / cardboard / table / chair / utility box / lamp post / banner），**留在这里的词必须确实不在类别表内**，否则会把已知类别当成「新发现」灌进候选表。",
     "words": [
-      "tree", "bench", "fire hydrant", "post box", "planter", "lamp post",
-      "utility box", "cardboard", "shopping bag", "suitcase", "umbrella",
-      "wheelchair", "bus stop", "rubbish bag", "banner", "table", "chair"
+      "bench", "fire hydrant", "post box", "planter",
+      "shopping bag", "suitcase", "umbrella",
+      "wheelchair", "bus stop", "rubbish bag"
     ],
     "default_gdin_threshold": 0.35
   }

@@ -1,11 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../vision/detection.dart';
 import '../vision/labels.dart';
 
 /// 检测框叠加层的调色板。
 ///
-/// 按类别**分组**着色而不是一类一色：24 类各给一个颜色时，相邻色相
+/// 按类别**分组**着色而不是一类一色：几十类各给一个颜色时，相邻色相
 /// 在阳光下的手机屏上根本分不出。按组着色让「这是障碍物还是引导设施」
 /// 一眼可辨，组内再靠标签文字区分。
 abstract final class BoxPalette {
@@ -128,3 +128,4 @@ class DetectionBoxPainter extends CustomPainter {
   bool shouldRepaint(covariant DetectionBoxPainter old) =>
       old.mapped != mapped || old.showLabels != showLabels;
 }
+

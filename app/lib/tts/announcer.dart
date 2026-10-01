@@ -2,6 +2,42 @@ import 'dart:async';
 
 import '../vision/detection.dart';
 import '../vision/labels.dart';
+/// 播报所需的**最低置信度**，与「显示门槛」是两件事。
+///
+/// ## 为什么必须比显示门槛更严
+///
+/// 两者代价完全不对称：
+///
+/// - **显示**（界面那根滑条，默认 0.30）只是屏幕上多画一个框，代价接近零；
+/// - **播报**是说给视障用户听的。误报会让用户**对空无一物做出动作**——
+///   在马路牙子上、在楼梯口前，这是安全问题，不只是烦人。
+///
+/// 漏报的代价则被**帧的重复**摊薄了：一个真实存在的垃圾桶会在连续很多帧里
+/// 被检出，某一帧分数不够而没念，下一帧（冷却过后）还有机会；
+/// 而误报只要**一帧**就足以被念出去。所以这个门槛应当按**精度**来定，
+/// 而不是按 precision/recall 的折中点——召回在时间维度上会自己长回来。
+///
+/// ## 0.70 这个数是怎么来的（不是拍脑袋）
+///
+/// `scripts/pick_speak_threshold.py` 在 44 张带人工标注的实拍图上跑全链路，
+/// 把检出按分数与标注配对比对（`data/dataset`，`bin` 单类）：
+///
+/// | 门槛 | 说出条数 | 误报 | 精度 | 召回 |
+/// |---|---|---|---|---|
+/// | 0.30（= 显示默认值） | 92 | 8 | 0.913 | 0.689 |
+/// | 0.50 | 86 | 5 | 0.942 | 0.664 |
+/// | **0.70** | **78** | **3** | **0.962** | **0.615** |
+/// | 0.90 | 62 | 0 | 1.000 | 0.508 |
+///
+/// 取 0.70：误报从 8 条降到 3 条（**减少 62%**），而每帧召回只掉 0.07——
+/// 后者还会被多帧重复与冷却后的重播补回来。
+///
+/// ## 改模型之后要重算
+///
+/// 这个值绑定当前模型。换了模型或改了导出方式以后，
+/// 重跑 `scripts/pick_speak_threshold.py` 再改这里，不要沿用旧值。
+const double kMinSpeakScore = 0.70;
+
 /// 真正发声的接口。抽出来是为了让 [Announcer] 的取舍逻辑能被单测覆盖——
 /// 播报判定的 bug（该说的没说、不该说的重复说）在真机上极难复现和定位。
 abstract class Speaker {
@@ -65,6 +101,7 @@ class Announcer {
     required Speaker speaker,
     this.perClassCooldown = const Duration(seconds: 2),
     this.globalCooldown = const Duration(seconds: 5),
+    this.minSpeakScore = kMinSpeakScore,
     DateTime Function()? clock,
     // prefer_initializing_formals 建议改成 `required this._speaker`，
     // 但那会把下划线私有名暴露成公开参数标签，宁可保留显式赋值。
@@ -79,6 +116,9 @@ class Announcer {
 
   /// 任意两次播报之间的最小间隔。
   final Duration globalCooldown;
+
+  /// 低于此分数的检出**不播报**（仍会画在屏幕上）。见 [kMinSpeakScore]。
+  final double minSpeakScore;
 
   final DateTime Function() _clock;
 
@@ -125,7 +165,7 @@ class Announcer {
     final now = _clock();
     for (final c in candidates) {
       final label = c.label!;
-      final reason = _rejectReason(label, now, force);
+      final reason = _rejectReason(label, c.detection.score, now, force);
       if (reason != null) {
         _record(label, c.detection.score, '-', now, '跳过：$reason');
         continue;
@@ -142,7 +182,17 @@ class Announcer {
     return null;
   }
 
-  String? _rejectReason(Label label, DateTime now, bool force) {
+  String? _rejectReason(Label label, double score, DateTime now, bool force) {
+    // ★ 分数门槛先判，且**不受 force 影响**。
+    //
+    // 这一点是刻意的：`force` 的语义是「这次不要被冷却挡住」（演示与测试用），
+    // 属于**时机**问题；而分数门槛管的是「这个东西到底是不是真的」，
+    // 属于**正确性**问题。让 force 绕过它，等于给了一个「逢低分也照念」的后门，
+    // 而那正是要防的事。
+    if (score < minSpeakScore) {
+      return '分数 ${score.toStringAsFixed(2)} 低于播报门槛 '
+          '${minSpeakScore.toStringAsFixed(2)}';
+    }
     if (force) return null;
     final last = _lastByClass[label.id];
     if (last != null && now.difference(last) < perClassCooldown) {

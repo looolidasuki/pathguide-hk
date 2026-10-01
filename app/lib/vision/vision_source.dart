@@ -1,4 +1,4 @@
-import 'dart:ui' show Size;
+﻿import 'dart:ui' show Size;
 
 import 'detection.dart';
 
@@ -34,7 +34,7 @@ class VisionSourceStatus {
 
   final bool ok;
 
-  /// 面向用户的说明（成功也要有，例如「模型已加载，24 类」）。
+  /// 面向用户的说明（成功也要有，例如「模型已加载，48 类」）。
   final String message;
 
   /// 失败细节，供诊断面板显示。成功时为 null。
@@ -64,6 +64,17 @@ abstract class VisionSource {
   /// 归一化坐标系下的帧尺寸（= **旋转到位之后**的帧尺寸）。
   ///
   /// 画框必须用它，不能用预览控件的尺寸：前者决定坐标含义，后者只决定显示。
+  ///
+  /// ## 这是硬约定：本尺寸**同时**是 [frames] 里检测框的坐标系
+  ///
+  /// [rotationDegrees] 描述的是「原始帧需要顺时针转多少度才正立」，
+  /// 而**转正这件事由实现方负责**：Android 原生在采样时逐像素逆旋转
+  /// （`sampleRgb`），模型的输入本身就是正立图，检测框也就诞生在正立坐标系里。
+  ///
+  /// 因此 UI 拿到检测框后**不得再旋转一次**。这一点曾经做错过：
+  /// UI 既用「已转正的尺寸」构造 [DisplayFit]，又把 [rotationDegrees]
+  /// 传给映射函数再转 90°，两处叠加，框整体偏 90° 且不报错。
+  /// 现在映射函数已经没有旋转参数，这个错误在类型上写不出来。
   Size get frameSize;
 
   /// 把原始帧转正所需的**顺时针**旋转角度（0/90/180/270）。
@@ -210,3 +221,4 @@ class VisionDiagnostics {
       'skip="$skippedReason" frame=${frameWidth}x$frameHeight '
       'maxScore=${frameMaxScore.toStringAsFixed(3)}';
 }
+

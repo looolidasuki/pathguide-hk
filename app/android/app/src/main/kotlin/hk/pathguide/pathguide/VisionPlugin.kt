@@ -290,9 +290,15 @@ class VisionPlugin(
      */
     private fun loadModel(call: MethodCall): Map<String, Any?> {
         val path = call.argument<String>("model")
-        // 单类模型需要把输出 id 0 偏移到项目类别表里的真实 id（垃圾桶 = 7）。
-        // 偏移在原生侧完成，Dart 之后的画框/播报/查表无需改动。
-        val offset = call.argument<Int>("classOffset") ?: 0
+        // ★ 类别索引映射表：**下标 = 模型本地索引，值 = 项目类别表里的真实 id**。
+        //
+        // 模型内部只能说 0..nc-1（YOLO 的标签契约），而项目类别表里
+        // 0 是 footbridge_entrance。不映射就会把垃圾桶标成「天橋入口」——
+        // **框对、名字错、不报错**，这是本项目最该防的一类故障。
+        //
+        // 早先只有一个类时用「加一个常数偏移」，3 类以上表达不了，改成映射表。
+        // 空表 = 不需要映射（模型类别数已等于项目类别表，输出即真实 id）。
+        val classIds = call.argument<List<Int>>("classIds") ?: emptyList()
         detector?.close()
         detector = null
         loadedModelPath = null
@@ -321,31 +327,45 @@ class VisionPlugin(
             // 所以用**文件内存映射**：既满足要求，又省掉一次 10 MB 的内存拷贝。
             // 这也正是当初该直接用文件路径、而不是先在 Dart 侧读成字节的原因之一。
             val det = YoloDetector.fromFile(f, EXPECTED_INPUT_SIZE)
-            // 多类模型若仍带着单类偏移（如 bin=7），所有 id 会整体错位且不报错。
-            // 只在真正的单类模型上接受非零偏移。
-            var appliedOffset = offset
-            if (det.numClasses != 1 && offset != 0) {
-                Log.w(
-                    TAG,
-                    "多类模型（${det.numClasses} 类）忽略 classOffset=$offset，强制为 0",
-                )
-                appliedOffset = 0
+            // ★ 校验映射表与模型类别数是否相符。**不符就拒绝加载，不猜。**
+            //
+            // 猜错的映射不会崩：它只会让每个框的名字是另一个类。这类错误在
+            // 演示里看着「框都画出来了」，在训练里看着「指标还行」，
+            // 所以必须在这里挡住。三种合法情形：
+            //   - 空表      -> 不需要映射（模型类别数 == 项目类别数）
+            //   - 长度相符  -> 按表映射
+            //   - 其他      -> 报错
+            val appliedIds: List<Int> = when {
+                classIds.isEmpty() -> emptyList()
+                classIds.size == det.numClasses -> classIds
+                else -> {
+                    Log.w(
+                        TAG,
+                        "映射表长度 ${classIds.size} 与模型类别数 ${det.numClasses} 不符，拒绝加载",
+                    )
+                    return mapOf(
+                        "loaded" to false, "classes" to det.numClasses,
+                        "inputSize" to EXPECTED_INPUT_SIZE,
+                        "error" to "类别映射表有 ${classIds.size} 项，模型有 ${det.numClasses} 类：" +
+                            "两者必须一致。不一致时猜一个映射会把框标成别的类且不报错，故拒绝加载。",
+                    )
+                }
             }
-            det.classOffset = appliedOffset
+            det.classIds = appliedIds
             detector = det
             loadedModelPath = path
             startCameraIfPossible()
             Log.i(
                 TAG,
                 "模型已加载：$path（${f.length() / 1024} KB, ${det.numClasses} 类, " +
-                    "类偏移 $appliedOffset）",
+                    "映射 ${if (appliedIds.isEmpty()) "无（输出即真实 id）" else appliedIds.toString()}）",
             )
             mapOf(
                 "loaded" to true,
                 "classes" to det.numClasses,
                 "inputSize" to det.inputSize,
                 "modelPath" to path,
-                "classOffset" to appliedOffset,
+                "classIds" to appliedIds,
             )
         } catch (e: Exception) {
             Log.w(TAG, "模型加载失败：$path", e)
@@ -395,9 +415,12 @@ class VisionPlugin(
         val v = if (vBytes != null && vBytes.size >= cw * ch) vBytes
                 else ByteArray(cw * ch) { 128.toByte() }
 
+        // 传**紧凑副本宽度 cw**，不是原始平面的 rowStride/pixelStride：
+        // 这里收到的 u/v 就是按 cw*ch 紧凑排列的（上面的长度检查也按它做）。
+        // 相机那条路径曾经传的是原始平面步长，导致色度取错、画面变灰。
         val dets = det.detectYuv(
             y, u, v, w, h,
-            uvRowStride = cw, uvPixelStride = 1,
+            cw,
             rotationDegrees = rotation, threshold = thr,
         )
         return mapOf(
@@ -602,14 +625,16 @@ class VisionPlugin(
             val detections = det.detectYuv(
                 yBytes, uBytes, vBytes,
                 w, h,
-                uPlane.rowStride, uPlane.pixelStride,
+                cw,
                 rotation, threshold,
             )
             // 只统计纯推理耗时，不含取帧与转换——否则看不出瓶颈在哪。
             val ms = (System.nanoTime() - t0) / 1_000_000.0
             lastFrameWidth = w
             lastFrameHeight = h
-            lastFrameFormat = "YUV420 $fmt uvStride=${uPlane.rowStride}/${uPlane.pixelStride}"
+            // 同时报**原始平面步长**与**紧凑副本宽度**：UV 取色下标必须按后者算，
+            // 两者不一致正是「色度取错、画面变灰」那类缺陷的来源。
+            lastFrameFormat = "YUV420 $fmt uvPlane=${uPlane.rowStride}/${uPlane.pixelStride} uvCopy=$cw"
             lastMaxScore = detections.maxOfOrNull { it.score } ?: 0f
             lastMinScore = detections.minOfOrNull { it.score } ?: 0f
             lastDetectionCount = detections.size
@@ -852,15 +877,18 @@ class YoloDetector private constructor(
     val isBusy: Boolean get() = busy
 
     /**
-     * 类别 id 偏移：加到模型输出的每个 id 上再回传。
+     * 类别索引映射表：**下标 = 模型本地索引，值 = 项目类别表里的真实 id**。
      *
-     * 用处：单类模型（只认垃圾桶）输出 id 0，而项目类别表 `kLabels[0]` 是
-     * `footbridge_entrance`。若原样回传，界面会把垃圾桶标成「天橋入口」——
-     * **框对、名字错，且不报任何错**。
-     * 传 `bin` 的原始 id（7）作偏移后，Dart 侧画框/播报/查表全部无需改动。
-     * 多类模型传 0。
+     * 用处：模型内部只能说 0..nc-1，而 `kLabels[0]` 是 `footbridge_entrance`。
+     * 若原样回传，界面会把垃圾桶标成「天橋入口」——**框对、名字错，且不报错**。
+     * 例如当前 3 类模型传 `[6, 11, 7]`（pedestrian / bicycle / bin）。
+     *
+     * **空表 = 不映射**（模型类别数已等于项目类别表，输出即真实 id）。
+     *
+     * 早先只有一个类时这里是 `classOffset: Int`（加一个常数）。3 类以上
+     * 除非真实 id 恰好连续，否则偏移表达不了，所以改成映射表；单类是长度 1 的特例。
      */
-    @Volatile var classOffset: Int = 0
+    @Volatile var classIds: List<Int> = emptyList()
 
     @Volatile var lastInferenceMs: Double = 0.0
         private set
@@ -951,7 +979,18 @@ class YoloDetector private constructor(
         require(outShape.size == 3) { "输出张量应为 3 维，实际 ${outShape.toList()}" }
         val d1 = outShape[1]
         val d2 = outShape[2]
-        transposed = d1 < d2
+        // ★ 「锚点优先」当且仅当 anchors 在第 1 维，即 d1 > d2。
+        //
+        // 这里曾写成 `d1 < d2`——**正好写反**，而且不会有任何报错。
+        // 本项目导出的模型是 `[1, 5, 8400]`（通道优先），d1=5 < d2=8400，
+        // 于是旧写法判成「锚点优先」，用 `a * stride + c` 去读一个通道优先的
+        // 缓冲：读到的全是别的通道的数值，**框坐标被当成了分数**。
+        //
+        // 真机症状正是如此：HUD 显示十几个框而屏幕上画不出来（框都塌成 0 大小）、
+        // 「分数 1.0 几」、以及 `score=-386`（那是像素级坐标）。
+        // 同一个模型在电脑上却完全正常，所以只能靠这一行本身来防——
+        // `scripts/check_tflite_decode.py` 会读这一行并与模型的真实形状对照。
+        transposed = d1 > d2
         val channels = min(d1, d2)
         numAnchors = max(d1, d2)
         numClasses = channels - 4
@@ -1031,8 +1070,7 @@ class YoloDetector private constructor(
         v: ByteArray,
         frameWidth: Int,
         frameHeight: Int,
-        uvRowStride: Int,
-        uvPixelStride: Int,
+        uvWidth: Int,
         rotationDegrees: Int,
         threshold: Float,
     ): List<Detection> {
@@ -1074,7 +1112,7 @@ class YoloDetector private constructor(
                 for (dx in 0 until newW) {
                     val idx = rowBase + dx * 3
                     val (r, g, b) = sampleRgb(
-                        y, u, v, frameWidth, frameHeight, uvRowStride, uvPixelStride,
+                        y, u, v, frameWidth, frameHeight, uvWidth,
                         rot, dx, dy, newW, newH,
                     )
                     inputFloats.put(idx, r)
@@ -1170,22 +1208,13 @@ class YoloDetector private constructor(
                 }
             }
 
-            val raw = decode(threshold, scale, srcW, srcH)
+            val raw = decode(threshold, srcW, srcH, newW, newH, padX, padY)
             return nms(raw, 0.45f, 100)
         } finally {
             busy = false
         }
     }
 
-    /**
-     * 取 (dx, dy) 处的 RGB 写入输入缓冲。
-     *
-     * 映射链：letterbox 图 -> 正立帧（撤缩放）-> 原始帧（逆旋转）-> YUV 采样 -> RGB。
-     *
-     * 逆旋转方向必须对：`rotationDegrees` 表示「顺时针转这么多度才正立」。
-     * 位图顺时针旋转满足 `destX = SRC_H-1-sy`、`destY = SRC_W-1-sx`；
-     * 反解即下面的采样式。**方向搞反的表现是框整体镜像错位，不会报错。**
-     */
     /**
      * 取 (dx, dy) 处的 RGB（已归一化到 [0,1]），**只计算不写缓冲**。
      *
@@ -1195,9 +1224,7 @@ class YoloDetector private constructor(
      *
      * 映射链：letterbox 图 -> 正立帧（撤缩放）-> 原始帧（逆旋转）-> YUV 采样 -> RGB。
      *
-     * 逆旋转方向必须对：`rotationDegrees` 表示「顺时针转这么多度才正立」。
-     * 位图顺时针旋转满足 `destX = SRC_H-1-sy`、`destY = SRC_W-1-sx`；
-     * 反解即下面的采样式。**方向搞反的表现是框整体镜像错位，不会报错。**
+     * **逆旋转的方向与公式见下面 `when` 里的推导。**
      */
     private fun sampleRgb(
         y: ByteArray,
@@ -1205,8 +1232,7 @@ class YoloDetector private constructor(
         v: ByteArray,
         frameWidth: Int,
         frameHeight: Int,
-        uvRowStride: Int,
-        uvPixelStride: Int,
+        uvWidth: Int,
         rotationDegrees: Int,
         dx: Int,
         dy: Int,
@@ -1218,18 +1244,48 @@ class YoloDetector private constructor(
         val ux = dx * outW / newW
         val uy = dy * outH / newH
 
+        // ★ 逆旋转：由「正立图坐标 (ux, uy)」反查「原始帧坐标 (sx, sy)」。
+        //
+        // Android 里 `rotationDegrees` 的语义是「把原始帧**顺时针**转这么多度才正立」。
+        // 顺时针 90 度的**正向**映射是 `destX = SRC_H - 1 - srcY`、`destY = srcX`
+        // （注意第二项是 `srcX`，**不是** `SRC_W - 1 - srcX`；后者会多一次镜像）。
+        // 反解即：`srcY = SRC_H - 1 - destX`、`srcX = destY`。
+        //
+        // 这里曾经错得离谱：90 分支写成 `Pair(outH-1-uy, frameWidth-1-ux)`，
+        // 两个分量都不对。用 numpy 逐点核对（原始帧 1280x720、rotation=90）：
+        // 该写法 **9216 个采样点全部取错源像素（100%）**，正确写法 0 个错。
+        // 270 分支写成 `Pair(uy, ux)`（纯转置 = 镜像，缺一次翻转），同样 100% 错。
+        // 0 与 180 原本就对，未改动。
+        //
+        // 为什么特别难发现：`sy` 会算到 [560,1279]，而原始帧只有 720 行，
+        // 被下面的 `coerceIn` 夹到 719 —— 于是正立图里约 78% 的区域
+        // **全都取的是原始帧的最后一行**，模型看到的基本上是一条糊掉的横线。
+        // 而输入诊断（min/max/越界计数）看不出任何异常，因为读到的仍是合法 Y 值。
+        // 正确写法下索引天然落在范围内，`coerceIn` 只是防御，不应触发。
         val (sx, sy) = when (rotationDegrees) {
-            90 -> Pair(outH - 1 - uy, frameWidth - 1 - ux)
+            90 -> Pair(uy, frameHeight - 1 - ux)
             180 -> Pair(frameWidth - 1 - ux, frameHeight - 1 - uy)
-            270 -> Pair(uy, ux)
+            270 -> Pair(frameWidth - 1 - uy, ux)
             else -> Pair(ux, uy)
         }
         val cx = sx.coerceIn(0, frameWidth - 1)
         val cy = sy.coerceIn(0, frameHeight - 1)
 
         val yVal = y[cy * frameWidth + cx].toInt() and 0xFF
-        // UV 平面按 2x2 下采样：像素 (cx,cy) 对应 UV 的第 (cx/2, cy/2) 个样本
-        val uvIndex = (cy / 2) * uvRowStride + (cx / 2) * uvPixelStride
+        // ★ UV 下标必须按**紧凑副本**的布局算，不能用原始平面的 rowStride/pixelStride。
+        //
+        // `copyPlane` 返回的是紧凑数组 `out[y * width + x]`，UV 的 width 就是
+        // `(frameWidth + 1) / 2`、pixelStride 已展开为 1。这里曾经写成
+        // `(cy/2) * uvRowStride + (cx/2) * uvPixelStride`，用的是**原始平面**的步长：
+        // 真机常见的 NV21 布局是 rowStride≈frameWidth、pixelStride=2，于是下标被放大
+        // 约 2 倍 —— 上半幅画面取到**错误的色度**，下半幅直接越界，
+        // 被下面的 `in u.indices` 兜成 128（中性色 = 灰度）。
+        //
+        // 表现和「喂灰度图」一模一样：模型仍能跑、分数普遍偏低、颜色线索全丢
+        // （本项目实测灰度输入把最高分从 0.62~0.82 压到 0.04~0.55），
+        // 而且不报任何错。按紧凑宽度算则恒有 uvIndex ∈ [0, uvWidth*ch)，
+        // 无论设备给出什么步长都正确。
+        val uvIndex = (cy / 2) * uvWidth + (cx / 2)
         val uVal = if (uvIndex in u.indices) u[uvIndex].toInt() and 0xFF else 128
         val vVal = if (uvIndex in v.indices) v[uvIndex].toInt() and 0xFF else 128
 
@@ -1253,16 +1309,27 @@ class YoloDetector private constructor(
     /**
      * 输出张量 -> 归一化检测框。
      *
-     * 归一化要**两步**，分清楚才能避免取整误差：
-     * 1. 模型坐标是相对 `inputSize`（含 letterbox 填充）的像素；
-     *    减去填充、除以缩放系数 -> **正立帧**像素。
-     * 2. 除以正立帧尺寸 -> 归一化坐标，这正是 Dart 侧期望的坐标系。
+     * 归一化要**三步**，每一步错了都只是数值变垃圾、不报错：
+     * 1. 模型坐标是**归一化**到 `inputSize`（含 letterbox 灰边）的比例值，
+     *    先 `* inputSize` 才变成该空间里的像素；
+     * 2. 减去 `padX/padY` 去掉灰边 -> 缩放后图像内的像素；
+     * 3. 除以 `newW/newH` -> 归一化坐标，这正是 Dart 侧期望的坐标系。
+     *
+     * 第 3 步刻意不用 `scale` 而用 `newW/newH`：后者是
+     * `(srcW * scale).toInt()`，与真正贴进画布的那块像素严格一致。
+     *
+     * 另外，输出张量的**内存布局**必须按形状判断（见 `transposed`）。
+     * 坐标换算与布局这两件事互不相干，但错了都会让框变成垃圾。
+     * `scripts/check_tflite_decode.py` 在本机把这两件事都对真实图片验证一遍。
      */
     private fun decode(
         threshold: Float,
-        scale: Float,
         srcW: Int,
         srcH: Int,
+        newW: Int,
+        newH: Int,
+        padX: Int,
+        padY: Int,
     ): List<Detection> {
         val out = ArrayList<Detection>(64)
         // 每帧重置「第一个无效样本」，否则会一直显示很久以前的旧值。
@@ -1278,6 +1345,8 @@ class YoloDetector private constructor(
         var decodedMax = -Float.MAX_VALUE
         var bestAnchor = -1
         var bestAnchorScore = -Float.MAX_VALUE
+        // 全帧**所有锚点、所有类别**的最高分（不看阈值）。见下面的用法说明。
+        var topAllScore = -Float.MAX_VALUE
 
         // ★ 必须先 rewind 再取 FloatBuffer 视图。
         // interpreter.run() 会把 outputBuffer 的 position 推到末尾；此时
@@ -1292,14 +1361,25 @@ class YoloDetector private constructor(
         for (a in 0 until numAnchors) {
             var best = -1
             var bestScore = threshold
+            // 该锚点上**所有类别**的最高分，与阈值无关。
+            var rawMax = -Float.MAX_VALUE
             for (c in 0 until numClasses) {
                 val v = if (transposed) fb.get(a * stride + 4 + c)
                 else fb.get((4 + c) * numAnchors + a)
+                if (v > rawMax) rawMax = v
                 if (v > bestScore) {
                     bestScore = v
                     best = c
                 }
             }
+            // ★ 全局最高分（**不看阈值**）。
+            //
+            // 没有这项时，「本帧无检出」只有一个 maxScore=0，无法区分两种
+            // 完全不同的情况：
+            //   - 模型确实什么都没看到（topAll 也很低）-> 换个方向/靠近点看；
+            //   - 模型看到了但没过阈值（topAll 接近阈值）-> 阈值定得太高。
+            // 这两者的处理方式相反，而界面上原本长得一模一样。
+            if (rawMax > topAllScore) topAllScore = rawMax
             if (best < 0) continue
 
             val cx = if (transposed) fb.get(a * stride) else fb.get(a)
@@ -1349,43 +1429,83 @@ class YoloDetector private constructor(
                 continue
             }
 
-            if (scale <= 0f) continue
-            // 第 1 步：模型坐标 -> 正立帧像素
-            val px1 = (cx - bw / 2) / scale
-            val py1 = (cy - bh / 2) / scale
-            val px2 = (cx + bw / 2) / scale
-            val py2 = (cy + bh / 2) / scale
-            // 第 2 步：-> 归一化
-            val x1 = (px1 / srcW).coerceIn(0f, 1f)
-            val y1 = (py1 / srcH).coerceIn(0f, 1f)
-            val x2 = (px2 / srcW).coerceIn(0f, 1f)
-            val y2 = (py2 / srcH).coerceIn(0f, 1f)
-            if (x2 <= x1 || y2 <= y1) continue
+            if (newW <= 0 || newH <= 0) continue
+            // ★ 模型输出的 cx/cy/w/h 是**归一化**到 letterbox 输入（640x640）的
+            //   比例值，**不是像素**。
+            //
+            // 已用 `scripts/check_tflite_decode.py` 在真实图片上实测：
+            // 四个坐标通道的取值范围都是 [0,1]（实测 mean(cx)≈0.498，正是 320/640），
+            // 而第 5 个通道是 sigmoid 分数。Ultralytics 的 TFLite 导出就是
+            // 归一化过的（与 ONNX 的像素坐标不同），这一点在两端都看不出来。
+            //
+            // 换算三步，缺任何一步都只是数值变垃圾、不报错：
+            //   1. `* inputSize`  -> 加过灰边的 640x640 空间里的像素
+            //   2. `- padX/padY`  -> 去掉灰边，得到缩放后图像内的像素
+            //   3. `/ newW/newH`  -> 归一化坐标（Dart 侧期望的坐标系）
+            //
+            // 第 3 步用 newW/newH 而不是 `scale`：newW 就是
+            // `(srcW * scale).toInt()`，与真正贴进画布的那块像素严格一致，
+            // 用 scale 会引入整数截断造成的半像素级偏差。
+            //
+            // 旧实现写的是 `(cx - bw / 2) / scale / srcW`：既漏了 `* inputSize`
+            // （于是 0.5 被当成 0.5 像素），也漏了减 pad。实测该写法在 8 张真实
+            // 图片上的最佳 IoU **全部为 0.000**，正确写法平均 0.860。
+            val side = inputSize.toFloat()
+            val nx1 = (((cx - bw / 2) * side - padX) / newW).coerceIn(0f, 1f)
+            val ny1 = (((cy - bh / 2) * side - padY) / newH).coerceIn(0f, 1f)
+            val nx2 = (((cx + bw / 2) * side - padX) / newW).coerceIn(0f, 1f)
+            val ny2 = (((cy + bh / 2) * side - padY) / newH).coerceIn(0f, 1f)
+            if (nx2 <= nx1 || ny2 <= ny1) continue
+
+            // 映射回项目类别表的真实 id。
+            //
+            // 越界就**丢弃这个框**而不是原样回传：原样回传等于把一个未知的 id
+            // 送给 Dart，那边 `labelOf` 会返回 null，框会被画成"未知类别"。
+            // 长度在校验阶段已保证等于类别数，所以这里越界说明有别的问题，
+            // 丢框（有计数可查）比画出错名的框安全。
+            val appId = if (classIds.isEmpty()) best else classIds.getOrNull(best)
+            if (appId == null) continue
 
             out.add(
                 Detection(
-                    // 加上偏移：单类模型输出 0，需要映射回项目类别表里的真实 id。
-                    id = best + classOffset,
+                    id = appId,
                     score = bestScore,
-                    cx = (x1 + x2) / 2,
-                    cy = (y1 + y2) / 2,
-                    w = x2 - x1,
-                    h = y2 - y1,
+                    cx = (nx1 + nx2) / 2,
+                    cy = (ny1 + ny2) / 2,
+                    w = nx2 - nx1,
+                    h = ny2 - ny1,
                 ),
             )
         }
         firstInvalidSample = firstInvalidSampleThisFrame ?: firstInvalidSample
+        // 没有任何锚点过阈值时，bestAnchor 仍是 -1、bestAnchorScore 仍是
+        // -Float.MAX_VALUE。直接按 %f 打出来是一串 40 位的垃圾数字
+        // （`best=-340282346638528860000000000000000000000.000@anchor-1`），
+        // 既读不懂、又会把 HUD 那一栏撑爆——「本帧没有检出」是**正常状态**，
+        // 不该长得像异常。所以显式处理它。
+        val bestText = if (bestAnchor >= 0) {
+            "%.3f@anchor%d".format(bestAnchorScore, bestAnchor)
+        } else {
+            "none（无锚点过阈值）"
+        }
         // 解码统计。raw 与 decoded 分开报：
         //   raw 正常 + decoded 异常 -> 索引/步长问题
         //   raw 本身异常            -> 缓冲内容问题（写输入或调模型）
-        decodeStats = ("raw[%.3f,%.3f] decoded[%.3f,%.3f] best=%.3f@anchor%d " +
-            "transposed=%b stride=%d anchors=%d classes=%d")
+        //
+        // 末尾的 geo 段是坐标换算的**全部输入**。框画偏时第一眼看这里：
+        // 源尺寸、缩放后尺寸、灰边三者任一不对，框就整体错位，而且不报错。
+        decodeStats = ("raw[%.3f,%.3f] decoded[%.3f,%.3f] best=%s topAll=%.3f " +
+            "transposed=%b stride=%d anchors=%d classes=%d " +
+            "geo=%dx%d->%dx%d pad=%d,%d")
             .format(
                 if (rawMin <= rawMax) rawMin else 0f,
                 if (rawMin <= rawMax) rawMax else 0f,
                 if (decodedMin <= decodedMax) decodedMin else 0f,
                 if (decodedMin <= decodedMax) decodedMax else 0f,
-                bestAnchorScore, bestAnchor, transposed, stride, numAnchors, numClasses,
+                bestText,
+                if (topAllScore.isFinite()) topAllScore else 0f,
+                transposed, stride, numAnchors, numClasses,
+                srcW, srcH, newW, newH, padX, padY,
             )
         return out
     }

@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "note": "类别顺序即 YOLO 标签索引。**索引已冻结**：后续新增类别只能追加到末尾，不得重排——YOLO 标签按索引存储，重排会让已标注数据全部错位。",
   "history": [
     {
@@ -11,11 +11,20 @@
       "version": 2,
       "date": "2026-09-18",
       "change": "扩至 24 类。删除伞类 street_obstacle(7)，其内容拆为 bin/bollard/traffic_cone 等具体类；id 8-15 重排。来源：Accessible Visual Guidance Note/日常出行情境中需要辨識的物件.docx。项目当时尚无人工标注数据，是唯一安全的重排时点。"
+    },
+    {
+      "version": 3,
+      "date": "2026-09-27",
+      "change": "扩至 48 类，按《labelObject_workload 20260920.pdf》的 50 项清单对齐。动了两处既有槽位：id 13 cart_trolley 改名为 push_cart（语义收窄为「手推车」，唧车/嬰兒車/搬运车另立新类，**id 不变**，故既有 2 个标注仍然有效）；id 23 删除训练期占位类 ambiguous_vertical、由 fork_in_road 接管该槽位（该槽位**没有任何标注**，是唯一可安全复用的空位，而生成器要求 id 连续）。新增 24 类到 id 24-47。同时按 PDF 的两条决策把指示牌细分与店铺名移出检测任务：7 个 signage_* 走 crop+小分类模型，6 项文字走本地 OCR。"
     }
   ],
   "id_stability": {
-    "note": "id 0-5（天桥专项）自 v1 起从未变动，测试对此有断言。",
-    "stable_since_v1": [0, 1, 2, 3, 4, 5]
+    "note": "id 0-5（天桥专项）自 v1 起从未变动，测试对此有断言。id 6-22 自 v2 起未变动。",
+    "stable_since_v1": [0, 1, 2, 3, 4, 5],
+    "stable_since_v2": [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22],
+    "reused_slots": {
+      "23": "v2 是训练期占位类 ambiguous_vertical（announced=false、never_from_vlm），从未有过标注。v3 删除它并让 fork_in_road 接管。复用前已确认该 id 在 data/dataset 的全部标签文件中出现 0 次。"
+    }
   },
   "classes": [
     { "id": 0,  "name_en": "footbridge_entrance", "name_zh": "天橋入口",     "group": "footbridge", "priority": "P0", "announced": true },
@@ -32,31 +41,70 @@
     { "id": 10, "name_en": "barrier_water",       "name_zh": "水馬",         "group": "obstacle",   "priority": "P1", "announced": true },
     { "id": 11, "name_en": "bicycle",             "name_zh": "單車",         "group": "obstacle",   "priority": "P0", "announced": true },
     { "id": 12, "name_en": "scooter",             "name_zh": "滑板車",       "group": "obstacle",   "priority": "P1", "announced": true },
-    { "id": 13, "name_en": "cart_trolley",        "name_zh": "手推車",       "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 13, "name_en": "push_cart",           "name_zh": "手推車",       "group": "obstacle",   "priority": "P1", "announced": true,
+      "note": "v3 由 cart_trolley 改名而来，语义收窄。原先一个类盖住 手推車/唧車/嬰兒車/搬運車 四种形状差异很大的东西，**id 保持不变**以保住既有 2 个标注；后三者另立 hand_truck(39) / pallet(40) / pushchair(41)。" },
     { "id": 14, "name_en": "step",                "name_zh": "台階",         "group": "obstacle",   "priority": "P0", "announced": true },
 
     { "id": 15, "name_en": "tactile_paving",      "name_zh": "盲道",         "group": "guide",      "priority": "P1", "announced": true },
     { "id": 16, "name_en": "zebra_crossing",      "name_zh": "斑馬線",       "group": "guide",      "priority": "P1", "announced": true },
 
     { "id": 17, "name_en": "glass_door",          "name_zh": "玻璃門",       "group": "indoor",     "priority": "P0", "announced": true },
-    { "id": 18, "name_en": "door",                "name_zh": "推拉門",       "group": "indoor",     "priority": "P1", "announced": true },
+    { "id": 18, "name_en": "door",                "name_zh": "推拉門",       "group": "indoor",     "priority": "P1", "announced": true,
+      "note": "推/拉/双向由 **tag** 表达（action:pull / action:push / action:both），不拆成类别——拆开会让同一个门在不同帧被标成不同类，且推拉方向常被遮挡。" },
     { "id": 19, "name_en": "escalator_indoor",    "name_zh": "商場扶梯",     "group": "indoor",     "priority": "P0", "announced": true },
     { "id": 20, "name_en": "sign_pictogram",      "name_zh": "指示牌",       "group": "indoor",     "priority": "P1", "announced": true },
     { "id": 21, "name_en": "glass_door_indoor",   "name_zh": "商場玻璃門",   "group": "indoor",     "priority": "P0", "announced": true },
 
     { "id": 22, "name_en": "shop_front",          "name_zh": "店鋪門面",     "group": "classifier", "priority": "P1", "announced": true },
-    { "id": 23, "name_en": "ambiguous_vertical",  "name_zh": "垂直設施不明", "group": "train_only", "priority": "P0", "announced": false }
+
+    { "id": 23, "name_en": "fork_in_road",        "name_zh": "分岔路口",     "group": "guide",      "priority": "P0", "announced": true,
+      "note": "PDF 原文标了 (??)，定义确实模糊。本项目的定义：**地面标线或路缘分叉成两条可通行方向的点**，框住分叉处的地面区域（不含建筑）。采集时只收「站在岔口前看得见分叉」的视角。" },
+    { "id": 24, "name_en": "caution_slippery",    "name_zh": "小心地滑",     "group": "obstacle",   "priority": "P0", "announced": true },
+    { "id": 25, "name_en": "crowds_of_people_queuing", "name_zh": "排隊人潮", "group": "obstacle",  "priority": "P0", "announced": true,
+      "note": "与 pedestrian(6) 并存而非替代：单个行人是避让对象，人潮是**不可穿越的块**，处理方式不同（一个绕、一个改道）。PDF 另注人潮有队头/队尾/横跨三种形态。" },
+
+    { "id": 26, "name_en": "fence",               "name_zh": "圍欄",         "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 27, "name_en": "barrier_fencing",     "name_zh": "工程圍網",     "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 28, "name_en": "scaffold",            "name_zh": "鷹架",         "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 29, "name_en": "road_excavation",     "name_zh": "掘路工程",     "group": "obstacle",   "priority": "P1", "announced": true,
+      "note": "PDF 注「同時出現多種 label 應可辨識」——本类就是那个复合场景的单一标签，框住整个施工区域。" },
+    { "id": 30, "name_en": "power_distribution_box", "name_zh": "配電箱",    "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 31, "name_en": "goods",               "name_zh": "街邊貨物",     "group": "obstacle",   "priority": "P1", "announced": true,
+      "note": "商家摆到街上的货。形态无定，是已知较难的一类。" },
+    { "id": 32, "name_en": "goods_rack",          "name_zh": "貨物架",       "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 33, "name_en": "cardboard",           "name_zh": "紙皮",         "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 34, "name_en": "table",               "name_zh": "桌椅",         "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 35, "name_en": "roll_up_banner_stand", "name_zh": "易拉架",      "group": "obstacle",   "priority": "P1", "announced": true },
+    { "id": 36, "name_en": "billboard",           "name_zh": "廣告看板",     "group": "obstacle",   "priority": "P1", "announced": true },
+
+    { "id": 37, "name_en": "traffic_cone_connector_rod", "name_zh": "交通錐連接杆", "group": "obstacle", "priority": "P2", "announced": true },
+    { "id": 38, "name_en": "abrasion_resistant_steel_plates", "name_zh": "鋪路鋼板", "group": "obstacle", "priority": "P2", "announced": true,
+      "note": "铺在路面上的钢板。既是障碍也是**湿滑面**，对盲杖使用者尤其危险。" },
+    { "id": 39, "name_en": "hand_truck",          "name_zh": "搬運手推車",   "group": "obstacle",   "priority": "P2", "announced": true },
+    { "id": 40, "name_en": "pallet",              "name_zh": "唧車",         "group": "obstacle",   "priority": "P2", "announced": true },
+    { "id": 41, "name_en": "pushchair",           "name_zh": "嬰兒車",       "group": "obstacle",   "priority": "P2", "announced": true },
+    { "id": 42, "name_en": "broken_tree",         "name_zh": "樹木",         "group": "obstacle",   "priority": "P2", "announced": true },
+    { "id": 43, "name_en": "tree_root_on_the_road", "name_zh": "地面樹根",   "group": "obstacle",   "priority": "P2", "announced": true },
+    { "id": 44, "name_en": "cycle_path",          "name_zh": "單車徑",       "group": "guide",      "priority": "P2", "announced": true },
+    { "id": 45, "name_en": "streetlight",         "name_zh": "路燈",         "group": "obstacle",   "priority": "P2", "announced": false,
+      "note": "announced=false：路灯到处都有，而「前方有路灯」对视障用户**不可行动**。检测它只用于避撞与场景理解，不播报——否则会把真正该说的话挤掉。" },
+    { "id": 46, "name_en": "sign_post",           "name_zh": "標誌桿",       "group": "obstacle",   "priority": "P2", "announced": false,
+      "note": "announced=false，理由同 streetlight：细长杆件密集出现，逐根播报等于噪声。" },
+    { "id": 47, "name_en": "bucket",              "name_zh": "水桶",         "group": "obstacle",   "priority": "P2", "announced": true }
   ],
-  "deferred_batch_b": {
-    "note": "B 档：下一批再考虑加入。只能追加到 id 24 之后，不得重排既有索引。",
+  "crop_classifier": {
+    "note": "PDF 决策：YOLO 只画 sign_pictogram(20) 的外框，框内是什么标志交给一个小分类模型（MobileNetV4 量级）。这些**不是检测类别**，不进 YOLO 标签，所以放在这里而不是 classes 里——放进去会让每张图都多出 7 个待标类别。",
     "classes": [
-      "construction_fence", "roadwork", "metal_plate", "tree", "utility_box",
-      "lamp_post", "cardboard", "goods_on_street", "table_chair",
-      "pull_up_banner", "queue_crowd", "gender_sign", "bus_stop_sign"
+      "signage_lift", "signage_escalator",
+      "signage_forward", "signage_left", "signage_right", "signage_up", "signage_down"
     ]
   },
+  "deferred_batch_b": {
+    "note": "B 档：下一批再考虑加入。只能追加到 id 48 之后，不得重排既有索引。v3 之后本档为空——原来列的 construction_fence / roadwork / metal_plate / tree / utility_box / lamp_post / cardboard / goods_on_street / table_chair / pull_up_banner / queue_crowd 已按 PDF 清单正式入表（名字以本表为准）；gender_sign / bus_stop_sign 归入 ocr_only。",
+    "classes": []
+  },
   "ocr_only": {
-    "note": "C 档：这些不是几何物体，做检测无意义，应走 OCR + 文本匹配。",
-    "items": ["店舖名稱", "男士（文字）", "女士（文字）", "洗手間", "地鐵站"]
+    "note": "C 档：这些不是几何物体，做检测无意义，应走 OCR + 文本匹配（Android ML Kit / iOS Vision Framework）。",
+    "items": ["店舖名稱", "男士（文字）", "女士（文字）", "洗手間", "地鐵站", "巴士站牌"]
   }
 }

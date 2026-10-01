@@ -76,13 +76,18 @@ def test_resolve_label_is_none_for_unknown_name():
 
 
 def test_resolve_label_rejects_unknown_instead_of_guessing():
-    # ambiguous_vertical 是 train_only 占位类，不许进数据集
+    # 名字不认识时必须返回 None，绝不猜一个最接近的类别。
+    assert X.resolve_label("completely unknown object") is None
+    # v3 起 ambiguous_vertical 已从类别表删除，因此它也只是「不认识」。
     assert X.resolve_label("ambiguous_vertical") is None
 
 
 def test_resolve_label_accepts_case_and_space_variants():
-    assert X.resolve_label("Cart Trolley") == 13
-    assert X.resolve_label("cart-trolley") == 13
+    # v3 把 cart_trolley 改名为 push_cart（**id 不变**），这里跟着换成新名：
+    # 这条测试要守的是「下划线/空格/连字符都能归一到同一个 id」，与类名无关。
+    assert X.resolve_label("Push Cart") == 13
+    assert X.resolve_label("push-cart") == 13
+    assert X.resolve_label("push_cart") == 13
 
 
 # -------------------------------------------------------------- 框校验

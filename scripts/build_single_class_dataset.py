@@ -1,4 +1,4 @@
-"""构建**单类**数据集：只保留一个类别，标签索引重写为 0。
+﻿"""构建**单类**数据集：只保留一个类别，标签索引重写为 0。
 
 ## 为什么需要它
 
@@ -22,13 +22,13 @@
 本脚本把标签索引**重写为 0**、`nc=1`，因此模型输出 5 通道（4+1），
 Kotlin 侧按形状反推得到 `numClasses=1`，`kLabels[0]` = `footbridge_entrance`……
 
-**这就是问题**：App 的类别表是 24 类，单类模型的 id 0 在表里是错的。
+**这就是问题**：App 的类别表有几十类，单类模型的 id 0 在表里是错的。
 
 所以本脚本产出的模型**必须配一份单类映射表**，由 App 侧按模型类别数选择：
   - 模型 nc == kNumClasses  -> 用 kLabels 原样
   - 模型 nc == 1            -> 只用 kLabels[configuredClassId]
 
-见 `app/lib/vision/single_class_map.dart`。
+见 `app/lib/vision/model_class_map.dart`（单类是映射表长度为 1 的特例）。
 
 ## 用法
 
@@ -180,3 +180,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+

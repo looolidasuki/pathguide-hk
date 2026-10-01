@@ -1,4 +1,4 @@
-"""X-AnyLabeling JSON <-> 数据集 的桥梁：读取、校验、写回 YOLO。
+﻿"""X-AnyLabeling JSON <-> 数据集 的桥梁：读取、校验、写回 YOLO。
 
 ## 为什么需要这个脚本
 
@@ -48,9 +48,11 @@ if str(REPO_ROOT / "scripts") not in sys.path:
 from pipeline.label_taxonomy import iou_xyxy, normalize_text  # noqa: E402
 
 CLASSES_PATH = REPO_ROOT / "configs" / "classes.json"
-# train_only 是训练期占位类，属于「暂时无法判定的垂直设施」。
-# 它允许出现在标注里供后续分拣，但不该进数据集——否则模型会学一个语义空洞的类。
-NOT_A_TRAIN_CLASS = {"ambiguous_vertical"}
+# 该集合列出「允许出现在标注里、但不该进数据集」的类。
+# 目前为空：v3 删掉了唯一的占位类 ambiguous_vertical。
+# 将来若再引入占位类（语义是「不知道」的那种），必须加回这里，
+# 否则模型会学一个语义空洞的类，而且训练不报错。
+NOT_A_TRAIN_CLASS: set[str] = set()
 
 
 # ---------------------------------------------------------------- 类别表
@@ -62,7 +64,7 @@ def load_class_names(path: Path = CLASSES_PATH) -> list[str]:
 
 
 def _key(text: str) -> str:
-    """把 `cart_trolley` / `Cart-Trolley` / `cart trolley` 归一到同一把钥匙。
+    """把 `push_cart` / `Push-Cart` / `push cart` 归一到同一把钥匙。
 
     normalize_text 会把下划线当标点吃掉，所以再补一次分隔符折叠。
     """
@@ -401,3 +403,5 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
+

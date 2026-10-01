@@ -151,10 +151,18 @@ def test_yaml_uses_dataset_local_class_table_when_present(tmp_path):
 
 
 def test_yaml_falls_back_to_project_table_without_local_classes_json(tmp_path):
+    # 类别数从 configs/classes.json 现读，不写死数字：
+    # 扩表时（v2 的 24 类 → v3 的 48 类）写死的断言会变成一条与真实意图无关的
+    # 失败，而这条测试真正要守的是「回退时用的是**项目表**」。
+    project = json.loads(
+        (Path(__file__).resolve().parents[1] / "configs" / "classes.json")
+        .read_text(encoding="utf-8"))
+    n = len(project["classes"])
+
     ds = tmp_path / "dataset"
     _make_dataset(ds)
     S.run_split(dataset_dir=ds, datasets_dir=ds / "out",
                 manifest_path=ds / "manifest.csv", ratios=(0.8, 0.1, 0.1), seed=42)
     yaml_text = (ds / "out" / "pathguide.yaml").read_text(encoding="utf-8")
-    assert "nc: 24" in yaml_text
+    assert f"nc: {n}" in yaml_text
     assert "0: footbridge_entrance" in yaml_text

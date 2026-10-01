@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 
@@ -81,6 +82,15 @@ class _DemoPageState extends State<DemoPage> {
       _source?.frameSize ?? const Size(1280, 720);
 
   int get _rotationDegrees => _source?.rotationDegrees ?? 0;
+
+  /// 最近一次布局算出的 fit 与屏幕矩形，**只给 [_logHud] 用**。
+  ///
+  /// 为什么要在 build 里顺手记下来：判断「屏幕上到底画没画框」需要的是
+  /// **映射之后的屏幕矩形**，而它只在 build 里算得出来。这里只做赋值、
+  /// 不触发重建，因此不改变 build 的语义。
+  DisplayFit? _lastFit;
+  List<({Detection detection, Rect rect})> _lastMapped =
+      const <({Detection detection, Rect rect})>[];
 
   @override
   void initState() {
@@ -172,7 +182,67 @@ class _DemoPageState extends State<DemoPage> {
     _diagTimer = Timer.periodic(const Duration(milliseconds: 500), (_) async {
       final d = await source.diagnostics();
       if (mounted && d != null) setState(() => _diagnostics = d);
+      _logHud();
     });
+  }
+
+  /// 把 HUD 上的关键数字同步打一行到 logcat（仅 Debug 构建）。
+  ///
+  /// ## 为什么要有这一行
+  ///
+  /// 诊断信息原本只画在屏幕上，于是「真机验证」只能靠人眼看屏幕复述数字：
+  /// 无法无人值守、无法留证、也无法在远程排查时比对。
+  /// 截图虽然能留证，但要读屏幕上的小字仍需人工（或 OCR）。
+  ///
+  /// 这一行让整条链路变成**可被程序读取**的：帧率、耗时至 UI 的检测框数、
+  /// 原生分析帧数、最高分、无效值分类、几何输入、张量布局全在同一行里。
+  /// 于是「跑一次真机」= 装包 + 抓 logcat，不需要任何人盯屏幕。
+  ///
+  /// 字段名刻意用 ASCII，方便 grep：
+  ///
+  ///     HUD fps=.. inf=..ms det=.. analyzed=.. nativeDet=.. maxScore=.. ...
+  ///
+  /// 其中 `boxes=` 是**映射之后的屏幕矩形**（最多 3 个），
+  /// `paint=` 是画布会实际画出的框数——它按 `DetectionBoxPainter` 的规则
+  /// （`rect.width/height < 2` 视为噪点而跳过）算出来。
+  /// 这一项直接回答最初那句「HUD 有数字、屏幕上一个框都没有」：
+  /// `det>0` 而 `paint=0` 就说明矩形退化或被裁掉，而不是「类别没对上」。
+  void _logHud() {
+    if (!kDebugMode) return;
+    final d = _diagnostics;
+    final reasons = d == null || d.invalidByReason.isEmpty
+        ? '-'
+        : d.invalidByReason.entries
+            .map((e) => '${e.key}=${e.value}')
+            .join(',');
+    final paint = _lastMapped
+        .where((m) => m.rect.width >= 2 && m.rect.height >= 2)
+        .length;
+    final boxes = _lastMapped
+        .take(3)
+        .map((m) => '(${m.rect.left.round()},${m.rect.top.round()},'
+            '${m.rect.width.round()}x${m.rect.height.round()})')
+        .join(' ');
+    debugPrint(
+      'HUD fps=${_fps.toStringAsFixed(1)} '
+      'inf=${_inferenceMs.toStringAsFixed(1)}ms '
+      'det=${_detections.length} '
+      'paint=$paint '
+      'speakMin=${kMinSpeakScore.toStringAsFixed(2)} '
+      'boxes=[$boxes] '
+      'analyzed=${d?.analyzedFrames ?? -1} '
+      'nativeDet=${d?.detectionCount ?? -1} '
+      'maxScore=${(d?.frameMaxScore ?? 0).toStringAsFixed(3)} '
+      'invalid=${d?.invalidDetections ?? -1} '
+      'reasons=$reasons '
+      'fit=${_lastFit?.scale.toStringAsFixed(3) ?? '-'} '
+      'frame=${d?.frameWidth ?? 0}x${d?.frameHeight ?? 0} '
+      'rot=$_rotationDegrees '
+      'src=${_frameSize.width.toInt()}x${_frameSize.height.toInt()} '
+      'decode=${d?.decodeStats ?? '-'} '
+      'skip=${(d?.skippedReason.isNotEmpty ?? false) ? d!.skippedReason : '-'} '
+      'err=${(d?.analyzeError.isNotEmpty ?? false) ? d!.analyzeError : '-'}',
+    );
   }
 
   void _onFrame(VisionFrame frame) {
@@ -229,15 +299,17 @@ class _DemoPageState extends State<DemoPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final viewSize = Size(constraints.maxWidth, constraints.maxHeight);
-        // [VisionSource.frameSize] **已经是旋转之后**的尺寸，所以这里
-        // 不再调用 rotatedFrameSize —— 旋转量的唯一来源是来源本身，
-        // UI 不持有任何几何常量。
+        // [VisionSource.frameSize] 与检测框坐标同属一个**已转正**的坐标系
+        // （旋转已由原生在采样时逐像素完成），所以这里直接用，
+        // 映射时也不再施加旋转——见 [mapDetectionsToScreen] 的说明。
         final fit = DisplayFit.contain(frame: _frameSize, view: viewSize);
         final mapped = mapDetectionsToScreen(
           detections: _detections,
-          rotationDegrees: _rotationDegrees,
           fit: fit,
         );
+        // 供 _logHud 报告「映射后的屏幕矩形」——只赋值，不触发重建。
+        _lastFit = fit;
+        _lastMapped = mapped;
 
         return Stack(
           fit: StackFit.expand,
@@ -437,6 +509,13 @@ class _DemoPageState extends State<DemoPage> {
               color: _speaker.isCantonese ? Colors.greenAccent : Colors.orangeAccent,
             ),
           ),
+          // 两个阈值分开展示，因为它们管的事不同：
+          // 上面那根滑条决定**画不画**，这一行是**说不说**的下限。
+          // 不写出来，用户会以为「滑条拉低了怎么还不念」是坏了。
+          Text(
+            '播报门槛 ≥ ${kMinSpeakScore.toStringAsFixed(2)}（低分只画框）',
+            style: style.copyWith(color: Colors.white70),
+          ),
         ],
       ),
     );
@@ -580,7 +659,8 @@ class _DemoPageState extends State<DemoPage> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Text('阈值', style: TextStyle(color: Colors.white70, fontSize: 12)),
+              const Text('显示阈值',
+                  style: TextStyle(color: Colors.white70, fontSize: 12)),
               Expanded(
                 child: Slider(
                   value: _threshold,

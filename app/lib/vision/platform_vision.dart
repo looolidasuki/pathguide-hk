@@ -1,11 +1,18 @@
-import 'dart:async';
+﻿import 'dart:async';
+// Size 来自 dart:ui。分析器曾提示此导入「多余」（理由：services.dart 已提供
+// 全部用到的符号），但那依赖 flutter 内部的再导出链——我核对了
+// services.dart 与 asset_bundle.dart 的 export 列表，没有直接看到 Size。
+// 这种「删了可能编译失败、留着只是 info」的取舍，保留显式导入更稳：
+// 显式导入让依赖关系不依赖上游的再导出细节。
+// ignore: unnecessary_import
 import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart';
 
 import 'detection.dart';
+import 'labels.dart';
 import 'platform_contract.dart';
-import 'single_class_map.dart';
+import 'model_class_map.dart';
 import 'vision_source.dart';
 
 /// 模型在 **Flutter AssetBundle** 中的 key，与 pubspec.yaml 里声明的一致。
@@ -60,7 +67,8 @@ class PlatformVision implements VisionSource {
   String? _loadError;
   int _inputSize = 0;
   int _modelClassCount = 0;
-  int _classOffset = 0;
+  /// 传给原生的索引映射表（空表 = 不需要映射）。initialize() 里算出来后写入。
+  List<int> _classIds = const <int>[];
   double _threshold = 0.30;
 
   /// 最近一帧的**原始**尺寸（旋转之前），用于推出 [frameSize]。
@@ -71,7 +79,7 @@ class PlatformVision implements VisionSource {
   int get modelClassCount => _modelClassCount;
 
   /// 传给原生的类别 id 偏移（0 表示不偏移）。
-  int get classOffset => _classOffset;
+  List<int> get classIds => _classIds;
 
   /// 模型输入边长。
   int get inputSize => _inputSize;
@@ -131,16 +139,31 @@ class PlatformVision implements VisionSource {
     // 2) 请求权限并启动原生相机预览
     final started = await _startPreview();
 
-    // 3) 加载模型。先按「多类模型」试（偏移 0），拿到真实类别数后再决定偏移：
-    //    单类模型输出 id 0，而项目类别表里 0 是 footbridge_entrance，
-    //    不偏移就会把垃圾桶标成「天橋入口」——框对、名字错、不报错。
-    var ok = await _loadModel(0);
-    if (ok && _modelClassCount == 1) {
-      final offset = singleClassProjectId ?? 0;
-      if (offset > 0) {
-        ok = await _loadModel(offset);
-      }
+    // 3) 加载模型。**先按「不映射」加载**，拿到模型真实的类别数；
+    //    再与声明表对照决定是否重载。
+    //
+    //    为什么要先拿类别数：TFLite 里没有「这个模型是用哪些 class-id 训的」
+    //    元数据，只能靠 model_class_map.dart 里声明。先读形状再校验，
+    //    才能在「模型与声明不符」时**报错**，而不是安静地把框标错类。
+    var ok = await _loadModel(const <int>[]);
+    ModelClassMapping? mapping = ok
+        ? resolveMapping(modelClassCount: _modelClassCount)
+        : null;
+    if (ok && mapping == null) {
+      // 类别数与声明表对不上：宁可失败也不猜。
+      return VisionSourceStatus(
+        ok: false,
+        message: '模型与类别映射声明不符',
+        error: '模型报告 $_modelClassCount 类，而 modelClassIds 声明了 '
+            '${modelClassIds.length} 个（${modelClassIds.join(",")}）。'
+            '两者必须一致——猜一个映射会把框标成别的类，而且不会报错。'
+            '${_modelClassCount == kNumClasses ? "（类别数等于项目类别表时应声明空表）" : ""}',
+      );
     }
+    if (ok && mapping != null && !mapping.identity) {
+      ok = await _loadModel(mapping.ids);
+    }
+    final mappingFinal = mapping;
 
     if (!ok) {
       return VisionSourceStatus(
@@ -158,17 +181,11 @@ class PlatformVision implements VisionSource {
         error: '模型已加载，但原生相机未启动：可能未授予权限，或被其他程序占用',
       );
     }
-    final mapping = resolveMapping(
-      modelClassCount: _modelClassCount,
-      singleClassOriginalId: singleClassProjectId,
-      singleClassName: singleClassProjectName ?? '',
-    );
     return VisionSourceStatus(
       ok: true,
       message: '模型已加载（类别数 $_modelClassCount'
-          '${_classOffset > 0 ? "，偏移到类别 $_classOffset" : ""}'
           '，输入 $_inputSize）'
-          '${mapping != null ? "；${mapping.describe()}" : ""}',
+          '${mappingFinal != null ? "；${mappingFinal.describe()}" : ""}',
     );
   }
 
@@ -260,9 +277,14 @@ class PlatformVision implements VisionSource {
   /// 目录 -> 原生读文件**，彻底绕开 AssetManager 的路径歧义。
   ///
   /// 代价：启动时多一次写盘。用「已存在且大小一致就跳过」避免重复写。
-  Future<bool> _loadModel(int classOffset) async {
-    _classOffset = classOffset;
-    String? filePath;
+  Future<bool> _loadModel(List<int> classIds) async {
+    _classIds = classIds;
+
+    // 非空类型：_materializeModelToDisk 失败时抛异常，不返回 null。
+    // 之前写成 `String?` 并在下面判 `filePath == null`，那条分支永远是死代码
+    // （分析器直接报了 unnecessary_null_comparison + dead_code）。
+    // 用非空类型把这个不可能状态从类型上排除掉。
+    final String filePath;
     try {
       filePath = await _materializeModelToDisk(defaultModelAssetKey);
     } catch (e) {
@@ -274,12 +296,10 @@ class PlatformVision implements VisionSource {
     try {
       final reply = await _method.invokeMethod<Map<Object?, Object?>>(
         VisionMethods.loadModel,
-        filePath == null
-            ? null
-            : <String, Object>{
-                VisionKeys.model: filePath,
-                VisionKeys.classOffset: classOffset,
-              },
+        <String, Object>{
+          VisionKeys.model: filePath,
+          VisionKeys.classIds: classIds,
+        },
       );
       _loaded = reply?[VisionKeys.loaded] == true;
       _modelClassCount = _asInt(reply?[VisionKeys.classes]) ?? 0;
@@ -392,3 +412,4 @@ class PlatformVision implements VisionSource {
     return out;
   }
 }
+

@@ -101,8 +101,46 @@ def test_nonsense_is_unknown(tax):
     assert tax.lookup("zzz qqq xyzzy") is None
 
 
-def test_ambiguous_vertical_is_marked_never_from_vlm(tax):
-    assert any(c.get("never_from_vlm") for c in tax.classes if c["id"] == 23)
+def test_fork_in_road_took_over_slot_23(tax):
+    """v3 删掉了占位类 ambiguous_vertical，由 fork_in_road 接管 id 23。
+
+    该槽位从来没有标注，是扩表时唯一可安全复用的空位（生成器要求 id 连续）。
+    """
+    assert tax.name(23) == "fork_in_road"
+    assert all(c["name_en"] != "ambiguous_vertical" for c in tax.classes)
+
+
+def test_split_wheeled_objects_do_not_collide(tax):
+    """v3 把原 cart_trolley(13) 拆成四类，最危险的失败模式是**别名互相串门**。
+
+    串了不会报错，只会让训练集里同一件东西被标成两类。
+    这里逐个钉住每种说法的归属。
+    """
+    assert tax.lookup("trolley") == 13
+    assert tax.lookup("hand cart") == 13
+    assert tax.lookup("hand truck") == 39
+    assert tax.lookup("sack trolley") == 39
+    assert tax.lookup("pallet") == 40
+    assert tax.lookup("pallet truck") == 40
+    assert tax.lookup("stroller") == 41
+    assert tax.lookup("pram") == 41
+    assert tax.lookup("baby stroller") == 41
+
+
+def test_new_classes_resolve_to_their_own_id(tax):
+    """v3 新增类中语义上最近邻的几对，别名必须各归各家。"""
+    assert tax.lookup("fence") == 26
+    assert tax.lookup("construction mesh") == 27
+    assert tax.lookup("scaffolding") == 28
+    assert tax.lookup("road excavation") == 29
+    assert tax.lookup("utility box") == 30
+    assert tax.lookup("cardboard") == 33
+    assert tax.lookup("tree") == 42
+    assert tax.lookup("tree roots") == 43
+    assert tax.lookup("cycle path") == 44
+    assert tax.lookup("streetlight") == 45
+    assert tax.lookup("sign post") == 46
+    assert tax.lookup("bucket") == 47
 
 
 # ---- VLM 验证提问词（踩过的最贵的坑）----
@@ -114,11 +152,6 @@ def test_verify_query_uses_specific_object_name_not_umbrella_class(tax):
     换成 'bin' 确认 100%。用类别名问会把一半正确框判成误检。
     """
     assert tax.verify_query(7) == "bin"
-
-
-def test_verify_query_is_none_for_ambiguous_vertical(tax):
-    """该类的定义就是「无法判定」，让 VLM 验证自相矛盾，必须返回 None。"""
-    assert tax.verify_query(23) is None
 
 
 def test_verify_query_present_for_all_verifiable_classes(tax):

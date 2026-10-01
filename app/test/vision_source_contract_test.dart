@@ -1,6 +1,7 @@
-import 'dart:ui' show Size;
+import 'dart:ui' show Rect, Size;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pathguide/vision/detection.dart';
 import 'package:pathguide/vision/mock_vision_source.dart';
 import 'package:pathguide/vision/platform_vision.dart';
 import 'package:pathguide/vision/vision_source.dart';
@@ -43,14 +44,47 @@ void main() {
   });
 
   group('接口必须提供的东西', () {
-    test('frameSize 与 rotationDegrees 都在接口上', () {
-      // rotationDegrees 曾在 UI 里被硬编码为 90（`_rotationDegrees`），
-      // 而 iOS 的 AVFoundation 会给出不同角度——几何常量不能写在 UI 里。
+    test('frameSize 是**旋转之后**的尺寸：0 度不换轴', () {
       final VisionSource s = MockVisionSource(
         frameSize: const Size(1280, 720),
+        rotationDegrees: 0,
       );
       expect(s.frameSize, const Size(1280, 720));
-      expect(s.rotationDegrees, isA<int>());
+    });
+
+    test('frameSize 是**旋转之后**的尺寸：90 度换轴', () {
+      // 这一条是本轮重构的核心语义：frameSize 承诺已旋转到位，
+      // 因此 UI 不再自行 rotatedFrameSize，几何量的唯一来源是来源本身。
+      // 首次写这个测试时把它当成了「原始尺寸」，断言写反了——
+      // 实现是对的（1280x720 顺时针转 90 度就是 720x1280）。
+      final VisionSource s = MockVisionSource(
+        frameSize: const Size(1280, 720),
+        rotationDegrees: 90,
+      );
+      expect(s.frameSize, const Size(720, 1280));
+    });
+
+    test('frameSize 是**旋转之后**的尺寸：180 度不换轴', () {
+      final VisionSource s = MockVisionSource(
+        frameSize: const Size(1280, 720),
+        rotationDegrees: 180,
+      );
+      expect(s.frameSize, const Size(1280, 720));
+    });
+
+    test('frameSize 是**旋转之后**的尺寸：270 度换轴', () {
+      final VisionSource s = MockVisionSource(
+        frameSize: const Size(1280, 720),
+        rotationDegrees: 270,
+      );
+      expect(s.frameSize, const Size(720, 1280));
+    });
+
+    test('rotationDegrees 在接口上，且非法角度归零', () {
+      expect(MockVisionSource(rotationDegrees: 90).rotationDegrees, 90);
+      expect(MockVisionSource(rotationDegrees: 45).rotationDegrees, 0);
+      expect(MockVisionSource(rotationDegrees: -90).rotationDegrees, 270);
+      expect(MockVisionSource(rotationDegrees: 450).rotationDegrees, 90);
     });
 
     test('rotationDegrees 是 90 的整数倍且归一化到 [0,360)', () {
@@ -78,6 +112,45 @@ void main() {
     test('显示名用于界面提示', () {
       expect(MockVisionSource().displayName, isNotEmpty);
       expect(PlatformVision().displayName, isNotEmpty);
+    });
+  });
+
+  group('坐标契约', () {
+    test('来源已把画面转正，映射时不得再旋转一次', () {
+      // 竖屏后置相机：原始帧 1280x720，顺时针 90 度才正立 -> frameSize 720x1280。
+      final VisionSource s = MockVisionSource(
+        frameSize: const Size(1280, 720),
+        rotationDegrees: 90,
+      );
+      expect(s.frameSize, const Size(720, 1280));
+
+      // 取一个**偏离中心**的框：再转 90 度的话，(0.25, 0.5) 会跑到 (0.5, 0.25)，
+      // 屏幕上相差半幅画面。这个测试就是用来钉住「转正只做一次」的。
+      const Detection d = Detection(
+        id: 7,
+        score: 0.9,
+        cx: 0.25,
+        cy: 0.5,
+        w: 0.2,
+        h: 0.2,
+      );
+      final DisplayFit fit = DisplayFit.contain(
+        frame: s.frameSize,
+        view: const Size(720, 1280), // 与帧同比 -> scale=1、无偏移
+      );
+      final mapped = mapDetectionsToScreen(
+        detections: const <Detection>[d],
+        fit: fit,
+      );
+      expect(mapped, hasLength(1));
+      final Rect r = mapped.single.rect;
+
+      // scale=1 且无偏移，屏幕坐标就等于归一化坐标乘以帧尺寸。
+      expect(r.center.dx, closeTo(0.25 * 720, 1e-6));
+      expect(r.center.dy, closeTo(0.5 * 1280, 1e-6));
+      // 反证：重复旋转会得到 (0.5, 0.25)。
+      expect(r.center.dx, isNot(closeTo(0.5 * 720, 1e-6)));
+      expect(r.center.dy, isNot(closeTo(0.25 * 1280, 1e-6)));
     });
   });
 

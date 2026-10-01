@@ -65,52 +65,88 @@ def describe_tensors(model_path: Path) -> dict:
 
 
 def explain_output_shape(shape: list[int], num_classes: int | None,
-                         single_class_id: int | None = None) -> str:
+                         declared: list[int] | None = None,
+                         names: dict[int, str] | None = None) -> str:
     """把输出形状翻译成人话，并检查它是否符合 Kotlin 解码器的假设。
 
-    [single_class_id] 给出 App 侧配置的单类映射时，类别数 1 是**预期**的，
-    不再报「与类别表不一致」——那条提示曾把正确的单类模型报成问题。
+    [declared] 是 App 侧 `modelClassIds` 声明的映射表：模型类别数不等于项目
+    类别表时，靠它把本地索引翻成真实 id。长度必须与模型类别数一致。
     """
     if len(shape) != 3:
         return f"  !! 输出应为 3 维，实际 {shape}——Kotlin 解码器会拒绝这个模型"
     d1, d2 = shape[1], shape[2]
-    transposed = d1 < d2
+    # ★ 「锚点优先」当且仅当 anchors 落在第 1 维，即 d1 > d2。
+    #
+    # 这里曾经写成 `d1 < d2`，并把标签写成「（转置）」——**恰好反了**：
+    # 本项目的模型输出是 [1, 5, 3549]，按旧写法会被说成「[1, anchors, 4+nc]」，
+    # 而它其实是通道优先。Kotlin 解码器里那句 `transposed = d1 < d2`
+    # 就是照着这条信息写的，于是真机上整片框都读错通道（见
+    # docs/superpowers/plans/2026-09-23-decode-silent-failures.md 第 2.1 节）。
+    #
+    # 教训：**一处错的名字会生产出另一处错的代码。**
+    # `scripts/check_tflite_decode.py` 会同时核对这里与 Kotlin 那处，
+    # 两边的运算符必须都是 `>`。
+    anchors_first = d1 > d2
     channels = min(d1, d2)
     anchors = max(d1, d2)
     classes = channels - 4
     lines = [
-        f"  通道布局：{'[1, anchors, 4+nc]（转置）' if transposed else '[1, 4+nc, anchors]'}",
+        f"  通道布局："
+        f"{'[1, anchors, 4+nc]（锚点优先）' if anchors_first else '[1, 4+nc, anchors]（通道优先）'}"
+        f"   -> Kotlin 的 transposed 应为 {str(anchors_first).lower()}",
         f"  锚点数   ：{anchors}",
         f"  类别数   ：{classes}（= 通道 {channels} - 4）",
     ]
-    if classes == 1 and single_class_id is not None:
+    if declared is not None and classes != num_classes:
+        # 模型类别数不等于项目类别表：必须靠 model_class_map.dart 的映射表，
+        # 而且**长度必须恰好等于模型类别数**，否则 App 会拒绝加载（故意不猜）。
+        if len(declared) == classes:
+            lines.append(
+                f"  ✓ 映射表长度相符：App 的 modelClassIds 有 {len(declared)} 项 "
+                f"{declared}，模型 {classes} 类，一一对应"
+            )
+            labels = [(names or {}).get(i, f"id{i}") for i in declared]
+            lines.append(f"     即本地索引 0..{classes - 1} 分别对应 {labels}")
+        elif not declared:
+            lines.append(
+                f"  !! App 的 modelClassIds 是空表（表示「不需要映射」），"
+                f"但模型是 {classes} 类、项目类别表是 {num_classes} 类——"
+                f"App 会拒绝加载"
+            )
+        else:
+            lines.append(
+                f"  !! App 的 modelClassIds 有 {len(declared)} 项，模型 {classes} 类："
+                f"长度不符，App 会拒绝加载。请改 "
+                f"app/lib/vision/model_class_map.dart"
+            )
+    if num_classes is not None and classes == num_classes and declared:
         lines.append(
-            f"  ✓ 单类模型（预期）：App 会把模型输出的 id 0 偏移到类别 {single_class_id}。"
-            f"该偏移由 app/lib/vision/single_class_map.dart 的 singleClassProjectId 声明，"
-            f"二者必须一致"
+            f"  !! 模型类别数已等于项目类别表（{num_classes}），"
+            f"modelClassIds 应为空表，但现在是 {declared}"
         )
-        if num_classes is not None and single_class_id >= num_classes:
-            lines.append(f"  !! 偏移 {single_class_id} 超出类别表范围（{num_classes} 类）")
-        return "\n".join(lines)
-    if num_classes is not None and classes != num_classes:
-        lines.append(f"  !! 与 configs/classes.json 的 {num_classes} 类**不一致**——"
-                     f"App 侧会按形状得到 {classes} 类，类别名会整体错位")
     if anchors < 100:
         lines.append(f"  !! 锚点数 {anchors} 异常偏小，模型可能没导出成功")
     return "\n".join(lines)
 
 
-def dart_single_class_id() -> int | None:
-    """从 Dart 侧读 App 配置的单类映射 id，用于形状校验时判断 1 类是否正常。
+def dart_model_class_ids() -> list[int] | None:
+    """从 Dart 侧读 App 声明的类别映射表。
 
-    这类「两处声明必须一致」的关系最容易漂移：模型是按 class-id 7 训的，
-    而 App 里写的是不是 7 只能靠对齐。在这里交叉检查。
+    「两处声明必须一致」这类关系最容易漂移：模型是按某几个真实 id 训的，
+    而 App 里写的是什么只能靠对齐。在实际导出时交叉检查，比事后在真机上
+    发现「框对、名字错」便宜得多。
     """
-    p = REPO_ROOT / "app" / "lib" / "vision" / "single_class_map.dart"
+    p = REPO_ROOT / "app" / "lib" / "vision" / "model_class_map.dart"
     if not p.exists():
         return None
-    m = re.search(r"singleClassProjectId\s*=\s*(\d+)", p.read_text(encoding="utf-8"))
-    return int(m.group(1)) if m else None
+    m = re.search(r"modelClassIds\s*=\s*<int>\s*\[([^\]]*)\]",
+                  p.read_text(encoding="utf-8"))
+    if m is None:
+        return None
+    body = m.group(1).strip()
+    if not body:
+        return []
+    return [int(x) for x in re.findall(r"-?\d+", body)]
 
 
 def main() -> int:
@@ -132,9 +168,12 @@ def main() -> int:
     import json
     classes_path = REPO_ROOT / "configs" / "classes.json"
     num_classes = None
+    class_names: dict[int, str] = {}
     if classes_path.exists():
         with classes_path.open(encoding="utf-8") as f:
-            num_classes = len(json.load(f)["classes"])
+            items = json.load(f)["classes"]
+        num_classes = len(items)
+        class_names = {c["id"]: c["name_en"] for c in items}
 
     from ultralytics import YOLO
     import ultralytics
@@ -181,7 +220,7 @@ def main() -> int:
 
     print("\n=== 张量形状校验 ===")
     problems = 0
-    single_id = dart_single_class_id()
+    declared = dart_model_class_ids()
     for name, path in outputs.items():
         if not path.exists():
             print(f"[{name}] 文件不存在：{path}")
@@ -196,7 +235,8 @@ def main() -> int:
         print(f"[{name}] {path.name}")
         print(f"  输入 ：{info['input_shape']} {info['input_dtype']}")
         print(f"  输出 ：{info['output_shape']} {info['output_dtype']}")
-        print(explain_output_shape(info["output_shape"], num_classes, single_id))
+        print(explain_output_shape(info["output_shape"], num_classes, declared,
+                                   class_names))
 
     if args.copy_to_assets:
         src = outputs.get("float32")

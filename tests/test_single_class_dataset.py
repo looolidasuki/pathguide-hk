@@ -1,4 +1,4 @@
-"""单类数据集构建：标签索引重写。
+﻿"""单类数据集构建：标签索引重写。
 
 这是最容易静默出错的一步——类别索引被重写错时，训练照跑、指标照出，
 只是类别全错。所以逐个用例钉死。
@@ -113,7 +113,7 @@ def test_build_writes_single_class_table_with_original_id(tmp_path, monkeypatch)
     table = json.loads((out / "classes.json").read_text(encoding="utf-8"))
     assert len(table["classes"]) == 1
     assert table["classes"][0]["name_en"] == "bin"
-    # 保留原 id，App 侧才能把模型输出的 0 映射回 24 类表里的 7
+    # 保留原 id，App 侧才能把模型输出的 0 映射回类别表里的 7
     assert table["classes"][0]["original_id"] == 7
 
 
@@ -157,3 +157,4 @@ def test_load_class_name_reads_config():
 def test_load_class_name_rejects_unknown_id():
     with pytest.raises(ValueError, match="不在 configs/classes.json"):
         B.load_class_name(999)
+

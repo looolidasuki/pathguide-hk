@@ -1,19 +1,25 @@
-"""从 configs/classes.json 生成 Flutter 端的 Dart 类别表。
+"""从 configs/classes.json 生成各处的类别表。
 
 ## 为什么必须生成而不是手抄
 
-类别索引是 YOLO 的标签契约。Dart 侧手抄一份 24 项的列表，任何一次错位
+类别索引是 YOLO 的标签契约。Dart 侧手抄一份列表，任何一次错位
 （漏一行、顺序不同、改名）都会让 App 把 `bin` 的框标成 `bollard`——
 **不会报任何错**，只是安静地标错。
 
 项目已经因为「标签与索引错位」吃过一次亏（v1 删 street_obstacle 时 id 8–15
 重排），所以这里宁可多一个生成步骤，也不留第二份事实源。
 
+`configs/classes.txt` 就是一处**已经漂移过的**第二事实源：它当初是手抄的，
+v3 把类别从 24 扩到 48 之后它还是旧内容，而 X-AnyLabeling 的配置正好读它——
+标注工具会因此只认旧类别。现在它和 Dart 表一样由本脚本生成。
+
 ## 输出
 
-- `lib/vision/labels.dart`：24 项 `Label` 常量 + 按 id 索引的表 +
+- `app/lib/vision/labels.dart`：全部 `Label` 常量 + 按 id 索引的表 +
   按播报优先级排序的列表。
-- `assets/labels.json`：同一份数据的 JSON，供需要热更新或调试时使用。
+- `app/assets/labels.json`：同一份数据的 JSON，供需要热更新或调试时使用。
+- `configs/classes.txt`：纯文本类别名清单（每行一个，按 id 升序），
+  供 X-AnyLabeling 等外部工具读取。
 
 用法：
     python scripts/gen_dart_labels.py
@@ -29,6 +35,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 CLASSES_PATH = REPO_ROOT / "configs" / "classes.json"
 DART_PATH = REPO_ROOT / "app" / "lib" / "vision" / "labels.dart"
 JSON_PATH = REPO_ROOT / "app" / "assets" / "labels.json"
+TXT_PATH = REPO_ROOT / "configs" / "classes.txt"
 
 # 播报紧急度：数字越小越先播。P0 = 立刻播（可能危险），P1 = 排队播。
 PRIORITY_RANK = {"P0": 0, "P1": 1, "P2": 2}
@@ -47,7 +54,7 @@ def load_classes(path: Path = CLASSES_PATH) -> list[dict]:
 def announcement_order(classes: list[dict]) -> list[int]:
     """播报顺序：先按 priority（P0 优先），再按 name_zh 笔画无关的稳定序。
 
-    announced=False 的类（如 ambiguous_vertical）不参与播报，排在最后。
+    announced=False 的类（如 streetlight / sign_post）不参与播报，排在最后。
     """
     return [
         c["id"] for c in sorted(
@@ -88,7 +95,7 @@ def render_dart(classes: list[dict]) -> str:
         "  /// P0 表示可能危险，播报可插队；P1 排队播。",
         "  final String priority;",
         "",
-        "  /// false 表示这是训练期占位类（如 ambiguous_vertical），不进播报。",
+        "  /// false 表示这类东西不该播报（如 streetlight：到处都有、又不可行动）。",
         "  final bool announced;",
         "",
         "  @override",
@@ -148,6 +155,16 @@ def render_json(classes: list[dict]) -> str:
     return json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
 
 
+def render_txt(classes: list[dict]) -> str:
+    """纯文本类别名清单：每行一个 name_en，按 id 升序。
+
+    给外部工具用（X-AnyLabeling 的 `--labels-file`）。**行的顺序就是类别索引**，
+    所以这里必须是 id 升序，不能排序或去重后重排——那会让标注工具里的
+    类别编号与 YOLO 标签索引错位，而且两边都不报错。
+    """
+    return "".join(f"{c['name_en']}\n" for c in classes)
+
+
 def _rel(path: Path) -> str:
     """尽量显示相对路径；路径在仓库外时退回绝对路径（测试会用 tmp_path）。"""
     try:
@@ -160,8 +177,9 @@ def write_outputs(check: bool = False) -> int:
     classes = load_classes()
     dart = render_dart(classes)
     payload = render_json(classes)
+    txt = render_txt(classes)
     stale = []
-    for path, text in ((DART_PATH, dart), (JSON_PATH, payload)):
+    for path, text in ((DART_PATH, dart), (JSON_PATH, payload), (TXT_PATH, txt)):
         current = path.read_text(encoding="utf-8") if path.exists() else None
         if current != text:
             stale.append(path)
@@ -178,7 +196,7 @@ def write_outputs(check: bool = False) -> int:
         print("类别表已同步。")
         return 0
     print(f"已生成 {len(classes)} 个类别")
-    for p in (DART_PATH, JSON_PATH):
+    for p in (DART_PATH, JSON_PATH, TXT_PATH):
         print(f"  -> {_rel(p)}")
     if stale:
         for p in stale:

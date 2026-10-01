@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:pathguide/tts/announcer.dart';
 import 'package:pathguide/vision/detection.dart';
 import 'package:pathguide/vision/labels.dart';
@@ -115,7 +115,7 @@ void main() {
     expect(speaker.spoken, isEmpty);
   });
 
-  test('不可播报的类别被忽略（ambiguous_vertical 是训练期占位类）', () async {
+  test('不可播报的类别被忽略（如 streetlight：到处都有、又不可行动）', () async {
     final id = kLabels.firstWhere((l) => !l.announced).id;
     expect(await announce(<Detection>[_det(id)]), isNull);
     expect(speaker.spoken, isEmpty);
@@ -143,6 +143,56 @@ void main() {
     expect(announcer.history.last.reason, contains('跳过'));
   });
 
+  group('分数门槛：低分只画框，不开口', () {
+    test('低于门槛的检出不被播报，但决策被记录', () async {
+      // 误报的代价是不对称的：屏幕上多一个框无害，说出口会让用户
+      // 对空无一物做出动作。所以低分必须「看得见但不说话」。
+      expect(await announce(<Detection>[_det(_binP0Id, score: 0.35)]), isNull);
+      expect(speaker.spoken, isEmpty, reason: '低分不应该发声');
+      expect(announcer.history, hasLength(1), reason: '仍要留下决策记录');
+      expect(announcer.history.single.reason, contains('播报门槛'));
+      expect(announcer.history.single.reason, contains('0.35'));
+    });
+
+    test('刚好达到门槛就播报', () async {
+      // 边界取 >=：门槛值本身应当算作「够格」，否则调参时会出现
+      // 「设成 0.70 却永远播不出 0.70」这种说不清的行为。
+      final a = await announce(
+        <Detection>[_det(_binP0Id, score: kMinSpeakScore)],
+      );
+      expect(a, isNotNull);
+      expect(speaker.spoken, hasLength(1));
+    });
+
+    test('force 不能绕过分数门槛（force 只管时机，不管真假）', () async {
+      // force 的语义是「别被冷却挡住」，用于演示与测试；
+      // 若它能绕过分数门槛，就等于留了一个「逢低分也照念」的后门。
+      expect(
+        await announce(<Detection>[_det(_binP0Id, score: 0.35)], force: true),
+        isNull,
+      );
+      expect(speaker.spoken, isEmpty);
+    });
+
+    test('低分候选被跳过时，后面的高分候选仍能播报', () async {
+      // 候选按优先级排序，低分的 P0 不应该把高分的其他类一起挡掉。
+      final a = await announce(<Detection>[
+        _det(_binP0Id, score: 0.40), // 低于门槛，跳过
+        _det(_otherAnnouncedId, score: 0.95), // 应当接上
+      ]);
+      expect(a, isNotNull);
+      expect(a!.label.id, _otherAnnouncedId);
+      expect(speaker.spoken, hasLength(1));
+    });
+
+    test('门槛可注入，便于按模型重新标定', () async {
+      final strict = Announcer(speaker: speaker, minSpeakScore: 0.99);
+      expect(strict.onFrame(<Detection>[_det(_binP0Id, score: 0.95)]), isNull);
+      final loose = Announcer(speaker: speaker, minSpeakScore: 0.10);
+      expect(loose.onFrame(<Detection>[_det(_binP0Id, score: 0.95)]), isNotNull);
+    });
+  });
+
   test('reset 清空冷却，新场景第一个目标不会被旧冷却压掉', () async {
     await announce(<Detection>[_det(_binP0Id)]);
     clock.advance(const Duration(milliseconds: 100));
@@ -163,3 +213,4 @@ void main() {
     expect(announceTextFor(label), label.nameZh);
   });
 }
+

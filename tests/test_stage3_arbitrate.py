@@ -40,13 +40,22 @@ def test_pedestrian_ranks_below_static_facilities(tax):
         assert prio[cid] < prio[pid], n
 
 
-def test_ambiguous_vertical_ranks_lowest(tax):
-    """训练专用类是「分不清」的兜底，不该抢走具体类别的框。"""
+def test_no_name_based_special_cases_for_deleted_classes(tax):
+    """v3 删掉 ambiguous_vertical 后，它的 95 分兜底规则不该留下残迹。
+
+    更重要的一条：**写死 `name_en == ...` 的分支在类被删或改名后会静默失效**。
+    v3 就是这样无声丢掉一条规则的——没有报错，只是行为变了。
+    所以特殊优先级一律走 `configs/classes.json` 的 `arbitration_priority` 字段，
+    这里断言「所有特例都来自显式字段，除了 pedestrian 那一条」。
+    """
     prio = build_priority(tax)
-    aid = next(c["id"] for c in tax.classes if c["name_en"] == "ambiguous_vertical")
-    for c in tax.classes:
-        if c["name_en"] != "ambiguous_vertical":
-            assert prio[c["id"]] < prio[aid], c["name_en"]
+    declared = {c["id"] for c in tax.classes if c.get("arbitration_priority") is not None}
+    pid = next(c["id"] for c in tax.classes if c["name_en"] == "pedestrian")
+    off_default = {cid for cid, v in prio.items() if v != 10}
+    assert off_default == declared | {pid}, (
+        "出现了一个既没有 arbitration_priority、也不是 pedestrian 的特殊优先级："
+        f"{sorted(off_default - declared - {pid})}")
+    assert all(c["name_en"] != "ambiguous_vertical" for c in tax.classes)
 
 
 def test_umbrella_class_removed_from_taxonomy(tax):

@@ -11,7 +11,8 @@ X-AnyLabeling 默认把配置写在 `~/.anylabelingrc`。在受限环境（或�
 `FileNotFoundError: '.anylabelingrc'`——**不做回退、不报友好提示**。
 
 必须先有这个文件。本脚本从 anylabeling 自带的默认模板生成，并写入：
-  - `labels`：本项目 24 类（顺序与 configs/classes.json 一致）
+  - `labels`：本项目的全部类别（顺序与 configs/classes.json 一致，由
+    scripts/gen_dart_labels.py 生成到 configs/classes.txt）
   - `label_colors`：按组的配色，便于人工复核时一眼区分
 
 用法：
@@ -123,10 +124,22 @@ def main() -> int:
         print(f"  配色：{len(groups)} 组")
         for rgb, ns in groups.items():
             print(f"    RGB{rgb}  {', '.join(ns[:3])}{' …' if len(ns) > 3 else ''}")
-    print(f"\n启动：.venv-label\\Scripts\\anylabeling.exe --config \"{out}\" "
-          f"\"data\\xtest\\trashbin\"")
+    # ★ 这里打印的启动命令必须**能直接复制粘贴执行**。
+    #
+    # 以前写的是 `.venv-label\Scripts\anylabeling.exe ...`，在 PowerShell 里
+    # 因为开头是 `.` 会被当成模块名去解析，报
+    #   The module '.venv-label' could not be loaded
+    # ——用户按提示操作却起不来，还以为是环境坏了。前面补 `.\` 就不会被误解析。
+    # 路径一律写绝对路径，避免「在哪个目录执行」也变成一个坑。
+    exe = REPO_ROOT / ".venv-label" / "Scripts" / "anylabeling.exe"
+    print(f"\n启动（PowerShell，可直接复制）：\n"
+          f"  .\\{exe.relative_to(REPO_ROOT)} --config \"{out}\" "
+          f"\"{(REPO_ROOT / 'data' / 'frames' / 'label_me' / 'myVideo')}\"")
+    if not exe.exists():
+        print(f"  [WARN] 找不到 {exe}，请先建好标注环境")
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
