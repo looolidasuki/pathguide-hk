@@ -1,4 +1,4 @@
-﻿"""构建**单类**数据集：只保留一个类别，标签索引重写为 0。
+"""构建**单类**数据集：只保留一个类别，标签索引重写为 0。
 
 ## 为什么需要它
 
@@ -105,6 +105,25 @@ def build(class_id: int, name: str, out_name: str | None = None) -> Path:
     src_manifest = SRC_DATASET / "manifest.csv"
     if not src_manifest.exists():
         raise FileNotFoundError(f"缺少 {src_manifest}，请先运行 make_manifest.py")
+
+    # ---- 清单必须与磁盘一致，否则**拒绝**而不是照用 ----
+    #
+    # 这里踩过一次：给 data/dataset 导入 7261 张新图后忘了重生成清单，
+    # 本脚本照着**旧清单**（44 张）建出了「单类数据集」，
+    # 打印的是「图像 44 张」——数字本身自洽，看不出少了 99% 的数据。
+    # 这类「安静地少建」比报错危险得多，所以这里直接对比文件数并报错。
+    actual_imgs = sum(1 for p in src_images.rglob("*")
+                      if p.is_file() and p.suffix.lower() in IMAGE_EXTS)
+    with src_manifest.open(encoding="utf-8-sig", newline="") as f:
+        manifest_rows = sum(1 for _ in csv.DictReader(f))
+    if manifest_rows != actual_imgs:
+        raise SystemExit(
+            f"manifest.csv 与磁盘不一致，拒绝生成：\n"
+            f"  {src_manifest.relative_to(REPO_ROOT)} 有 {manifest_rows} 行\n"
+            f"  {src_images.relative_to(REPO_ROOT)} 下有 {actual_imgs} 张图\n"
+            f"  差别说明清单是旧的（新导入的图像还没进清单）。\n"
+            f"  修法：python scripts\\make_manifest.py\n"
+            f"  照旧清单建数据集会**安静地少掉大量数据**，所以这里宁可不做。")
 
     rows: list[dict] = []
     n_imgs = n_boxes = n_dropped = 0

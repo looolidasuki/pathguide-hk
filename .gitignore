@@ -36,6 +36,15 @@ data/raw/external/*/**
 !data/raw/external/attribution.jsonl
 !data/dataset/labels/**
 
+# ⚠️ 但**第三方数据集的标签绝不入库**。
+# 上面那条 `!data/dataset/labels/**` 是为了保住**我们自己的**标注成果，
+# 它是「整个目录全放行」，所以第三方数据一落进来就会被一起放行。
+# 实测踩过：导入 Roboflow 的 7261 张图后，`git add -A` 把 7261 个
+# **别人的标注文件**也提交了进去（commit 2014788）。
+# 那既是许可问题（不该把别人的标注重新分发），也是仓库体积问题。
+# 规则顺序：后面的规则覆盖前面的，所以这条要写在那条放行规则**之后**。
+data/dataset/labels/roboflow_people_v1/**
+
 # 探测（spike）素材：Commons 图片是 CC 授权的第三方资源，不入库。
 # 保留结论文档与脚本；图像与署名清单可按 fetch_commons.py 重新拉取。
 data/probe/hk/**

@@ -83,7 +83,8 @@
 | 多类链路 | 真机 `classes=3`、`映射 [6, 11, 7]`、`det=1 paint=1`、`invalid=0`（**映射写死常量那版**） |
 | 模型清单改完后的真机复测 | ⏳ **未做**（2026-10-02 手机未连接）。已验证的替代证据：`flutter analyze` 0 问题、`flutter test` 77 全过、APK 内 `detector.json`(434 B) + `detector.tflite`(2,871,365 B) 都在且字节数与清单一致 |
 | 类别表 | 48 类，索引冻结；Dart/文本/标注工具配置全部由同一源生成 |
-| 数据集 | bin 44 图/122 框（人工复核）· pedestrian 488 帧/2218 框（COCO 自动）· bicycle 13 帧/15 框 |
+| 数据集 | bin **44 图/88 框**（人工复核）· pedestrian 488 帧/2218 框（COCO 自动）· bicycle 13 帧/15 框 |
+| ⚠️ 修正 | 上表此前写「bin 122 框」是**错的**。122 是 `data/dataset/labels/trashbin/` 里**5 个类的总框数**，bin 本身只有 88 框。该目录还含 pedestrian 30、push_cart 2、sign_pictogram 1、shop_front 1，这些框被 `build_single_class_dataset.py --class-id 7` **静默丢弃**——单类提取只保留目标 id，其余不报错地消失 |
 | 外部数据 | `data/raw/external/` **901 张**（16 类，Wikimedia Commons，HK 优先），**尚未使用**；无框，需老师预标 |
 | 门禁 | `pytest` **259** · `flutter test` **77** · `flutter analyze` 0 问题 · Kotlin 编译检查通过 · 模型↔源码一致性检查通过 · APK 内资产核对通过 |
 | 逐类指标 | **bin mAP50 0.948 / 召回 1.000**（19 实例）· pedestrian 0.790（242 实例）· bicycle **不可引用**（val 仅 **2** 实例）；总体 mAP50 **0.7445**，落盘 `artifacts/metrics/pg_poc3_val.json` |

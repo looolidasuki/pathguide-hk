@@ -1,4 +1,4 @@
-﻿"""把多个单类数据集合并成一个多类数据集（本地索引重排 + 按帧合并标签）。
+"""把多个单类数据集合并成一个多类数据集（本地索引重排 + 按帧合并标签）。
 
 ## 为什么不能简单拼接
 
@@ -69,18 +69,38 @@ def find_label(src_dir: Path, image: Path) -> Path | None:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", required=True)
-    ap.add_argument("--add", action="append", required=True,
+    ap.add_argument("--add", action="append", default=[],
                     metavar="DIR:OUR_CLASS",
-                    help="单类数据集目录:它在本项目类别表里的类名（可给多次）")
+                    help="单类数据集目录:它在本项目类别表里的类名（可给多次）。"
+                         "**同一个类可以给多个目录**，会被合并成一类"
+                         "（本地索引按类名首次出现的顺序分配）。")
+    ap.add_argument("--add-train-only", action="append", default=[],
+                    metavar="DIR:OUR_CLASS",
+                    help="同 --add，但**这个来源的帧全部进 train、绝不进 val**。"
+                         "用于第三方聚合数据：它们的划分是逐图随机的，"
+                         "同一段视频的相邻帧会跨 train/val，"
+                         "混进 val 会让**所有验证指标失去意义**"
+                         "（val 既不代表性、又有泄漏）。")
     ap.add_argument("--val-ratio", type=float, default=0.2)
     args = ap.parse_args()
 
+    if not args.add and not args.add_train_only:
+        print("至少要给一个 --add 或 --add-train-only")
+        return 1
+
     name2id = load_classes_json()
-    specs = []
-    for i, item in enumerate(args.add):
+    specs: list[tuple[Path, str, int, bool]] = []
+    # 本地索引按**类名首次出现的顺序**分配，而不是按条目的出现顺序。
+    #
+    # 旧写法是 `enumerate(args.add)` 直接当索引，于是同一个类来自两个目录时
+    # 会得到两个不同的索引——变成**两个几乎相同的类**（比如两个 pedestrian）。
+    # 它不报错，只是模型多输出一路、且两路的标签各自减半，指标看着还挺正常。
+    index_of: dict[str, int] = {}
+    entries = [(a, False) for a in args.add] + [(a, True) for a in args.add_train_only]
+    for item, train_only in entries:
         d, _, cls = item.rpartition(":")
         if not d or cls not in name2id:
-            print(f"--add 格式不对或类名不在类别表里：{item}")
+            print(f"--add/--add-train-only 格式不对或类名不在类别表里：{item}")
             return 1
         src = Path(d)
         if not src.is_absolute():
@@ -88,10 +108,15 @@ def main() -> int:
         if not src.exists():
             print(f"源目录不存在：{src}")
             return 1
-        specs.append((src, cls, i))          # 本地索引按 --add 的顺序分配
-    print("本地索引分配：")
-    for src, cls, idx in specs:
-        print(f"  {idx} = {cls}（真实 id {name2id[cls]}）   <- {src.name}")
+        if cls not in index_of:
+            index_of[cls] = len(index_of)
+        specs.append((src, cls, index_of[cls], train_only))
+
+    print("本地索引分配（按类名首次出现）：")
+    for cls, idx in sorted(index_of.items(), key=lambda kv: kv[1]):
+        dirs = [s.name for s, c, _, _ in specs if c == cls]
+        to = "  [train-only]" if any(t for s, c, _, t in specs if c == cls) else ""
+        print(f"  {idx} = {cls}（真实 id {name2id[cls]}）  <- {', '.join(dirs)}{to}")
 
     # ---- 按**帧名**聚合标签（不是按源文件路径）----
     #
@@ -102,8 +127,9 @@ def main() -> int:
     # 两个派生数据集都沿用原始帧名，因此**帧名才是帧的身份**。
     merged: dict[str, list[str]] = {}
     origin: dict[str, Path] = {}
-    counts = {cls: 0 for _, cls, _ in specs}
-    for src, cls, idx in specs:
+    counts = {cls: 0 for _, cls, _, _ in specs}
+    train_only_names: set[str] = set()
+    for src, cls, idx, train_only in specs:
         images = sorted(p for p in src.rglob("*")
                         if p.is_file() and p.suffix.lower() in IMAGE_EXTS)
         used = 0
@@ -123,8 +149,11 @@ def main() -> int:
             if lines:
                 merged.setdefault(img.name, []).extend(lines)
                 origin.setdefault(img.name, img)
+                if train_only:
+                    train_only_names.add(img.name)
                 used += 1
-        print(f"  {cls}: {used} 张图有标签（累计唯一帧 {len(merged)}）")
+        print(f"  {cls}: {used} 张图有标签（累计唯一帧 {len(merged)}）"
+              + ("  [train-only]" if train_only else ""))
 
     if not merged:
         print("没有任何有效标签")
@@ -149,19 +178,29 @@ def main() -> int:
     #
     # 分组切分同时满足两件事：每类都出现在 val；组内仍按时间顺序（无近邻泄漏）。
     groups: dict[frozenset[int], list[str]] = {}
+    forced_train: list[str] = []
     for name, lines in merged.items():
+        if name in train_only_names:
+            forced_train.append(name)
+            continue
         keys = frozenset(int(l.split()[0]) for l in lines)
         groups.setdefault(keys, []).append(name)
 
-    train_items: list[str] = []
+    if forced_train:
+        print(f"\n  [train-only] {len(forced_train)} 张直接进 train，不参与 val 切分")
+        print("    理由：这些来源自带逐图随机划分，相邻帧会跨 train/val；")
+        print("          混进 val 会让 val 既不代表性、又有泄漏，指标全部失真。")
+
+    train_items: list[str] = list(forced_train)
     val_items: list[str] = []
+    idx2cls = {idx: cls for cls, idx in index_of.items()}
     for keys, names_in_group in sorted(groups.items(), key=lambda kv: sorted(kv[0])):
         ordered = sorted(names_in_group)
         n_val_g = max(1, int(len(ordered) * args.val_ratio)) if len(ordered) > 1 else 0
         cut_g = len(ordered) - n_val_g
         train_items.extend(ordered[:cut_g])
         val_items.extend(ordered[cut_g:])
-        label = "+".join(cls for _, cls, idx in specs if idx in keys)
+        label = "+".join(idx2cls[i] for i in sorted(keys))
         print(f"  分组 [{label}]: {len(ordered)} 张 -> train {cut_g} / val {n_val_g}")
 
     rows = []
@@ -187,9 +226,12 @@ def main() -> int:
             rows.append({"split": split, "name": out_name,
                          "source_image": str(img), "boxes": len(lines)})
 
+    # classes 按**类名**列出一次（不是按 --add 条目）——同一个类来自多个目录时，
+    # 旧写法会把它写两遍，于是本地索引 0 和 1 都是 pedestrian，
+    # 模型多输出一路、App 侧映射表也跟着错。
     classes = [{"id": idx, "name_en": cls, "name_zh": "", "group": "poc",
                 "priority": "P0", "announced": True, "original_id": name2id[cls]}
-               for _, cls, idx in specs]
+               for cls, idx in sorted(index_of.items(), key=lambda kv: kv[1])]
     (out / "classes.json").write_text(json.dumps({
         "version": 1,
         "note": "由 scripts/build_multiclass_dataset.py 合并生成。本地索引 0..nc-1；"
