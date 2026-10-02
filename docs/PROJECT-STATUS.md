@@ -92,9 +92,11 @@ v4 为**纯追加**：id 48 `obstacle`（泛化兜底类，用于「前面有東
 | 外部数据 | `data/raw/external/` **901 张**（16 类，Wikimedia Commons，HK 优先），**尚未使用**；无框，需老师预标 |
 | Roboflow 数据（已用，仅训练集） | People Detection v1，7261 张，映射后 pedestrian **29,857** / bicycle **2,038** 框；⚠️ **仅限研究用途**，署名与限制见 `docs/THIRD-PARTY-DATA.md` |
 | 合并数据集 `dataset_poc4` | **5697 图**（train 5594 / val 103）、pedestrian 32,105 / bicycle 2,053 / bin 88 框。Roboflow 的 5178 张**全在 train**，val 100% 香港实拍 |
+| 主数据集 `dataset_poc5`（当前） | **10,456 图**（train 10,353 / val 103）、**18 个类有数据**：pedestrian 32,277 · bicycle **4,325** · obstacle **2,156** · escalator **1,980** · bin 113 · barrier_water 44 · door 39 · fence 15 · streetlight 15 · scooter 6 · bucket 6 · sign_post 5 · power_distribution_box 3 · billboard 3 · cycle_path 2 · cardboard 1 · goods 1 · barrier_fencing 1 |
+| ⚠️ val 只能评 **3 个类** | val 103 张的框只有 pedestrian 242 / bin 16 / bicycle 2。**另外 15 个类没有任何验证数据**，因此「模型有没有学会它们」**目前无法测量** —— 这是独立于训练的一个缺口 |
 | **第三方数据的实测收益** | ❌ **没有可测量的收益**。同一份香港 val、在**播报门槛 0.70** 处：pedestrian P **0.980 → 0.945**、R 0.413 → 0.355；总体 P 0.636 → 0.648（260 实例内属噪声）。13.5×/136× 的数据买不到提升 —— 详见 `2026-10-02-third-party-data-yield.md` |
 | `bicycle` 的真实状态 | 在 conf=0.70 处**两版模型都是 P=0 / R=0** —— 系统**不会播报单车**。val 仅 **2** 个实例，既算不出指标也**不足以证伪**「加数据有没有用」 |
-| 门禁 | `pytest` **259** · `flutter test` **77** · `flutter analyze` 0 问题 · Kotlin 编译检查通过 · 模型↔源码一致性检查通过 · APK 内资产核对通过 |
+| 门禁 | `pytest` **342** · `flutter test` **77** · `flutter analyze` 0 问题 · Kotlin 编译检查通过 · 模型↔源码一致性检查通过 · APK 内资产核对通过 |
 | 逐类指标 | **bin mAP50 0.948 / 召回 1.000**（19 实例）· pedestrian 0.790（242 实例）· bicycle **不可引用**（val 仅 **2** 实例）；总体 mAP50 **0.7445**，落盘 `artifacts/metrics/pg_poc3_val.json` |
 | 蒸馏可行性 | COCO person → 我们的模型：**老师框回收 94%**（零人工标签） |
 | 模型清单 | 模型 + 类别映射一起下发；**清单与模型不符就拒绝启动**（不再猜映射）。内置清单与模型逐字节对账，APK 内已验证 |
