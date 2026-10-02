@@ -7,6 +7,9 @@ import json
 import pathlib
 import sys
 
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from yolo_metrics import ap_index_of, map_per_class_metrics  # noqa: E402
+
 from ultralytics import YOLO
 
 WEIGHTS = pathlib.Path("runs/pg_poc3/weights/best.pt")
@@ -16,23 +19,25 @@ OUT = pathlib.Path("artifacts/metrics/pg_poc3_val.json")
 m = YOLO(str(WEIGHTS))
 r = m.val(data=str(DATA), imgsz=416, split="val", workers=0, plots=False, verbose=False)
 
-names = r.names
-# nt_per_class：验证集里每类的实例数。**这个数必须一起记**——
-# 没有它，「bicycle mAP50=0.496」和「bicycle 只有 2 个实例」是同一件事，
-# 但只有后者才说明这个指标不该被引用。
-nt = getattr(r, "nt_per_class", None)
-classes = []
-for i, name in names.items():
-    p, rec, ap50, ap = r.box.p[i], r.box.r[i], r.box.ap50[i], r.box.ap[i]
-    classes.append({
-        "local_index": int(i),
-        "name": name,
-        "instances": int(nt[i]) if nt is not None else None,
-        "precision": round(float(p), 4),
-        "recall": round(float(rec), 4),
-        "mAP50": round(float(ap50), 4),
-        "mAP50_95": round(float(ap), 4),
-    })
+# ★ 必须用 ap_class_index 映射，不能按 r.names 的下标取。
+# r.names 是 **data.yaml 的类别数**（poc5 是 18），而 box.p 只覆盖
+# **val 里真有实例的类**（通常更少）。直接 r.box.p[i] 会在类别数 > 有实例的类数时
+# IndexError；更糟的是旧模型 3 类时两个长度恰好相等，它会**靠巧合工作**。
+# 这段逻辑现在抽到 scripts/yolo_metrics.py 并有单测覆盖。
+per_class = map_per_class_metrics(
+    r.names, r.box.p, r.box.r, r.box.ap50, r.box.ap,
+    ap_class_index=ap_index_of(r),
+    # nt_per_class：验证集里每类的实例数。**这个数必须一起记**——
+    # 没有它，「bicycle mAP50=0.496」和「bicycle 只有 2 个实例」是同一件事，
+    # 但只有后者才说明这个指标不该被引用。
+    instances=getattr(r, "nt_per_class", None),
+)
+classes = [
+    {"local_index": v["class_index"], "name": k, "instances": v["instances"],
+     "precision": v["precision"], "recall": v["recall"],
+     "mAP50": v["mAP50"], "mAP50_95": v["mAP50_95"]}
+    for k, v in per_class.items()
+]
 
 out = {
     "weights": str(WEIGHTS),
