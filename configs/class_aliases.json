@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "note": "跨模型文本标签的归一表。YOLO-World / LocateAnything / Grounding DINO 输出的都是自由文本，必须归一到 configs/classes.json 的类别 id，否则模型间的框无法比较。新增说法时只改这里。",
   "matching": {
     "note": "归一顺序：精确别名 -> 词集合 Jaccard -> 字符相似度。低于阈值返回「未判定」而非强行归类——强行归类会产生错误标注，且训练时不报错。",
@@ -10,19 +10,16 @@
     "gdin_prompt_note": "★★ Grounding DINO **每次只能发一个 prompt**。实测每组发 6 个 prompt 时产生 ##cala stairs / estor 等破损标签，且 estor 被错误映射成 shop_front。单 prompt 后异常降至 12/792。prompt 必须小写 + 句号结尾。",
     "unmeasured_thresholds_note": "★ v3 新增的 25 类**还没有数据**，因此它们的 gdin_threshold 按同类近似值先填了一版，**没有实测依据**。每一类采到 30 张以上后必须用 gdin 跑到重标，否则零样本阶段的框数会失真。待重标的 id 见 unmeasured_thresholds。",
     "ambiguous_aliases": {
-      "note": "这些说法无法从文本判断属于同名的户外类还是室内类（玻璃门 17/21、扶梯 2/19）。仅凭文字归类等于抛硬币，因此一律返回未决，交由上层用场景信息裁决。",
+      "note": "这些说法无法从文本判断属于同名的户外类还是室内类（玻璃门 17/21）。仅凭文字归类等于抛硬币，因此一律返回未决，交由上层用场景信息裁决。**v4 起扶梯不再属于这里**：新增了通用类 escalator(49) 之后，文字「escalator」有了唯一归属，原先记在下面的 2/19 未决条目已移除（留着会与 49 的精确别名冲突）。",
       "glass door": [17, 21],
       "glass doors": [17, 21],
       "glass entrance": [17, 21],
-      "transparent door": [17, 21],
-      "escalator": [2, 19],
-      "escalators": [2, 19],
-      "moving staircase": [2, 19]
+      "transparent door": [17, 21]
     }
   },
   "unmeasured_thresholds": {
-    "note": "这些类的 gdin_threshold 尚未实测，采到数据后用 gdin 重标；在此之前零样本阶段的框数不可信。",
-    "ids": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47]
+    "note": "这些类的 gdin_threshold 尚未实测，采到数据后用 gdin 重标；在此之前零样本阶段的框数不可信。v4 新增的 48/49 也在其中。",
+    "ids": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]
   },
   "classes": [
     {
@@ -346,6 +343,25 @@
       "note": "PDF 注：冷气机滴水时可能出现在路中心。",
       "yolo_world_prompts": ["a bucket", "a plastic bucket on the pavement", "a water bucket"],
       "la_aliases": ["bucket", "buckets", "plastic bucket", "water bucket"]
+    },
+    {
+      "id": 48, "name_en": "obstacle", "name_zh": "障礙物",
+      "verify_query": "barrier",
+      "gdin_threshold": 0.25,
+      "note": "★ v4 新增的**泛化兜底类**，与其它类有一个本质区别：**它的框不适合由老师模型产出**。本文件 matching.verify_query_note 记了实测——用伞类名提问，VLM 只确认 48%（换成具体物件名 100%）。obstacle 天生就是伞类名，所以：① verify_query 填「barrier」这个**具体**的障碍物名，而不是「obstacle」；② 它的训练框来源是**人工标注**（Roboflow everyday-object-finder 的 2156 个 barrier 标注），不是自动预标。将来若要自动扩标，必须先把「什么算 obstacle」的判据写成可执行的规则，否则这一类会迅速漂移成一个什么都装的口袋。",
+      "yolo_world_prompts": ["a barrier blocking the path", "a road barrier", "a construction barrier",
+                             "a temporary barrier on the pavement", "an obstruction on the walkway"],
+      "la_aliases": ["barrier", "barriers", "road barrier", "construction barrier", "temporary barrier",
+                     "obstruction", "obstacle", "blockage", "roadblock"]
+    },
+    {
+      "id": 49, "name_en": "escalator", "name_zh": "扶梯",
+      "verify_query": "escalator",
+      "gdin_threshold": 0.30,
+      "note": "★ v4 新增的**通用扶梯类**。它解掉了本文件 matching.ambiguous_aliases 里原本的一条歧义：文字「escalator」分不出是 id 2 户外还是 id 19 商场，过去一律返回未决；现在有通用类，可直接归到 49。**id 2 / 19 转为休眠**（零标注）；将来要细分时应**新增**子类，不要复用那两个槽位。",
+      "yolo_world_prompts": ["an escalator", "a moving staircase", "an escalator in a station",
+                             "an escalator in a shopping mall"],
+      "la_aliases": ["escalator", "escalators", "moving staircase", "travelator", "moving walkway"]
     }
   ],
   "out_of_taxonomy_candidates": {

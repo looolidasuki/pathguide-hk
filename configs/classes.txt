@@ -46,3 +46,5 @@ cycle_path
 streetlight
 sign_post
 bucket
+obstacle
+escalator

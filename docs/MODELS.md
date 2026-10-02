@@ -144,14 +144,14 @@ TFLite int8、输入 416、2.74 MiB，随 App 打包，**离线**运行。
 
 | 模型 | 用途 | 阶段 | 实测表现 |
 |---|---|---|---|
-| `yolo11n.pt`（COCO 预训练） | 微调起点 + COCO 预标 | 训练 / 预标 | COCO 只覆盖 48 类中的 **3 类**（bicycle 精确、pedestrian ↔ person、table ↔ dining table 语义不等价） |
+| `yolo11n.pt`（COCO 预训练） | 微调起点 + COCO 预标 | 训练 / 预标 | COCO 只覆盖表里 **3 类**（bicycle 精确、pedestrian ↔ person、table ↔ dining table 语义不等价） |
 | `yolov8s-world.pt` | 零样本开放词表提案 | stage1 | 9 个核心类**零召回**（`stairs` 0.000）；不能单独当老师 |
-| `IDEA-Research/grounding-dino-tiny` | 宽覆盖预标 | 预标 | 48 类里 **46 类非零**（stairs 60%、step 60%、road_excavation 100%、tactile_paving 30%、barrier_fencing 83%）；但 **11.3 s/图**（⚠️ 这个数是**在 RTX 5070 上测的**，`gd_detect.py` 用 `.to("cuda")`）、约 **66 框/图**噪声 |
+| `IDEA-Research/grounding-dino-tiny` | 宽覆盖预标 | 预标 | 当时 48 类的表里 **46 类非零**（stairs 60%、step 60%、road_excavation 100%、tactile_paving 30%、barrier_fencing 83%）；但 **11.3 s/图**（⚠️ 这个数是**在 RTX 5070 上测的**，`gd_detect.py` 用 `.to("cuda")`）、约 **66 框/图**噪声 |
 | `sam2.1_t.pt` | 掩膜精修（把框修准） | stage2 | 已有代码，未接新老师 |
 | `nvidia/LocateAnything-3B` | VLM 裁剪验证「这里面有没有 <类别>」 | stage2 | 需 `transformers 4.57.1` + bf16；在 `.venv-vlm` 里跑 |
 
-**老师链的定位**：老师的作用是**把人工标注量从 33 h 降到 16.8 h**（48 类 × 250 框 ≈ 12,000 框），
-不是替代人工。**没有任何老师模型能直接给出可用的 48 类模型**——
+**老师链的定位**：老师的作用是**把人工标注量从 33 h 降到 16.8 h**（现 50 类 × 250 框 ≈ 12,500 框），
+不是替代人工。**没有任何老师模型能直接给出可用的 50 类模型**——
 GDINO 覆盖广但噪声大，YOLO-World 对结构性障碍（楼梯、路障）零召回，
 COCO 只认识 3 类。所以保留**人工抽样质检**这一环。
 
@@ -167,7 +167,7 @@ COCO 只认识 3 类。所以保留**人工抽样质检**这一环。
 |---|---:|---:|---:|---|---|
 | `pg_poc3` | **3** | 60 | 2,871,365 | `38e56bdd46f90d8f` | ✅ **当前发布**（训练集 = 香港实拍 + COCO 派生的行人） |
 | `pg_poc4` | 3 | 60 | — | — | ❌ **实验版，不发布**。训练集额外加入 Roboflow 的 5178 张（pedestrian 13.5×、bicycle 136×）。在**同一份香港 val、播报门槛 0.70** 处与 poc3 等价（总体 P 0.636 vs 0.648），**无可测量收益**，却带来许可负担（仅限研究用途）、训练时间 ×10、域偏移风险。详见 `2026-10-02-third-party-data-yield.md` |
-| `pg_review_v0` | **24** | 100 | 2,991,099 | `b27be0338e36beda` | 用的是**已作废的 24 类表**；48 类表冻结后类别索引对不上 |
+| `pg_review_v0` | **24** | 100 | 2,991,099 | `b27be0338e36beda` | 用的是**已作废的 24 类表**；类别表冻结后（现 50 类）索引对不上 |
 | `pg_single_bin` | 1 | 100 | 2,869,369 | `3ebc47792155f0b2` | 单类验证用（垃圾桶），已被 3 类取代 |
 
 ### 4.1 比较模型时必须写明阈值

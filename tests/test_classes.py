@@ -8,7 +8,10 @@ CLASSES_PATH = REPO_ROOT / "configs" / "classes.json"
 ALIASES_PATH = REPO_ROOT / "configs" / "class_aliases.json"
 
 EXPECTED_GROUPS = ["footbridge", "obstacle", "guide", "indoor", "classifier", "train_only"]
-N_CLASSES = 48
+N_CLASSES = 50
+
+# v4 新增的两个泛化类（纯追加，不动任何既有 id）。
+V4_APPENDED = {48: "obstacle", 49: "escalator"}
 
 # v1（16 类）时的 id -> name_en，用于锁定「天桥专项类从未变动」这一不变量。
 # 改动这些会让既有标注数据错位，因此用测试硬性保护。
@@ -103,11 +106,46 @@ def test_id_6_to_22_unchanged_since_v2_except_push_cart(classes):
 
 
 def test_new_classes_occupy_23_to_47(classes):
-    """v3 新增的 25 类占 id 23-47，且 id 23 是复用原本没有标注的占位槽。"""
-    new = [c for c in classes if c["id"] >= 23]
-    assert len(new) == 25
-    assert [c["id"] for c in new] == list(range(23, 48))
-    assert new[0]["name_en"] == "fork_in_road"
+    """v3 新增的 25 类占 id 23-47，且 id 23 是复用原本没有标注的占位槽。
+
+    注意这条测的是**v3 那批**，所以只锁 23-47；v4 追加的 48/49 由下一条测。
+    把它写成「id>=23 的类数」会随每次追加而失效，那是在测当下而不是测不变式。
+    """
+    v3 = [c for c in classes if 23 <= c["id"] <= 47]
+    assert len(v3) == 25
+    assert v3[0]["name_en"] == "fork_in_road"
+
+
+def test_v4_appended_two_general_classes(classes):
+    """v4 只追加 48/49，且**既有 0-47 的 id 与名称一字未改**。
+
+    这是 v4 唯一允许的改动形态：类别表是 YOLO 标签契约，
+    动了既有槽位就会让已标注数据的索引全体错位，而训练只会表现为 mAP 偏低。
+    """
+    got = {c["id"]: c["name_en"] for c in classes if c["id"] >= 48}
+    assert got == V4_APPENDED, f"v4 追加的类应为 {V4_APPENDED}，实际 {got}"
+
+    # 既有的 0-47 必须仍然存在且顺序不变
+    assert [c["id"] for c in classes if c["id"] <= 47] == list(range(48))
+
+    # 两个新类必须各自写明「为什么它是泛化类、边界在哪」——
+    # 兜底类最容易漂移成一个什么都装的口袋，没有边界说明就不能用。
+    for cid in (48, 49):
+        c = next(x for x in classes if x["id"] == cid)
+        assert c.get("note", "").strip(), f"id {cid} 缺 note"
+        assert len(c["note"]) > 80, f"id {cid} 的 note 太短，不足以说明边界"
+
+
+def test_escalator_specific_slots_are_dormant_not_deleted(classes):
+    """id 2/19 两个细分扶梯槽位保留但休眠 —— 不能删。
+
+    删掉会让 id 序列不连续（生成器要求连续，且既有标签会错位）。
+    正确做法是保留槽位、由通用类 49 承担数据。
+    """
+    by_id = {c["id"]: c["name_en"] for c in classes}
+    assert by_id[2] == "escalator_outdoor"
+    assert by_id[19] == "escalator_indoor"
+    assert by_id[49] == "escalator"
 
 
 def test_reused_slot_is_declared(classes):
@@ -130,12 +168,14 @@ def test_id_stability_declared_matches(classes):
     assert doc["id_stability"]["stable_since_v2"] == list(range(23))
 
 
-def test_version_is_3_with_history(classes):
+def test_version_is_4_with_history(classes):
     with CLASSES_PATH.open(encoding="utf-8") as f:
         doc = json.load(f)
-    assert doc["version"] == 3
-    assert len(doc["history"]) >= 3
-    assert doc["history"][-1]["version"] == 3
+    assert doc["version"] == 4
+    assert len(doc["history"]) >= 4
+    assert doc["history"][-1]["version"] == 4
+    # 每次扩表都必须在 history 里写清「动了什么、为什么安全」
+    assert "追加" in doc["history"][-1]["change"]
 
 
 def test_umbrella_class_removed(classes):
@@ -220,7 +260,10 @@ def test_unmeasured_thresholds_are_declared(aliases):
     """
     doc = json.loads(ALIASES_PATH.read_text(encoding="utf-8"))
     declared = set(doc["unmeasured_thresholds"]["ids"])
-    assert declared == set(range(23, 48)), "v3 新增的 25 类都应列入待重标"
+    # v3 的 23-47 与 v4 的 48-49 都还没有实测阈值。
+    # 用 <=（而不是 ==）是为了让「以后新增类」不必改这条测试——只要新类也记进去。
+    assert set(range(23, 48)) <= declared, "v3 新增的 25 类都应列入待重标"
+    assert set(V4_APPENDED) <= declared, "v4 新增的类也应列入待重标"
 
 
 def test_out_of_taxonomy_words_are_not_already_classes(classes, aliases):

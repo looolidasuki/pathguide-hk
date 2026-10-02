@@ -79,9 +79,33 @@ def test_ambiguous_glass_door_returns_none(tax):
     assert tax.is_ambiguous("glass door") == [17, 21]
 
 
-def test_ambiguous_escalator_returns_none(tax):
-    assert tax.lookup("escalator") is None
-    assert tax.is_ambiguous("escalator") == [2, 19]
+def test_generic_escalator_now_resolves_to_the_general_class(tax):
+    """v4 之后「escalator」不再返回未决，而是归到通用类 49。
+
+    这条测试先前断言的是 `lookup("escalator") is None`（未决）——
+    因为当时类别表里只有 escalator_outdoor(2) / escalator_indoor(19)，
+    文字分不出室内外，猜一个就是抛硬币。
+
+    v4 新增通用类 escalator(49) 之后，这个歧义**消失了**：
+    泛指的说法有了唯一归属。未决条目也已从 ambiguous_aliases 移除——
+    留着会和 49 的精确别名冲突。
+
+    这正是「先辨识出来再分」这条用户决策带来的具体收益：
+    过去一整类说法落不了地，现在能用了。
+    """
+    assert tax.lookup("escalator") == 49
+    assert tax.lookup("escalators") == 49
+    # is_ambiguous 对「非歧义词」返回 None（不是空列表）
+    assert tax.is_ambiguous("escalator") is None
+
+
+def test_ambiguous_glass_door_still_returns_none(tax):
+    """玻璃门的歧义**没有**被解决（我们没有加通用玻璃门类），必须仍然未决。
+
+    与扶梯对照：这条守着「不要因为一处变通就把所有歧义都放开」。
+    """
+    assert tax.lookup("glass door") is None
+    assert tax.is_ambiguous("glass door") == [17, 21]
 
 
 def test_disambiguated_forms_still_work(tax):

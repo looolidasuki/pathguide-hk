@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "note": "类别顺序即 YOLO 标签索引。**索引已冻结**：后续新增类别只能追加到末尾，不得重排——YOLO 标签按索引存储，重排会让已标注数据全部错位。",
   "history": [
     {
@@ -16,6 +16,11 @@
       "version": 3,
       "date": "2026-09-27",
       "change": "扩至 48 类，按《labelObject_workload 20260920.pdf》的 50 项清单对齐。动了两处既有槽位：id 13 cart_trolley 改名为 push_cart（语义收窄为「手推车」，唧车/嬰兒車/搬运车另立新类，**id 不变**，故既有 2 个标注仍然有效）；id 23 删除训练期占位类 ambiguous_vertical、由 fork_in_road 接管该槽位（该槽位**没有任何标注**，是唯一可安全复用的空位，而生成器要求 id 连续）。新增 24 类到 id 24-47。同时按 PDF 的两条决策把指示牌细分与店铺名移出检测任务：7 个 signage_* 走 crop+小分类模型，6 项文字走本地 OCR。"
+    },
+    {
+      "version": 4,
+      "date": "2026-10-02",
+      "change": "扩至 50 类：**纯追加** id 48 obstacle（泛化兜底类）与 id 49 escalator（通用扶梯），既有 0-47 的 id 与名称**均未改动**。两类的来源是 Roboflow everyday-object-finder 项目里无法安全映射的两个通用类（`barrier` 2156 框、`escalator` 1980 框）：它们的语义比本表既有类都宽，硬映到具体类会教出错语义，故按用户决定新增泛化类。同时记录：id 2 escalator_outdoor 与 id 19 escalator_indoor 转为休眠（零标注，且新数据无法区分室内外）。"
     }
   ],
   "id_stability": {
@@ -90,7 +95,13 @@
       "note": "announced=false：路灯到处都有，而「前方有路灯」对视障用户**不可行动**。检测它只用于避撞与场景理解，不播报——否则会把真正该说的话挤掉。" },
     { "id": 46, "name_en": "sign_post",           "name_zh": "標誌桿",       "group": "obstacle",   "priority": "P2", "announced": false,
       "note": "announced=false，理由同 streetlight：细长杆件密集出现，逐根播报等于噪声。" },
-    { "id": 47, "name_en": "bucket",              "name_zh": "水桶",         "group": "obstacle",   "priority": "P2", "announced": true }
+    { "id": 47, "name_en": "bucket",              "name_zh": "水桶",         "group": "obstacle",   "priority": "P2", "announced": true },
+
+    { "id": 48, "name_en": "obstacle",            "name_zh": "障礙物",       "group": "obstacle",   "priority": "P1", "announced": true,
+      "note": "v4 新增（用户决定）：**泛化的兜底类**。用途有两个 —— ① 具体类无法判定时给出可播报的结论：对视障用户而言「前面有東西擋路」往往比「那是什么」更重要、也更早能说；② 充当「未识别障碍物」上传闭环的判据（此前实测 98% 的街景帧都有检出，所以「有无检出」不能当条件；有了这一类，就可以用「检出 obstacle 但置信度不高」当条件）。**边界必须遵守，否则标注会漂移**：凡能归入任一具体类（垃圾桶/護柱/交通錐/水馬/單車/圍欄…）的一律用具体类，只有确实无法归类时才标 obstacle；**行人、以及升降機/扶梯/路燈等设施不标 obstacle**。来源：Roboflow everyday-object-finder 的 2156 个 `barrier` 标注（该项目把通用屏障与細分类混标，几何上与水馬/圍欄都不同形，无法安全映到既有类）。" },
+
+    { "id": 49, "name_en": "escalator",           "name_zh": "扶梯",         "group": "footbridge", "priority": "P1", "announced": true,
+      "note": "v4 新增（用户决定）：**通用扶梯**，按「先辨识出来再分」——先能可靠说出「这里有扶梯」，方向与室内外的细分等数据够了再做。**与既有 id 2 escalator_outdoor / id 19 escalator_indoor 的关系**：那两类当前**零标注**；而现有第三方数据的 1980 个 `escalator` 标注**无法区分室内外**（实测其图片含新加坡/樟宜/中国等来源，且标注无方向信息），硬映到其中一个必然有错。因此三者并存，但**只有通用类会有数据**，两个细分槽位暂时休眠——与 v3 删除 ambiguous_vertical 占位类属同一情形，这次保留槽位以免触动索引。将来要细分时，应**新增**方向/场景子类，不要复用这两个槽位。" }
   ],
   "crop_classifier": {
     "note": "PDF 决策：YOLO 只画 sign_pictogram(20) 的外框，框内是什么标志交给一个小分类模型（MobileNetV4 量级）。这些**不是检测类别**，不进 YOLO 标签，所以放在这里而不是 classes 里——放进去会让每张图都多出 7 个待标类别。",
@@ -100,7 +111,7 @@
     ]
   },
   "deferred_batch_b": {
-    "note": "B 档：下一批再考虑加入。只能追加到 id 48 之后，不得重排既有索引。v3 之后本档为空——原来列的 construction_fence / roadwork / metal_plate / tree / utility_box / lamp_post / cardboard / goods_on_street / table_chair / pull_up_banner / queue_crowd 已按 PDF 清单正式入表（名字以本表为准）；gender_sign / bus_stop_sign 归入 ocr_only。",
+    "note": "B 档：下一批再考虑加入。只能追加到 id 49 之后，不得重排既有索引。v3 之后本档为空——原来列的 construction_fence / roadwork / metal_plate / tree / utility_box / lamp_post / cardboard / goods_on_street / table_chair / pull_up_banner / queue_crowd 已按 PDF 清单正式入表（名字以本表为准）；gender_sign / bus_stop_sign 归入 ocr_only。v4 新增 id 48 obstacle / 49 escalator 两个泛化类后，本档仍为空。",
     "classes": []
   },
   "ocr_only": {

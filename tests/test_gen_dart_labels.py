@@ -4,6 +4,7 @@
 安静地标错类别（不报错）。所以这里断言生成结果与 configs/classes.json 一致。
 """
 import json
+import pathlib
 import re
 
 import pytest
@@ -12,9 +13,20 @@ import gen_dart_labels as G
 
 
 def test_loads_all_classes_from_single_source():
+    """从 configs/classes.json 读 —— 断言「与单一来源一致」，不是某个具体数字。
+
+    先前这里硬编码 48，每次扩表都要手改测试。而真正的不变式是
+    「Dart 侧与 classes.json 逐项相同」，与类数无关。
+    """
     classes = G.load_classes()
-    assert len(classes) == 48
-    assert [c["id"] for c in classes] == list(range(48))
+    assert classes, "类别表为空"
+    assert [c["id"] for c in classes] == list(range(len(classes)))
+
+    src = json.loads((pathlib.Path(G.REPO_ROOT) / "configs" / "classes.json")
+                     .read_text(encoding="utf-8"))["classes"]
+    assert len(classes) == len(src)
+    assert [(c["id"], c["name_en"]) for c in classes] == \
+           [(c["id"], c["name_en"]) for c in src]
 
 
 def test_class_ids_are_continuous_starting_at_zero():
@@ -34,8 +46,10 @@ def test_rejects_non_continuous_ids(tmp_path):
 
 
 def test_dart_output_declares_the_right_class_count():
-    dart = G.render_dart(G.load_classes())
-    assert "const int kNumClasses = 48;" in dart
+    classes = G.load_classes()
+    dart = G.render_dart(classes)
+    assert f"const int kNumClasses = {len(classes)};" in dart, \
+        f"Dart 里的类别数应与 classes.json 的 {len(classes)} 一致"
 
 
 def test_dart_output_preserves_id_to_name_mapping():
@@ -44,7 +58,7 @@ def test_dart_output_preserves_id_to_name_mapping():
     dart = G.render_dart(classes)
     blocks = re.findall(r"Label\(\s*id: (\d+),\s*nameEn: '([^']+)',\s*"
                         r"nameZh: '([^']+)',", dart)
-    assert len(blocks) == 48
+    assert len(blocks) == len(classes)
     for (cid, en, zh), c in zip(blocks, classes):
         assert int(cid) == c["id"]
         assert en == c["name_en"]
@@ -138,7 +152,8 @@ def test_txt_is_regenerated_alongside_dart(tmp_path, monkeypatch):
     monkeypatch.setattr(G, "JSON_PATH", tmp_path / "labels.json")
     assert G.write_outputs(check=False) == 0
     assert target_txt.exists()
-    assert len(target_txt.read_text(encoding="utf-8").splitlines()) == 48
+    n = len(G.load_classes())
+    assert len(target_txt.read_text(encoding="utf-8").splitlines()) == n
     # check 模式应当认为已同步（三个产物都刚写过）
     assert G.write_outputs(check=True) == 0
 

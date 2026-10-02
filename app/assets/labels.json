@@ -1,7 +1,7 @@
 {
   "generated_from": "configs/classes.json",
   "note": "由 scripts/gen_dart_labels.py 生成，请勿手工编辑。",
-  "num_classes": 48,
+  "num_classes": 50,
   "announcement_order": [
     0,
     1,
@@ -40,6 +40,8 @@
     34,
     35,
     36,
+    48,
+    49,
     37,
     38,
     39,
@@ -435,6 +437,22 @@
       "name_zh": "水桶",
       "group": "obstacle",
       "priority": "P2",
+      "announced": true
+    },
+    {
+      "id": 48,
+      "name_en": "obstacle",
+      "name_zh": "障礙物",
+      "group": "obstacle",
+      "priority": "P1",
+      "announced": true
+    },
+    {
+      "id": 49,
+      "name_en": "escalator",
+      "name_zh": "扶梯",
+      "group": "footbridge",
+      "priority": "P1",
       "announced": true
     }
   ]

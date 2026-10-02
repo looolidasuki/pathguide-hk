@@ -34,7 +34,8 @@ class VisionSourceStatus {
 
   final bool ok;
 
-  /// 面向用户的说明（成功也要有，例如「模型已加载，48 类」）。
+  /// 面向用户的说明（成功也要有，例如「模型已加载，N 类」——N 由模型清单决定，
+/// 不要写死，类别表会随版本增长）。
   final String message;
 
   /// 失败细节，供诊断面板显示。成功时为 null。

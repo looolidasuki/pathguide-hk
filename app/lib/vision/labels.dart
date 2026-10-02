@@ -413,14 +413,30 @@ const List<Label> kLabels = <Label>[
     priority: 'P2',
     announced: true,
   ),
+  Label(
+    id: 48,
+    nameEn: 'obstacle',
+    nameZh: '障礙物',
+    group: 'obstacle',
+    priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 49,
+    nameEn: 'escalator',
+    nameZh: '扶梯',
+    group: 'footbridge',
+    priority: 'P1',
+    announced: true,
+  ),
 ];
 
 /// 模型输出维度。推理结果长度与之不符即为模型与类别表不匹配。
-const int kNumClasses = 48;
+const int kNumClasses = 50;
 
 /// 播报优先级顺序（先 announced，再 P0 → P1，再 id）。
 const List<int> kAnnouncementOrder = <int>[
-  0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 14, 17, 19, 21, 23, 24, 25, 5, 10, 12, 13, 15, 16, 18, 20, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 47, 45, 46,
+  0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 14, 17, 19, 21, 23, 24, 25, 5, 10, 12, 13, 15, 16, 18, 20, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 48, 49, 37, 38, 39, 40, 41, 42, 43, 44, 47, 45, 46,
 ];
 
 /// 按 id 取类别。id 越界时返回 null —— 不要静默回退到 0，那会掩盖模型/类别表不匹配。

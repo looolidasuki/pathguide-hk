@@ -128,6 +128,11 @@ service-account*.json
 # 临时
 *.tmp
 ~$*
+# 分析与排查用的一次性脚本（在仓库根目录创建，用完即删）。
+# 曾经误提交过一个（.tmp_v3.py），故加规则。
+/.tmp_*.py
+/.tmp_*.txt
+/.tmp_*.ps1
 
 # 提交信息临时文件（`git commit -F` 用；曾被误提交一次，故加规则）
 /msg-*.txt

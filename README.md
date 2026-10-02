@@ -20,7 +20,7 @@ Android 真机（Xiaomi 2609FRA74T / Snapdragon 685）实测：
 | 指标 | 值 |
 |---|---|
 | 模型 | YOLO11n，**3 类**（行人 / 单车 / 垃圾桶），TFLite int8，416×416，2.87 MB |
-| 映射 | `modelClassIds = [6, 11, 7]`（本地索引 → 48 类表真实 id），**随模型清单下发，不写死在代码里** |
+| 映射 | `modelClassIds = [6, 11, 7]`（本地索引 → 50 类表真实 id），**随模型清单下发，不写死在代码里** |
 | 推理 | **268 ms/帧**，**3.7 FPS**（纯 CPU；本机无 NNAPI/GPU delegate 可用） |
 | 逐类指标 | 垃圾桶 mAP50 **0.948**（召回 1.000，19 实例）· 行人 0.790（242 实例）· 自行车 **不可用**（val 仅 2 实例） |
 | 指标口径 | 以上是**对老师标注的保真度**，不是真实准确率；真实数字需人工核验的抽样集（约 30 帧，未做） |
@@ -89,7 +89,7 @@ app/                    Flutter App（Android 原生实现已完整；iOS 待补
   lib/overlay/          检测框叠加层
   lib/tts/              播报决策（两级冷却 + 分数门槛）与粤语 TTS
   android/.../VisionPlugin.kt   CameraX + LiteRT，零拷贝取帧与推理
-configs/                类别表唯一事实源（48 类）与别名表
+configs/                类别表唯一事实源（50 类）与别名表
 scripts/                数据采集、扫描选帧、老师预标、训练、导出、门禁、真机验证
 docs/PROJECT-STATUS.md  ★ 项目总览
 docs/MODELS.md          ★ 模型清单（端上模型、老师模型、逐类指标、换模型步骤）
