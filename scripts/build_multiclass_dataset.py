@@ -30,6 +30,7 @@ import hashlib
 import json
 import re
 import shutil
+from collections import Counter
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -81,11 +82,19 @@ def main() -> int:
                          "同一段视频的相邻帧会跨 train/val，"
                          "混进 val 会让**所有验证指标失去意义**"
                          "（val 既不代表性、又有泄漏）。")
+    ap.add_argument("--add-multi-train-only", action="append", default=[],
+                    metavar="DIR",
+                    help="**多类来源**，标签里用的是 configs/classes.json 的**项目 id**"
+                         "（`import_roboflow.py` 的产物就是这个形态），"
+                         "全部帧进 train、绝不进 val。"
+                         "为什么需要它：一个 20 类的来源若走「每类拆一次」的老路子，"
+                         "会为每个类复制一遍全部图像（实测单次复制就是几千张、"
+                         "20 类就是几十 GB），而这里只需读一次。")
     ap.add_argument("--val-ratio", type=float, default=0.2)
     args = ap.parse_args()
 
-    if not args.add and not args.add_train_only:
-        print("至少要给一个 --add 或 --add-train-only")
+    if not args.add and not args.add_train_only and not args.add_multi_train_only:
+        print("至少要给一个 --add / --add-train-only / --add-multi-train-only")
         return 1
 
     name2id = load_classes_json()
@@ -129,6 +138,7 @@ def main() -> int:
     origin: dict[str, Path] = {}
     counts = {cls: 0 for _, cls, _, _ in specs}
     train_only_names: set[str] = set()
+    id2name = {v: k for k, v in name2id.items()}
     for src, cls, idx, train_only in specs:
         images = sorted(p for p in src.rglob("*")
                         if p.is_file() and p.suffix.lower() in IMAGE_EXTS)
@@ -154,6 +164,55 @@ def main() -> int:
                 used += 1
         print(f"  {cls}: {used} 张图有标签（累计唯一帧 {len(merged)}）"
               + ("  [train-only]" if train_only else ""))
+
+    # ---- 多类来源：标签用项目 id，按类名分配本地索引 ----
+    #
+    # 与上面的单类来源共用同一套 index_of，所以「同一个类来自多处」仍然合成一类；
+    # 也共用 merged 的**帧名**键，所以同一个来源里同时含多类的帧会正确合并。
+    multi_skipped_ids: Counter[int] = Counter()
+    for mdir in args.add_multi_train_only:
+        src = Path(mdir)
+        if not src.is_absolute():
+            src = REPO_ROOT / src
+        if not src.exists():
+            print(f"源目录不存在：{src}")
+            return 1
+        images = sorted(p for p in src.rglob("*")
+                        if p.is_file() and p.suffix.lower() in IMAGE_EXTS)
+        used = 0
+        for img in images:
+            lbl = find_label(src, img)
+            if lbl is None:
+                continue
+            lines = []
+            for line in lbl.read_text(encoding="utf-8").splitlines():
+                parts = line.split()
+                if len(parts) < 5:
+                    continue
+                try:
+                    app_id = int(float(parts[0]))
+                except ValueError:
+                    continue
+                name = id2name.get(app_id)
+                if name is None:
+                    # 不在类别表里的 id —— 记下来报出，不静默丢
+                    multi_skipped_ids[app_id] += 1
+                    continue
+                if name not in index_of:
+                    index_of[name] = len(index_of)
+                    counts[name] = 0
+                lines.append(f"{index_of[name]} " + " ".join(parts[1:5]))
+                counts[name] += 1
+            if lines:
+                merged.setdefault(img.name, []).extend(lines)
+                origin.setdefault(img.name, img)
+                train_only_names.add(img.name)      # 这个来源恒为 train-only
+                used += 1
+        print(f"  [多类] {src.name}: {used} 张图有标签"
+              f"（累计唯一帧 {len(merged)}）  [train-only]")
+    if multi_skipped_ids:
+        print(f"  ⚠️ 多类来源里有 {sum(multi_skipped_ids.values())} 个框的类别 id "
+              f"不在类别表内，已跳过：{dict(multi_skipped_ids.most_common(8))}")
 
     if not merged:
         print("没有任何有效标签")

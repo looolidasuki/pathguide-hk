@@ -136,3 +136,83 @@ def test_源目录不存在要失败(monkeypatch, tmp_path):
     rc = run(monkeypatch, ["--out", str(tmp_path / "out"),
                            "--add", f"{tmp_path/'无此目录'}:pedestrian"])
     assert rc == 1
+
+
+# ---------- 多类来源（--add-multi-train-only）----------
+
+def make_multiclass_dir(root: Path, sub: str, frames: dict[str, list[int]]) -> Path:
+    """造一个多类数据集目录：标签用**项目 id**（configs/classes.json 的 id）。"""
+    d = root / sub
+    (d / "images" / "src").mkdir(parents=True)
+    (d / "labels" / "src").mkdir(parents=True)
+    for name, ids in frames.items():
+        (d / "images" / "src" / f"{name}.jpg").write_bytes(b"\xff\xd8\xff\xe0fakejpg")
+        lines = [f"{i} 0.5 0.5 0.2 0.2" for i in ids]
+        (d / "labels" / "src" / f"{name}.txt").write_text("\n".join(lines) + "\n",
+                                                         encoding="utf-8")
+    return d
+
+
+def test_多类来源按项目id映射到本地索引(monkeypatch, tmp_path):
+    """多类来源的标签写的是**项目 id**（6=pedestrian, 11=bicycle, 7=bin），
+    必须按类名分配本地索引，而不是把 6/11/7 原样当成本地索引。
+
+    搞错的话模型输出维度与标签对不上——不报错，只是每类都学错。
+    """
+    hk = make_single_class_dir(tmp_path, "hk_ped", {f"h{i}": 1 for i in range(10)})
+    multi = make_multiclass_dir(tmp_path, "multi", {
+        "m0": [6], "m1": [11], "m2": [6, 11], "m3": [7],
+    })
+    out = tmp_path / "out"
+    rc = run(monkeypatch, ["--out", str(out),
+                           "--add", f"{hk}:pedestrian",
+                           "--add-multi-train-only", str(multi)])
+    assert rc == 0
+    by_name = {c["name_en"]: c["id"] for c in read_classes(out)}
+    # 本地索引按类名首次出现顺序：pedestrian(hk 先) = 0，bicycle = 1，bin = 2
+    assert by_name["pedestrian"] == 0
+    assert by_name["bicycle"] == 1
+    assert by_name["bin"] == 2
+
+    # 标签里必须只有 0/1/2，不能出现 6/7/11
+    seen = set()
+    for p in (out / "labels").rglob("*.txt"):
+        for ln in p.read_text(encoding="utf-8").splitlines():
+            if ln.strip():
+                seen.add(int(ln.split()[0]))
+    assert seen <= {0, 1, 2}, f"出现了非本地索引：{seen}"
+
+
+def test_多类来源的帧全部进_train(monkeypatch, tmp_path):
+    hk = make_single_class_dir(tmp_path, "hk", {f"h{i}": 1 for i in range(20)})
+    multi = make_multiclass_dir(tmp_path, "multi", {f"m{i}": [6] for i in range(20)})
+    out = tmp_path / "out"
+    rc = run(monkeypatch, ["--out", str(out),
+                           "--add", f"{hk}:pedestrian",
+                           "--add-multi-train-only", str(multi)])
+    assert rc == 0
+    import csv as _csv
+    rows = list(_csv.DictReader((out / "manifest.csv").open(encoding="utf-8")))
+    multi_val = [r for r in rows if r["split"] == "val" and "multi" in r["source_image"]]
+    multi_train = [r for r in rows if r["split"] == "train" and "multi" in r["source_image"]]
+    assert not multi_val, f"多类来源有 {len(multi_val)} 张进了 val"
+    assert len(multi_train) == 20
+
+
+def test_多类来源里不在类别表的_id_被跳过且报出(monkeypatch, tmp_path, capsys):
+    """表外 id 必须**报出**而不是静默丢——静默丢会让某些类的框凭空消失。"""
+    multi = make_multiclass_dir(tmp_path, "multi", {"m0": [6, 999]})
+    out = tmp_path / "out"
+    rc = run(monkeypatch, ["--out", str(out),
+                           "--add-multi-train-only", str(multi)])
+    assert rc == 0
+    captured = capsys.readouterr().out
+    assert "999" in captured, "表外 id 必须打印出来"
+    # 只有 6 那一框被保留
+    lbl = next((out / "labels").rglob("*.txt"))
+    assert len([l for l in lbl.read_text(encoding="utf-8").splitlines() if l.strip()]) == 1
+
+
+def test_没有给任何来源要失败(monkeypatch, tmp_path):
+    rc = run(monkeypatch, ["--out", str(tmp_path / "out")])
+    assert rc == 1
