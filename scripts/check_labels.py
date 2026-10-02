@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import argparse
 import json
 from collections import Counter
 from pathlib import Path
@@ -25,7 +26,13 @@ TINY_BOX_PX = 8.0
 MIN_IMAGES_PER_CLASS = 50
 
 
-def load_classes() -> list[dict]:
+def load_classes(path: Path | None = None) -> list[dict]:
+    """读类别表。path 为 None 时用 configs/classes.json。"""
+    with (path or CLASSES_PATH).open(encoding="utf-8") as f:
+        return json.load(f)["classes"]
+
+
+def _load_classes_unused() -> list[dict]:
     with CLASSES_PATH.open(encoding="utf-8") as f:
         return sorted(json.load(f)["classes"], key=lambda c: c["id"])
 
@@ -116,13 +123,34 @@ def missing_label_fatals(n_images: int, missing: int) -> list[str]:
 
 
 def main() -> int:
-    classes = load_classes()
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--dataset", default=None,
+                    help="要检查的数据集目录（默认 data/dataset）。"
+                         "现在有多个数据集（dataset_poc3/4/5），门禁必须能指向"
+                         "**实际用于训练的那一个**——否则查的是旧数据，却以为查过了。")
+    ap.add_argument("--classes", default=None,
+                    help="类别表（默认 configs/classes.json）。本地索引与项目 id "
+                         "不同的数据集应指到它自己的 classes.json。")
+    args = ap.parse_args()
+
+    ds = Path(args.dataset) if args.dataset else DATASET_DIR
+    if not ds.is_absolute():
+        ds = REPO_ROOT / ds
+    images_dir, labels_dir = ds / "images", ds / "labels"
+    report_path = ds / "dataset_report.md"
+    if not images_dir.is_dir():
+        print(f"不是数据集目录（缺 images/）：{ds}")
+        return 1
+
+    classes = load_classes(Path(args.classes) if args.classes else None)
     class_names = [c["name_en"] for c in classes]
     n_classes = len(classes)
+    print(f"数据集：{ds.relative_to(REPO_ROOT) if ds.is_relative_to(REPO_ROOT) else ds}"
+          f"   类别表：{n_classes} 类")
 
-    images = [p for p in IMAGES_DIR.rglob("*") if p.is_file() and p.suffix in IMAGE_EXTS]
+    images = [p for p in images_dir.rglob("*") if p.is_file() and p.suffix in IMAGE_EXTS]
     if not images:
-        print(f"未在 {IMAGES_DIR} 找到图像。")
+        print(f"未在 {images_dir} 找到图像。")
         return 1
 
     fatal: list[str] = []
@@ -140,8 +168,8 @@ def main() -> int:
     for img in sorted(images):
         # 标签镜像图像目录结构（Ultralytics 的 img2label_paths 契约）：
         #   images/<source>/<name>.jpg -> labels/<source>/<name>.txt
-        rel = img.relative_to(IMAGES_DIR)
-        label_path = LABELS_DIR / rel.with_suffix(".txt")
+        rel = img.relative_to(images_dir)
+        label_path = labels_dir / rel.with_suffix(".txt")
         if not label_path.exists():
             missing_labels += 1
             continue
@@ -229,12 +257,12 @@ def main() -> int:
         lines_out += [f"- {w}" for w in warnings]
         lines_out.append("")
 
-    REPORT_PATH.write_text("\n".join(lines_out), encoding="utf-8")
+    report_path.write_text("\n".join(lines_out), encoding="utf-8")
 
     print(f"图像 {len(images)} | 框 {total_boxes} | 空标签 {empty_labels} | 缺标签 {missing_labels}")
     print(f"致命错误 {len(fatal)} | 警告 {len(warnings)} | "
           f"边界取整（可忽略）{rounding_notes}")
-    print(f"report -> {REPORT_PATH}")
+    print(f"report -> {report_path}")
     for e in fatal[:20]:
         print(f"  [FATAL] {e}")
     for w in warnings[:20]:
