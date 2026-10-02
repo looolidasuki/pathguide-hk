@@ -27,7 +27,30 @@ epochs: 100   imgsz: 416   freeze: null
 
 | 层级 | 判定 | 依据 |
 |---|---|---|
-| 自训 SSL（MAE/DINOv2 式） | ✗ | 本机 `torch 2.14.0+cpu`、`CUDA 不可用`、纯 CPU 28 核。自训需 1e8 量级图像 + 数千 GPU 小时，与我们可用的约 14 万帧差 **4~5 个数量级** |
+| 自训 SSL（MAE/DINOv2 式） | ✗ | 自训需 1e8 量级图像 + 数千 GPU 小时，与我们可用的约 14 万帧差 **4~5 个数量级**；一块 12 GB 消费级卡的差距改变不了这个量级 |
+
+> ### ⚠️ 2026-10-02 更正：本表原先写的「本机 `torch 2.14.0+cpu`、`CUDA 不可用`」**是错的**
+>
+> 实测各 venv 的 torch：
+>
+> | 环境 | torch | CUDA |
+> |---|---|---|
+> | `.venv`（训练用） | `2.11.0+cu128` | ✅ **可用** |
+> | `.venv-vlm`（GDINO / VLM 用） | `2.11.0+cu128` | ✅ **可用** |
+> | `.venv-export`（TFLite 导出用） | `2.14.0+cpu` | ❌ 无（CPU 版） |
+>
+> 核实方式见 `scripts/probe_cuda.py`（不只读 `is_available()`，还实际分配张量做矩阵乘）：
+> **RTX 5070，11.9 GiB，sm_120，实测 4.44 TFLOP/s**（同规模 CPU 25 ms/次 vs GPU 3.6 ms/次）。
+> `runs/pg_poc4` 的训练横幅也显示 `CUDA:0 (NVIDIA GeForce RTX 5070, 12199MiB)`。
+>
+> 当初很可能只看了 `.venv-export` 就推广到全机。**这是「用一个环境的结论去代表整机」的错误**，
+> 记在这里以免有人再从那个假前提出发。
+>
+> **结论不变**：1e8 图像 / 数千 GPU-小时 与 14 万帧之间是 4~5 个数量级，
+> 单卡 12 GB 无法弥合；瓶颈仍是标签覆盖（无数据的类零召回），不是特征质量。
+> 但受影响的**成本估算需要更正**：GDINO 的 **11.3 s/图是在 GPU 上实测的**
+> （`gd_detect.py` 用 `.to("cuda")`），所以 8033 张 ≈ **25 GPU-小时**，
+> 而不是原先写的「25 CPU-小时」—— 云端标注环节**必须有 GPU**，CPU 只会更慢。
 | 换 SSL 骨干（设备侧） | ✗ | 现役 yolo11n：2.6M 参数、416 输入、真机 **268 ms**。DINOv2 ViT-S/14 为 22M 参数 + 518² 输入，ViT 在移动 CPU 上更慢；且所依赖的 `com.google.ai.edge.litert:litert:2.2.0` **不含任何 delegate 类**（`javap` 实测，`Interpreter$Options` 只有 `setNumThreads/setCancellable/setRuntime/setUseXNNPACK`），连提速手段都没有 |
 | 换 SSL 骨干（离线侧） | ✓ 可行 | 但见第 3 条：用处有限，且我们已有等价手段 |
 | 微调策略消融（freeze vs 全网络） | ✓ 可行 | 100 轮仅 **1.9 分钟** |
