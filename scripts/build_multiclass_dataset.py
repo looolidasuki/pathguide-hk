@@ -91,6 +91,12 @@ def main() -> int:
                          "会为每个类复制一遍全部图像（实测单次复制就是几千张、"
                          "20 类就是几十 GB），而这里只需读一次。")
     ap.add_argument("--val-ratio", type=float, default=0.2)
+    ap.add_argument("--classes-from", default=None, metavar="DIR",
+                    help="从 DIR/classes.json 继承类别空间（本地索引 -> 类名 -> 真实 id），"
+                         "而不是按本数据集实际出现的类分配。用于第二阶段微调："
+                         "从上一版权重继续训时数据集必须是同一个类别空间，"
+                         "否则 ultralytics 会重建检测头、把上一版学会的其它类全部丢掉"
+                         "（不报错）。继承模式下若源里出现不在该空间的类会直接报错。")
     args = ap.parse_args()
 
     if not args.add and not args.add_train_only and not args.add_multi_train_only:
@@ -105,11 +111,38 @@ def main() -> int:
     # 会得到两个不同的索引——变成**两个几乎相同的类**（比如两个 pedestrian）。
     # 它不报错，只是模型多输出一路、且两路的标签各自减半，指标看着还挺正常。
     index_of: dict[str, int] = {}
+    orig_of: dict[str, int] = {}
+    inherited = False
+    if args.classes_from:
+        # 继承类别空间：本地索引与类名直接照抄上一版，不按本数据集实际出现的类重排。
+        # 理由见 --classes-from 的说明（否则第二阶段会重建检测头、丢掉其它类）。
+        cf = Path(args.classes_from)
+        if not cf.is_absolute():
+            cf = REPO_ROOT / cf
+        cj = cf / "classes.json"
+        if not cj.exists():
+            print(f"--classes-from 里没有 classes.json：{cj}")
+            return 1
+        prev = json.loads(cj.read_text(encoding="utf-8"))["classes"]
+        for c in sorted(prev, key=lambda x: x["id"]):
+            index_of[c["name_en"]] = int(c["id"])
+            orig_of[c["name_en"]] = int(c.get("original_id", c["id"]))
+        inherited = True
+        print(f"继承类别空间：{cf.name} 的 {len(index_of)} 个类"
+              f"（本地索引原样保留，不重排）")
+
     entries = [(a, False) for a in args.add] + [(a, True) for a in args.add_train_only]
     for item, train_only in entries:
         d, _, cls = item.rpartition(":")
         if not d or cls not in name2id:
             print(f"--add/--add-train-only 格式不对或类名不在类别表里：{item}")
+            return 1
+        if inherited and cls not in index_of:
+            # 继承模式下出现不在该空间的类 -> **报错**。
+            # 静默追加会改变类别数、让检测头尺寸对不上上一版权重。
+            print(f"源里有不在继承类别空间内的类：{cls}（{item}）")
+            print(f"  继承的空间来自 {args.classes_from}；"
+                  f"要么把它加进那一版，要么这个源不该用在这里。")
             return 1
         src = Path(d)
         if not src.is_absolute():
@@ -121,11 +154,15 @@ def main() -> int:
             index_of[cls] = len(index_of)
         specs.append((src, cls, index_of[cls], train_only))
 
-    print("本地索引分配（按类名首次出现）：")
+    print("本地索引分配" + ("（继承自上一版）" if inherited else "（按类名首次出现）") + "：")
     for cls, idx in sorted(index_of.items(), key=lambda kv: kv[1]):
         dirs = [s.name for s, c, _, _ in specs if c == cls]
+        if not dirs:
+            print(f"  {idx:>2} = {cls:<26} （本数据集没有它的框）")
+            continue
         to = "  [train-only]" if any(t for s, c, _, t in specs if c == cls) else ""
-        print(f"  {idx} = {cls}（真实 id {name2id[cls]}）  <- {', '.join(dirs)}{to}")
+        print(f"  {idx:>2} = {cls:<26} 真实 id {name2id[cls]}  <- "
+              f"{', '.join(dirs)}{to}")
 
     # ---- 按**帧名**聚合标签（不是按源文件路径）----
     #
@@ -288,8 +325,13 @@ def main() -> int:
     # classes 按**类名**列出一次（不是按 --add 条目）——同一个类来自多个目录时，
     # 旧写法会把它写两遍，于是本地索引 0 和 1 都是 pedestrian，
     # 模型多输出一路、App 侧映射表也跟着错。
+    #
+    # 继承模式下 `original_id` 也照抄上一版：它是「本项目真实 id」的声明，
+    # 不该因为第二阶段没有这个类的数据而变化。
     classes = [{"id": idx, "name_en": cls, "name_zh": "", "group": "poc",
-                "priority": "P0", "announced": True, "original_id": name2id[cls]}
+                "priority": "P0", "announced": True,
+                "original_id": orig_of.get(cls, name2id[cls]),
+                "has_data": counts.get(cls, 0) > 0}
                for cls, idx in sorted(index_of.items(), key=lambda kv: kv[1])]
     (out / "classes.json").write_text(json.dumps({
         "version": 1,

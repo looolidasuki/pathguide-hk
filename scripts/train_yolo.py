@@ -46,6 +46,14 @@ def main() -> int:
     ap.add_argument("--batch", type=int, default=16)
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--patience", type=int, default=30)
+    ap.add_argument("--lr0", type=float, default=None,
+                    help="初始学习率。**第二阶段微调必须调小**（如 0.001）："
+                         "默认 0.01 是为从头训设计的，拿来微调会把上一版学到的"
+                         "其它类冲掉——而那种损失在本项目的验证集上**看不见**"
+                         "（val 里没有那些类的实例），所以只能靠低学习率预防。")
+    ap.add_argument("--freeze", type=int, default=None,
+                    help="冻结前 N 层（如 10 = 冻结骨干）。比低学习率更强地保住既有特征，"
+                         "代价是新类学得慢。")
     args = ap.parse_args()
 
     from ultralytics import YOLO
@@ -56,6 +64,14 @@ def main() -> int:
     model = YOLO(weights)
     print(f"起点权重：{weights}"
           f"{'（scratch）' if args.scratch else '（预训练）'}")
+
+    extra: dict = {}
+    if args.lr0 is not None:
+        extra["lr0"] = args.lr0
+    if args.freeze is not None:
+        extra["freeze"] = args.freeze
+    if extra:
+        print(f"微调参数：{extra}")
 
     model.train(
         data=args.data,
@@ -71,6 +87,7 @@ def main() -> int:
         plots=False,        # 无头环境，画图没意义还拖时间
         val=True,
         verbose=False,
+        **extra,
     )
 
     metrics = model.val(data=args.data, imgsz=args.imgsz, workers=0, verbose=False)
