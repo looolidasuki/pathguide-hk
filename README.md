@@ -71,13 +71,27 @@ label.cmd
 ## 门禁（改代码后跑这些）
 
 ```powershell
-python -m pytest                          # 254 个测试
+python -m pytest                          # 374 个测试
 cd app; flutter analyze; flutter test     # 77 个测试
 python scripts\check_kotlin_compiles.py   # Kotlin 编译检查（不需要 Gradle）
 python scripts\check_tflite_decode.py     # 模型 ↔ 原生解码假设的一致性
 python scripts\gen_dart_labels.py --check # 类别表是否与唯一的源同步
-python scripts\val_published_model.py     # 对端上那一份模型重跑 val，逐类指标落盘
+python scripts\val_published_model.py     # 对端上那一份模型重跑 val（ultralytics 口径）
 ```
+
+**要决定产品层面的行为（阈值、播报、能不能上机）时，必须另跑这一条**：
+
+```powershell
+# 在**导出的 TFLite 产物**上算逐类 P/R —— 口径与出货解码链一致
+.\.venv-export\Scripts\python.exe scripts\eval_tflite_on_val.py `
+    --tflite app\assets\models\detector.tflite --dataset data\dataset_poc5
+```
+
+> 为什么不能用上面那条代替：`val_published_model.py` 走 ultralytics 口径
+> （macro 平均、它自己的 NMS；且 `val(conf=X)` 报出的 P/R 是
+> **剩下预测里 max-F1 处的值，不等于 X 处的值**）。
+> 实测两套口径在 `bin` 上能给出**方向相反**的结论 ——
+> 详见 [`docs/superpowers/plans/2026-10-02-eval-harness-discrepancy.md`](docs/superpowers/plans/2026-10-02-eval-harness-discrepancy.md)。
 
 ---
 
