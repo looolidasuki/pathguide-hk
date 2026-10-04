@@ -105,26 +105,31 @@ def explain_output_shape(shape: list[int], num_classes: int | None,
         f"  类别数   ：{classes}（= 通道 {channels} - 4）",
     ]
     if declared is not None and classes != num_classes:
-        # 模型类别数不等于项目类别表：必须靠 model_class_map.dart 的映射表，
+        # 模型类别数不等于项目类别表：必须靠**模型清单**里的 modelClassIds，
         # 而且**长度必须恰好等于模型类别数**，否则 App 会拒绝加载（故意不猜）。
+        #
+        # 注意：这份映射以前是 Dart 里的编译期常量，现在**随模型清单走**
+        # （见 docs/MODELS.md §2）。所以提示必须指向清单，不能再说去改 Dart——
+        # 那个常量已经删掉了，照着改会白费功夫。
         if len(declared) == classes:
             lines.append(
-                f"  ✓ 映射表长度相符：App 的 modelClassIds 有 {len(declared)} 项 "
+                f"  ✓ 映射表长度相符：清单里的 modelClassIds 有 {len(declared)} 项 "
                 f"{declared}，模型 {classes} 类，一一对应"
             )
             labels = [(names or {}).get(i, f"id{i}") for i in declared]
             lines.append(f"     即本地索引 0..{classes - 1} 分别对应 {labels}")
         elif not declared:
             lines.append(
-                f"  !! App 的 modelClassIds 是空表（表示「不需要映射」），"
+                f"  !! 清单里的 modelClassIds 是空表（表示「不需要映射」），"
                 f"但模型是 {classes} 类、项目类别表是 {num_classes} 类——"
                 f"App 会拒绝加载"
             )
         else:
             lines.append(
-                f"  !! App 的 modelClassIds 有 {len(declared)} 项，模型 {classes} 类："
-                f"长度不符，App 会拒绝加载。请改 "
-                f"app/lib/vision/model_class_map.dart"
+                f"  !! 清单里的 modelClassIds 有 {len(declared)} 项，模型 {classes} 类："
+                f"长度不符，App 会拒绝加载。"
+                f"请确认 --dataset 指向的数据集与本次权重是同一套类别空间"
+                f"（清单的 modelClassIds 就是从这个数据集的 classes.json 推出来的）"
             )
     if num_classes is not None and classes == num_classes and declared:
         lines.append(
@@ -276,6 +281,29 @@ def main() -> int:
     model = YOLO(str(weights))
     outputs: dict[str, Path] = {}
 
+    # ★ 导出前清掉上一次的中间产物。
+    #
+    # 实测（2026-10-02，18 类模型）：同一份权重**第一次**导出成功，
+    # **第二次**在 onnx2tf 阶段直接原生崩溃 —— 退出码 -1073740791
+    # （STATUS_STACK_BUFFER_OVERRUN，栈落在 _pywrap_tensorflow_internal.pyd），
+    # 而且崩溃前把 best_saved_model 里的 tflite 全删了，只留下 SavedModel。
+    # 清掉残留后重跑即成功。
+    #
+    # 崩溃信息里没有任何线索指向「目录残留」，所以这件事必须写在脚本里，
+    # 不能指望下次记得手删。
+    stale = [
+        weights.parent / "best_saved_model",
+        weights.parent / f"{weights.stem}.onnx",
+    ]
+    removed = []
+    for p in stale:
+        if p.exists():
+            shutil.rmtree(p) if p.is_dir() else p.unlink()
+            removed.append(p.name)
+    if removed:
+        print(f"已清理上次的导出残留：{', '.join(removed)}"
+              f"（残留会让重导出在 onnx2tf 阶段原生崩溃）")
+
     # 先导 float32：无量化损失，用来验证「模型能否在真机上出框」这件事本身。
     print("\n=== 导出 float32（用于先跑通链路）===")
     p32 = model.export(format="tflite", imgsz=args.imgsz, nms=False)
@@ -329,20 +357,55 @@ def main() -> int:
             print(f"\n没有可复制的产物（要 {want}），跳过。")
             problems += 1
 
-    # 清单必须与模型**一起**产出：App 靠它把本地索引翻成真实 id。
-    if not args.no_manifest and ASSETS_MODEL.exists():
+    # 清单必须与**刚刚导出的那个模型**配套。
+    #
+    # ★ 这里修过一个真 bug：原来无论是否 --no-copy，清单都写到 ASSETS_MANIFEST
+    # 并且以 ASSETS_MODEL（**已发布的那份**）为基础。
+    # 于是 `--no-copy`（只想导出、不想动端上资产）会写出一份
+    # 「模型是旧的、类别映射是新的」的清单 —— 下一次 App 构建就会
+    # 拒绝启动或把每个框标错类。而这条路径正是「测量新模型」时的常用路径。
+    #
+    # 现在的规则：
+    #   - 复制到 assets（即这次导出的就是要发布的那份）-> 清单也写 assets
+    #   - --no-copy（这次只是导出/测量）-> 清单写在导出产物**旁边**，
+    #     不碰 assets；这样不会用一份不匹配的清单污染发布资产
+    if not args.no_manifest:
         from datetime import date
         version = args.version or f"{date.today().isoformat()}.1"
         ds_dir = Path(args.dataset)
         if not ds_dir.is_absolute():
             ds_dir = REPO_ROOT / ds_dir
-        rc = write_manifest(ASSETS_MODEL, ASSETS_MANIFEST, ds_dir,
-                            args.imgsz, version, args.map50)
-        if rc == 0 and bundled:
-            if bundled[1] != json.loads(ASSETS_MANIFEST.read_text(encoding="utf-8"))["modelClassIds"]:
-                print("  注意：App 内置清单的 modelClassIds 与本次导出不同，"
-                      "新清单已覆盖到 assets（App 下次构建即生效）。")
-        problems += rc
+
+        if args.copy_to_assets:
+            manifest_target = ASSETS_MANIFEST
+            model_for_manifest = ASSETS_MODEL
+        else:
+            want = args.deploy
+            model_for_manifest = outputs.get(want) or outputs.get("float32")
+            # ★ 必须转成绝对路径：write_manifest 内部会做
+            # `out_path.relative_to(REPO_ROOT)` 来打印相对位置，
+            # 传相对路径会抛 "is not in the subpath of ..."。
+            if model_for_manifest is not None:
+                model_for_manifest = Path(model_for_manifest)
+                if not model_for_manifest.is_absolute():
+                    model_for_manifest = REPO_ROOT / model_for_manifest
+                manifest_target = model_for_manifest.with_suffix(".json")
+            else:
+                manifest_target = None
+            print(f"\n--no-copy：清单写到导出产物旁边，不动 {ASSETS_MANIFEST.name}")
+
+        if model_for_manifest is None or not Path(model_for_manifest).exists():
+            print("  没有可写清单的产物，跳过。")
+            problems += 1
+        else:
+            rc = write_manifest(Path(model_for_manifest), Path(manifest_target),
+                                ds_dir, args.imgsz, version, args.map50)
+            if rc == 0 and args.copy_to_assets and bundled:
+                if bundled[1] != json.loads(ASSETS_MANIFEST.read_text(
+                        encoding="utf-8"))["modelClassIds"]:
+                    print("  注意：App 内置清单的 modelClassIds 与本次导出不同，"
+                          "新清单已覆盖到 assets（App 下次构建即生效）。")
+            problems += rc
 
     return 1 if problems else 0
 
