@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io' show Platform;
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 
@@ -22,7 +23,7 @@ import '../vision/vision_source.dart';
 /// [VisionSource]。曾经 UI 里通篇是 `_platform.xxx` 与 `_mock?.xxx` 两套
 /// 并行分支，换平台要把每个分支抄一遍，且两个实现的行为无一致性保证。
 enum SourceMode {
-  /// 真实相机，Android 走原生 CameraX。
+  /// 真实相机：Android CameraX / iOS AVFoundation。
   camera,
 
   /// 按已知规律运动的假框，用来校验坐标映射与演示防抖，不需要模型。
@@ -145,15 +146,18 @@ class _DemoPageState extends State<DemoPage> {
   /// 这是**唯一**出现具体实现类名的地方。新增平台（iOS）或新增来源种类时，
   /// 只改这一处，UI 其余部分不动。
   VisionSource _makeSource(SourceMode mode) {
+    // iOS VisionPlugin 在原生侧把帧旋成竖屏（rotationDegrees=0）；
+    // Android CameraX 仍输出横屏帧，需 Dart 侧按 90° 推出正立坐标系。
+    final isIos = defaultTargetPlatform == TargetPlatform.iOS;
+    final rotation = isIos ? 0 : 90;
     switch (mode) {
       case SourceMode.camera:
-        return PlatformVision();
+        return PlatformVision(rotationDegrees: rotation);
       case SourceMode.mock:
-        // 假源的原始帧尺寸与旋转角与相机实现保持一致，
-        // 这样「假数据下框画对了」才能推出「相机下也会画对」。
+        // 假源几何与当前平台相机一致，避免「假数据对了、真相机错了」。
         return MockVisionSource(
-          frameSize: const Size(1280, 720),
-          rotationDegrees: 90,
+          frameSize: isIos ? const Size(720, 1280) : const Size(1280, 720),
+          rotationDegrees: rotation,
           threshold: _threshold,
         );
     }

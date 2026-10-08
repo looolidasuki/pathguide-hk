@@ -13,7 +13,7 @@
 ///
 /// 对应原生实现位置：
 /// - Android: `android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt`
-/// - iOS:     `ios/Runner/VisionPlugin.swift`（待实现，见环境文档 §6.4）
+/// - iOS:     `ios/Runner/VisionPlugin.swift`（AVFoundation + TensorFlowLiteSwift）
 library;
 
 /// 平台通道名。改动此值必须同时改动两端原生代码。

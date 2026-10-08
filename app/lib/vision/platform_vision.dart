@@ -31,7 +31,7 @@ const String defaultModelAssetKey = 'assets/models/detector.tflite';
 /// 模型清单的资源 key。清单与模型**一起**下发，缺一不可。
 const String defaultModelManifestKey = 'assets/models/detector.json';
 
-/// 平台原生视觉能力（Android CameraX + LiteRT）。
+/// 平台原生视觉能力（Android CameraX / iOS AVFoundation + LiteRT/TFLite）。
 ///
 /// ## 它现在真正实现了 [VisionSource]
 ///
@@ -234,7 +234,7 @@ class PlatformVision implements VisionSource {
     } on PlatformException {
       return false;
     } on MissingPluginException {
-      // iOS 尚未实现原生插件时走这里，属预期。
+      // 原生插件缺失时，保留可运行的 demo 页面。
       return false;
     }
   }
@@ -289,7 +289,7 @@ class PlatformVision implements VisionSource {
     } on PlatformException {
       // 原生侧未实现该方法时静默忽略：滑动条仍可用，只是不省序列化开销。
     } on MissingPluginException {
-      // 同上（iOS 尚未实现时）。
+      // 同上。
     }
   }
 
@@ -338,7 +338,7 @@ class PlatformVision implements VisionSource {
       return false;
     } on MissingPluginException {
       _loaded = false;
-      _loadError = '当前平台尚未实现视觉插件（iOS 待补，见环境文档 §6.4）';
+      _loadError = '当前平台尚未实现视觉插件';
       return false;
     }
   }

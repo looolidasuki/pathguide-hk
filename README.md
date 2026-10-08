@@ -98,7 +98,7 @@ python scripts\val_published_model.py     # 对端上那一份模型重跑 val�
 ## 目录结构
 
 ```
-app/                    Flutter App（Android 原生实现已完整；iOS 待补）
+app/                    Flutter App（Android 已完整；iOS VisionPlugin 已接入，需 Mac 真机回归）
   lib/vision/           抽象层：VisionSource / 几何 / 类别映射 / 平台通道契约
   lib/overlay/          检测框叠加层
   lib/tts/              播报决策（两级冷却 + 分数门槛）与粤语 TTS
