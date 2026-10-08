@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 默认（英文系统）。
+     ★ 这个值同时是「语音启动」的匹配依据：Assistant / Siri 靠应用 label 找 App，
+       所以它必须随系统语言变化，不能像以前那样在 manifest 里硬编码「領路通」——
+       英文系统的视障用户不可能知道要念中文才能打开。
+     ★ 也别改成「导航」「地图」这类词：会与系统自带应用抢语音匹配。 -->
+<resources>
+    <string name="app_name">PathGuide</string>
+</resources>

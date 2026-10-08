@@ -85,19 +85,19 @@ void main() {
       final r = parseModelManifest(
           _valid.replaceAll('[6, 11, 7]', '[6, 11]'));
       expect(r.ok, isFalse);
-      expect(r.error, contains('长度'));
+      expect(r.error, contains('長度'));
     });
 
     test('映射表里有超出类别表的 id', () {
       final r = parseModelManifest(_valid.replaceAll('[6, 11, 7]', '[6, 11, 999]'));
       expect(r.ok, isFalse);
-      expect(r.error, contains('超出类别表'));
+      expect(r.error, contains('超出類別表'));
     });
 
     test('映射表里有重复 id', () {
       final r = parseModelManifest(_valid.replaceAll('[6, 11, 7]', '[7, 7, 6]'));
       expect(r.ok, isFalse);
-      expect(r.error, contains('重复'));
+      expect(r.error, contains('重複'));
     });
 
     test('空映射表只在模型类别数等于类别表时成立', () {

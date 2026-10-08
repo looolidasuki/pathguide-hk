@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 香港中文（粤语用户的主要情形）。粤语与普通话里「領路通」都不与常见 App 撞车。 -->
+<resources>
+    <string name="app_name">領路通</string>
+</resources>

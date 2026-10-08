@@ -83,8 +83,8 @@ class ModelManifest {
     final names = modelClassIds
         .map((id) => labelOf(id)?.nameEn ?? 'id$id')
         .join('、');
-    return '模型清单 $version：$modelClassCount 类（$names），'
-        '输入 $inputSize'
+    return '模型清單 $version：$modelClassCount 類（$names），'
+        '輸入 $inputSize'
         '${map50 != null ? "，mAP50 ${map50!.toStringAsFixed(3)}" : ""}';
   }
 }
@@ -116,46 +116,46 @@ ManifestParseResult parseModelManifest(String text) {
   try {
     raw = jsonDecode(text);
   } catch (e) {
-    return ManifestParseResult.fail('模型清单不是合法 JSON：$e');
+    return ManifestParseResult.fail('模型清單不是合法 JSON：$e');
   }
   if (raw is! Map) {
-    return ManifestParseResult.fail('模型清单顶层应为对象，实际 ${raw.runtimeType}');
+    return ManifestParseResult.fail('模型清單頂層應為對象，實際 ${raw.runtimeType}');
   }
 
   int? asInt(Object? v) => v is int ? v : (v is num ? v.toInt() : null);
   final format = asInt(raw['format']);
   if (format != 1) {
     return ManifestParseResult.fail(
-        '模型清单 format=$format，本版 App 只认 format=1。'
-        '（格式变了必须报错，不能忽略未知字段继续跑）');
+        '模型清單 format=$format，本版 App 只認 format=1。'
+        '（格式變了必須報錯，不能忽略未知欄位繼續跑）');
   }
 
   final version = raw['version'];
   if (version is! String || version.isEmpty) {
-    return ManifestParseResult.fail('模型清单缺 version');
+    return ManifestParseResult.fail('模型清單缺 version');
   }
   final file = raw['file'];
   if (file is! String || file.isEmpty) {
-    return ManifestParseResult.fail('模型清单缺 file');
+    return ManifestParseResult.fail('模型清單缺 file');
   }
   final inputSize = asInt(raw['inputSize']);
   if (inputSize == null || inputSize <= 0) {
-    return ManifestParseResult.fail('模型清单 inputSize 非法：${raw['inputSize']}');
+    return ManifestParseResult.fail('模型清單 inputSize 非法：${raw['inputSize']}');
   }
   final count = asInt(raw['modelClassCount']);
   if (count == null || count <= 0) {
-    return ManifestParseResult.fail('模型清单 modelClassCount 非法：${raw['modelClassCount']}');
+    return ManifestParseResult.fail('模型清單 modelClassCount 非法：${raw['modelClassCount']}');
   }
 
   final idsRaw = raw['modelClassIds'];
   if (idsRaw is! List) {
-    return ManifestParseResult.fail('模型清单缺 modelClassIds 数组');
+    return ManifestParseResult.fail('模型清單缺 modelClassIds 陣列');
   }
   final ids = <int>[];
   for (final v in idsRaw) {
     final n = asInt(v);
     if (n == null) {
-      return ManifestParseResult.fail('modelClassIds 里有非整数：$v');
+      return ManifestParseResult.fail('modelClassIds 裏有非整數：$v');
     }
     ids.add(n);
   }
@@ -164,29 +164,29 @@ ManifestParseResult parseModelManifest(String text) {
   if (ids.isEmpty) {
     if (count != kNumClasses) {
       return ManifestParseResult.fail(
-          'modelClassIds 为空表示「输出即真实 id」，但模型是 $count 类、'
-          '类别表是 $kNumClasses 类：二者不等，空表不成立');
+          'modelClassIds 為空表示「輸出即真實 id」，但模型是 $count 類、'
+          '類別表是 $kNumClasses 類：二者不等，空表不成立');
     }
   } else {
     if (ids.length != count) {
       return ManifestParseResult.fail(
-          'modelClassIds 有 ${ids.length} 项，而 modelClassCount=$count：长度必须一致');
+          'modelClassIds 有 ${ids.length} 項，而 modelClassCount=$count：長度必須一致');
     }
     for (final id in ids) {
       if (labelOf(id) == null) {
         return ManifestParseResult.fail(
-            'modelClassIds 里有超出类别表的 id：$id（类别表 $kNumClasses 类）');
+            'modelClassIds 裏有超出類別表的 id：$id（類別表 $kNumClasses 類）');
       }
     }
     if (ids.toSet().length != ids.length) {
-      return ManifestParseResult.fail('modelClassIds 里有重复 id：$ids（重复意味着漏了一类）');
+      return ManifestParseResult.fail('modelClassIds 裏有重複 id：$ids（重複意味著漏了一類）');
     }
   }
 
   final sha = raw['sha256'];
   if (sha != null) {
     if (sha is! String || !RegExp(r'^[0-9a-f]{64}$').hasMatch(sha)) {
-      return ManifestParseResult.fail('模型清单 sha256 格式不对（应为 64 位小写十六进制）');
+      return ManifestParseResult.fail('模型清單 sha256 格式不對（應為 64 位小寫十六進制）');
     }
   }
 

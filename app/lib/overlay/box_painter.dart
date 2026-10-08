@@ -1,5 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../vision/detection.dart';
 import '../vision/labels.dart';
 
@@ -90,7 +91,7 @@ class DetectionBoxPainter extends CustomPainter {
   ) {
     final text = label == null
         ? 'id? ${score.toStringAsFixed(2)}'
-        : '${label.nameZh} ${score.toStringAsFixed(2)}';
+        : '${labelDisplayName(label)} ${score.toStringAsFixed(2)}';
     final tp = TextPainter(
       text: TextSpan(
         text: text,

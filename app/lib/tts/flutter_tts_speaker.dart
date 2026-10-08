@@ -1,57 +1,48 @@
 import 'dart:async';
-import 'dart:io' show Platform;
+import 'dart:ui' show PlatformDispatcher;
 
+import 'package:flutter/foundation.dart'
+  show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter_tts/flutter_tts.dart';
 
+import '../l10n/app_locale.dart';
 import 'announcer.dart';
 
-/// 基于 `flutter_tts` 的粤语扬声器。
+/// TTS speaker that follows the phone system language.
 ///
-/// ## 粤语在两端不是一回事
+/// Preference order:
+/// 1. Exact / prefix match for the system locale (e.g. `zh-HK`, `en-US`)
+/// 2. Same language family (`zh`, `en`, …)
+/// 3. English (`en-US` / `en-GB` / `en`)
 ///
-/// - **Android**：`yue-HK` 需要系统装了粤语音包；很多国行 ROM 只带
-///   `zh-CN` / `zh-TW`。因此这里先查可用语言，再逐级降级。
-/// - **iOS**：系统自带 `zh-HK`（粤语）语音，`yue-HK` 未必被接受，
-///   所以同样要按候选列表探测。
-///
-/// 降级链：`yue-HK` -> `zh-HK` -> `zh-TW` -> `zh-CN`。
-/// **一定要让 [resolvedLanguage] 暴露出来**：若最终落到 `zh-CN`，
-/// 播报会是普通话，这必须在演示界面上写清楚，不能让人以为在念粤语。
+/// Never hard-code Cantonese as the only preset.
 class FlutterTtsSpeaker implements Speaker {
   FlutterTtsSpeaker({FlutterTts? tts}) : _tts = tts ?? FlutterTts();
-
-  static const List<String> candidates = <String>[
-    'yue-HK',
-    'zh-HK',
-    'zh-TW',
-    'zh-CN',
-  ];
 
   final FlutterTts _tts;
   bool _ready = false;
   String? _resolved;
 
-  /// 实际生效的语言标签。null 表示尚未初始化。
+  /// Active TTS BCP-47 tag. null if not initialized / unavailable.
   String? get resolvedLanguage => _resolved;
 
-  /// 是否用上了真正的粤语（`yue-HK` 或 `zh-HK`）。
-  bool get isCantonese =>
-      _resolved == 'yue-HK' || _resolved == 'zh-HK';
+  /// True when the resolved voice is Cantonese (`yue-*` or `zh-HK`).
+  bool get isCantonese {
+    final tag = (_resolved ?? '').toLowerCase();
+    return tag.startsWith('yue') || tag == 'zh-hk' || tag.startsWith('zh-hk');
+  }
 
-  /// 初始化并选定语言。返回实际生效的语言标签（可能为 null）。
+  /// Initialize and pick a voice. Returns the resolved language tag.
   Future<String?> initialize() async {
     if (_ready) return _resolved;
 
-    // 播报速度刻意偏慢：视障用户听的是路况，快读会漏掉关键信息。
     await _tts.setSpeechRate(0.45);
     await _tts.setPitch(1.0);
     await _tts.setVolume(1.0);
-    if (Platform.isAndroid) {
-      // Android 上队列模式会让后一句等前一句读完，冷却逻辑已保证不拥挤，
-      // 用 QUEUE_FLUSH 让插队的 P0 能立刻打断。
+    if (defaultTargetPlatform == TargetPlatform.android) {
       await _tts.setQueueMode(0);
     }
-    if (Platform.isIOS) {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
       await _tts.setSharedInstance(true);
       await _tts.setIosAudioCategory(
         IosTextToSpeechAudioCategory.playback,
@@ -62,22 +53,30 @@ class FlutterTtsSpeaker implements Speaker {
     }
 
     List<String> available = const <String>[];
-    try {
-      final langs = await _tts.getLanguages;
-      if (langs is List) {
-        available = langs.map((e) => e.toString()).toList();
+    for (var attempt = 0; attempt < (kIsWeb ? 10 : 1); attempt++) {
+      try {
+        final langs = await _tts.getLanguages;
+        if (langs is List) {
+          available = langs.map((e) => e.toString()).toList();
+        }
+      } catch (_) {
+        // Some devices do not expose the installed voice list.
       }
-    } catch (_) {
-      // 拿不到语言列表时仍尝试直接设置，某些 ROM 不实现该查询。
+      if (available.isNotEmpty || !kIsWeb) break;
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+    }
+    if (kIsWeb && available.isEmpty) {
+      _ready = true;
+      return null;
     }
 
+    final candidates = _candidatesForSystem();
     for (final c in candidates) {
       final exact = available.isEmpty ||
-          available.any((l) => l.toLowerCase() == c.toLowerCase());
-      if (!exact) continue;
+          available.any((l) => _langMatches(l, c));
+      if (!exact && available.isNotEmpty) continue;
       try {
         final ok = await _tts.setLanguage(c);
-        // flutter_tts 在部分平台返回 1 / true / null，三种都视为成功。
         if (ok == null || ok == 1 || ok == true) {
           _resolved = c;
           break;
@@ -87,17 +86,87 @@ class FlutterTtsSpeaker implements Speaker {
       }
     }
 
-    // 全部候选都失败时退回系统默认语言，并让它显式暴露出来。
     if (_resolved == null) {
-      try {
-        await _tts.setLanguage('zh-CN');
-        _resolved = 'zh-CN';
-      } catch (_) {
-        _resolved = null;
+      for (final fallback in <String>['en-US', 'en-GB', 'en']) {
+        try {
+          final ok = await _tts.setLanguage(fallback);
+          if (ok == null || ok == 1 || ok == true) {
+            _resolved = fallback;
+            break;
+          }
+        } catch (_) {
+          continue;
+        }
       }
     }
     _ready = true;
     return _resolved;
+  }
+
+  /// Build TTS language candidates from the phone locale, then English.
+  ///
+  /// Order follows the **system** region first. Do not prefer Cantonese for
+  /// every Chinese locale (e.g. `zh-CN` must try `zh-CN` before `yue-HK`).
+  List<String> _candidatesForSystem() {
+    final locale = PlatformDispatcher.instance.locale;
+    final lang = locale.languageCode.toLowerCase();
+    final country = (locale.countryCode ?? '').toUpperCase();
+    final script = locale.scriptCode;
+
+    final out = <String>[];
+    void add(String tag) {
+      if (tag.isEmpty) return;
+      if (!out.any((e) => e.toLowerCase() == tag.toLowerCase())) {
+        out.add(tag);
+      }
+    }
+
+    if (country.isNotEmpty) {
+      add('$lang-$country');
+      add('${lang}_$country');
+    }
+    if (script != null && script.isNotEmpty) {
+      add('$lang-$script');
+    }
+
+    if (lang == 'yue' || country == 'HK' || country == 'MO') {
+      add('yue-HK');
+      add('zh-HK');
+      add('zh-TW');
+      add('zh-CN');
+      add('zh');
+    } else if (country == 'TW' || script == 'Hant') {
+      add('zh-TW');
+      add('zh-HK');
+      add('zh-CN');
+      add('zh');
+    } else if (lang == 'zh') {
+      // Mainland / generic Chinese: stay with Mandarin tags first.
+      add('zh-CN');
+      add('zh-TW');
+      add('zh-HK');
+      add('zh');
+    }
+    add(lang);
+
+    // Hard fallback: English, always last.
+    add('en-US');
+    add('en-GB');
+    add('en');
+
+    // Keep AppLocale in sync with whatever the OS reported.
+    AppLocale.current = AppLocale.resolve(locale);
+    return out;
+  }
+
+  static bool _langMatches(String available, String wanted) {
+    final a = available.toLowerCase().replaceAll('_', '-');
+    final w = wanted.toLowerCase().replaceAll('_', '-');
+    if (a == w) return true;
+    if (a.startsWith('$w-') || w.startsWith('$a-')) return true;
+    final aLang = a.split('-').first;
+    final wLang = w.split('-').first;
+    return aLang == wLang && wLang.length >= 2;
   }
 
   @override
@@ -112,7 +181,7 @@ class FlutterTtsSpeaker implements Speaker {
     try {
       await _tts.stop();
     } catch (_) {
-      // 停止失败不影响后续播报。
+      // Ignore stop failures.
     }
   }
 
@@ -122,7 +191,7 @@ class FlutterTtsSpeaker implements Speaker {
       final langs = await _tts.getLanguages;
       if (langs is List) return langs.map((e) => e.toString()).toList();
     } catch (_) {
-      // 忽略：调用方只需知道「拿不到」。
+      // Caller only needs to know lookup failed.
     }
     return const <String>[];
   }

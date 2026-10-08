@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show Clipboard, ClipboardData;
 
+import '../l10n/app_strings.dart';
 import '../overlay/box_painter.dart';
 import '../tts/announcer.dart';
 import '../tts/flutter_tts_speaker.dart';
@@ -30,8 +31,9 @@ enum SourceMode {
 
 /// M3 最小可见 Demo 的主界面。
 ///
-/// 验收目标（见毕设设计 §9.1）：相机实时画面 + 检测框 + 中文标签 +
-/// FPS 与推理耗时 + 阈值滑条 + 粤语播报。
+/// UI copy follows the system language; English is the default pack.
+/// 验收目标（见毕设设计 §9.1）：相机实时画面 + 检测框 + 标签 +
+/// FPS 与推理耗时 + 阈值滑条 + 语音播报。
 class DemoPage extends StatefulWidget {
   const DemoPage({super.key});
 
@@ -63,8 +65,18 @@ class _DemoPageState extends State<DemoPage> {
   double _fps = 0;
   DateTime _lastFrameAt = DateTime.now();
 
-  String _status = '正在初始化…';
+  /// Runtime status line. Null means "still on the initial placeholder".
+  ///
+  /// Do **not** seed this with `AppStrings.current.…` as a field initializer:
+  /// that freezes the string at State construction. If the system language
+  /// changes before the first reassignment, the UI would keep the old pack.
+  /// Resolve the placeholder through [_statusText] / [_s] at paint time.
+  String? _status;
   String? _statusError;
+
+  AppStrings get _s => AppStrings.current;
+
+  String get _statusText => _status ?? _s.initializing;
 
   /// 本次初始化是否成功。用于状态栏配色与错误面板显示。
   bool _sourceReady = false;
@@ -109,9 +121,21 @@ class _DemoPageState extends State<DemoPage> {
     if (!mounted) return;
     setState(() {
       _ttsLanguage = lang;
-      if (lang != null && !_speaker.isCantonese) {
-        // 落到普通话语音时必须显式提示：否则演示时会被误以为在念粤语。
-        _status = '警告：未找到粤语语音包，当前使用 $lang';
+      // Only warn when TTS could not match the system language family
+      // and fell back to a different language tag.
+      if (lang != null) {
+        final sys = WidgetsBinding.instance.platformDispatcher.locale;
+        final sysLang = sys.languageCode.toLowerCase();
+        final used = lang.toLowerCase().replaceAll('_', '-');
+        final matched = used == sysLang ||
+            used.startsWith('$sysLang-') ||
+            (sysLang == 'zh' &&
+                (used.startsWith('zh') || used.startsWith('yue'))) ||
+            (sysLang == 'yue' &&
+                (used.startsWith('yue') || used.startsWith('zh-hk')));
+        if (!matched) {
+          _status = _s.ttsFallbackWarning(lang);
+        }
       }
     });
   }
@@ -152,7 +176,7 @@ class _DemoPageState extends State<DemoPage> {
         _mode = mode;
         _detections = const <Detection>[];
         _diagnostics = null;
-        _status = '正在初始化（${source.displayName}）…';
+        _status = _s.initializingSource(source.displayName);
         _statusError = null;
         _sourceReady = false;
       });
@@ -160,7 +184,7 @@ class _DemoPageState extends State<DemoPage> {
 
     // 先接流再初始化：否则首帧可能丢。
     _sub = source.frames.listen(_onFrame, onError: (Object e) {
-      if (mounted) setState(() => _status = '推理流出错：$e');
+      if (mounted) setState(() => _status = _s.inferenceStreamError(e));
     });
     final status = await source.initialize();
 
@@ -355,8 +379,12 @@ class _DemoPageState extends State<DemoPage> {
     final same = raw.width.round() == d.frameWidth &&
         raw.height.round() == d.frameHeight;
     if (same) return null;
-    return '几何不一致：画框用 ${raw.width.round()}x${raw.height.round()}，'
-        '分析流实际 ${d.frameWidth}x${d.frameHeight} → 框会整体偏移';
+    return _s.geometryMismatch(
+      raw.width.round(),
+      raw.height.round(),
+      d.frameWidth,
+      d.frameHeight,
+    );
   }
 
   Widget _perfPanel() {
@@ -371,9 +399,10 @@ class _DemoPageState extends State<DemoPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text('FPS      ${_fps.toStringAsFixed(1)}', style: style),
-          Text('推理     ${_inferenceMs.toStringAsFixed(1)} ms', style: style),
-          Text('检测框   ${_detections.length}', style: style),
+          Text('${_s.fps}      ${_fps.toStringAsFixed(1)}', style: style),
+          Text('${_s.inference}     ${_inferenceMs.toStringAsFixed(1)} ms',
+              style: style),
+          Text('${_s.boxes}   ${_detections.length}', style: style),
           if (geo != null)
             Padding(
               padding: const EdgeInsets.only(top: 2),
@@ -391,7 +420,7 @@ class _DemoPageState extends State<DemoPage> {
           // 「跳过」非空则直接写出被跳过的原因。
           if (_diagnostics != null) ...<Widget>[
             Text(
-              '分析帧   ${_diagnostics!.analyzedFrames}',
+              '${_s.analyzedFrames}   ${_diagnostics!.analyzedFrames}',
               style: style.copyWith(
                 color: _diagnostics!.analyzedFrames == 0
                     ? Colors.redAccent
@@ -399,10 +428,10 @@ class _DemoPageState extends State<DemoPage> {
               ),
             ),
             if (_diagnostics!.analyzeErrors > 0)
-              Text('分析错误 ${_diagnostics!.analyzeErrors}',
+              Text('${_s.analyzeErrors} ${_diagnostics!.analyzeErrors}',
                   style: style.copyWith(color: Colors.redAccent)),
             Text(
-              '分数     ${_diagnostics!.frameMinScore.toStringAsFixed(2)}'
+              '${_s.scoreRange}     ${_diagnostics!.frameMinScore.toStringAsFixed(2)}'
               '~${_diagnostics!.frameMaxScore.toStringAsFixed(2)}',
               style: style.copyWith(
                 // 模型最后一层是 sigmoid，分数必在 [0,1]。超过 1 就是解码错了。
@@ -420,7 +449,7 @@ class _DemoPageState extends State<DemoPage> {
                   width: 200,
                   child: SelectableText(
                     // 分类计数：三种原因指向完全不同的故障，只有总数时无法区分。
-                    '无效 ${_diagnostics!.invalidDetections}\n'
+                    '${_s.invalidDetections} ${_diagnostics!.invalidDetections}\n'
                     '${_invalidReasonText()}\n'
                     '${_diagnostics!.invalidSample}',
                     style: style.copyWith(color: Colors.redAccent, fontSize: 9),
@@ -447,7 +476,7 @@ class _DemoPageState extends State<DemoPage> {
                   child: SizedBox(
                     width: 200,
                     child: SelectableText(
-                      '输入 ${_diagnostics!.inputStats}',
+                      '${_s.input} ${_diagnostics!.inputStats}',
                       style: style.copyWith(color: Colors.cyan, fontSize: 9),
                     ),
                   ),
@@ -458,7 +487,7 @@ class _DemoPageState extends State<DemoPage> {
                   child: SizedBox(
                     width: 200,
                     child: SelectableText(
-                      '输出 ${_diagnostics!.outputStats}',
+                      '${_s.output} ${_diagnostics!.outputStats}',
                       style: style.copyWith(color: Colors.cyan, fontSize: 9),
                     ),
                   ),
@@ -504,16 +533,14 @@ class _DemoPageState extends State<DemoPage> {
               ),
           ],
           Text(
-            '语音     ${_ttsLanguage ?? "未就绪"}',
+            '${_s.voice}     ${_ttsLanguage ?? _s.ttsNotReady}',
             style: style.copyWith(
               color: _speaker.isCantonese ? Colors.greenAccent : Colors.orangeAccent,
             ),
           ),
-          // 两个阈值分开展示，因为它们管的事不同：
-          // 上面那根滑条决定**画不画**，这一行是**说不说**的下限。
-          // 不写出来，用户会以为「滑条拉低了怎么还不念」是坏了。
+          // Draw threshold (slider) vs speak floor are different concerns.
           Text(
-            '播报门槛 ≥ ${kMinSpeakScore.toStringAsFixed(2)}（低分只画框）',
+            _s.speakFloor(kMinSpeakScore.toStringAsFixed(2)),
             style: style.copyWith(color: Colors.white70),
           ),
         ],
@@ -530,10 +557,16 @@ class _DemoPageState extends State<DemoPage> {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          Text('帧 ${_frameSize.width.toInt()}x${_frameSize.height.toInt()}', style: style),
-          Text('旋转 $_rotationDegrees°', style: style),
-          Text('scale ${fit.scale.toStringAsFixed(3)}', style: style),
-          Text('留边 ${fit.dx.toStringAsFixed(0)},${fit.dy.toStringAsFixed(0)}', style: style),
+          Text(
+            '${_s.frame} ${_frameSize.width.toInt()}x${_frameSize.height.toInt()}',
+            style: style,
+          ),
+          Text('${_s.rotation} $_rotationDegrees°', style: style),
+          Text('${_s.scale} ${fit.scale.toStringAsFixed(3)}', style: style),
+          Text(
+            '${_s.letterbox} ${fit.dx.toStringAsFixed(0)},${fit.dy.toStringAsFixed(0)}',
+            style: style,
+          ),
         ],
       ),
     );
@@ -544,7 +577,7 @@ class _DemoPageState extends State<DemoPage> {
   /// 单独成方法而不是写成嵌套插值：嵌套引号极易出错，而这里又只是字符串拼接。
   String _invalidReasonText() {
     final m = _diagnostics?.invalidByReason ?? const <String, int>{};
-    if (m.isEmpty) return '(未分类)';
+    if (m.isEmpty) return _s.uncategorized;
     return m.entries.map((e) => '${e.key}=${e.value}').join(' ');
   }
 
@@ -580,7 +613,7 @@ class _DemoPageState extends State<DemoPage> {
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  _status,
+                  _statusText,
                   style: TextStyle(color: color, fontSize: 12),
                   // 不限制行数：状态里有失败原因时，截断会让人只看到「模型未加载」
                   // 而看不到「为什么」。之前用 maxLines: 2 就吃过这个亏。
@@ -600,9 +633,9 @@ class _DemoPageState extends State<DemoPage> {
                   await Clipboard.setData(ClipboardData(text: _statusError!));
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('错误详情已复制'),
-                      duration: Duration(seconds: 2),
+                    SnackBar(
+                      content: Text(_s.errorCopied),
+                      duration: const Duration(seconds: 2),
                     ),
                   );
                 },
@@ -621,9 +654,14 @@ class _DemoPageState extends State<DemoPage> {
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              '${_source?.displayName ?? "来源"}初始化失败（长按复制）',
-                              style: TextStyle(color: color, fontSize: 11,
-                                               fontWeight: FontWeight.w600),
+                              _s.sourceInitFailed(
+                                _source?.displayName ?? _s.sourceFallback,
+                              ),
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
                           Icon(Icons.copy, size: 13, color: color),
@@ -659,8 +697,8 @@ class _DemoPageState extends State<DemoPage> {
         children: <Widget>[
           Row(
             children: <Widget>[
-              const Text('显示阈值',
-                  style: TextStyle(color: Colors.white70, fontSize: 12)),
+              Text(_s.displayThreshold,
+                  style: const TextStyle(color: Colors.white70, fontSize: 12)),
               Expanded(
                 child: Slider(
                   value: _threshold,
@@ -690,16 +728,16 @@ class _DemoPageState extends State<DemoPage> {
             children: <Widget>[
               Expanded(
                 child: SegmentedButton<SourceMode>(
-                  segments: const <ButtonSegment<SourceMode>>[
+                  segments: <ButtonSegment<SourceMode>>[
                     ButtonSegment<SourceMode>(
                       value: SourceMode.camera,
-                      label: Text('相机'),
-                      icon: Icon(Icons.photo_camera, size: 16),
+                      label: Text(_s.camera),
+                      icon: const Icon(Icons.photo_camera, size: 16),
                     ),
                     ButtonSegment<SourceMode>(
                       value: SourceMode.mock,
-                      label: Text('假数据'),
-                      icon: Icon(Icons.grid_on, size: 16),
+                      label: Text(_s.fakeData),
+                      icon: const Icon(Icons.grid_on, size: 16),
                     ),
                   ],
                   selected: <SourceMode>{_mode},
@@ -714,7 +752,7 @@ class _DemoPageState extends State<DemoPage> {
               ),
               const SizedBox(width: 8),
               IconButton(
-                tooltip: _speakEnabled ? '关闭播报' : '开启播报',
+                tooltip: _speakEnabled ? _s.muteSpeak : _s.unmuteSpeak,
                 onPressed: () => setState(() => _speakEnabled = !_speakEnabled),
                 icon: Icon(
                   _speakEnabled ? Icons.volume_up : Icons.volume_off,
@@ -722,7 +760,7 @@ class _DemoPageState extends State<DemoPage> {
                 ),
               ),
               IconButton(
-                tooltip: _showLabels ? '隐藏标签' : '显示标签',
+                tooltip: _showLabels ? _s.hideLabels : _s.showLabels,
                 onPressed: () => setState(() => _showLabels = !_showLabels),
                 icon: Icon(
                   _showLabels ? Icons.label : Icons.label_off,
@@ -751,10 +789,10 @@ class _DemoPageState extends State<DemoPage> {
               '${a.at.hour.toString().padLeft(2, '0')}:'
               '${a.at.minute.toString().padLeft(2, '0')}:'
               '${a.at.second.toString().padLeft(2, '0')}  '
-              '${a.label.nameZh}  ${a.reason}',
+              '${labelDisplayName(a.label)}  ${a.reason}',
               style: TextStyle(
                 fontSize: 11,
-                color: a.reason.contains('跳过')
+                color: _s.reasonIsSkip(a.reason)
                     ? Colors.white38
                     : Colors.greenAccent,
               ),

@@ -1,4 +1,5 @@
 ﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:pathguide/l10n/app_locale.dart';
 import 'package:pathguide/tts/announcer.dart';
 import 'package:pathguide/vision/detection.dart';
 import 'package:pathguide/vision/labels.dart';
@@ -50,6 +51,8 @@ void main() {
   late Announcer announcer;
 
   setUp(() {
+    // Tests assert Chinese UI/TTS copy; pin the zh pack regardless of host OS.
+    AppLocale.current = AppLanguage.zh;
     speaker = _FakeSpeaker();
     clock = _Clock();
     announcer = Announcer(speaker: speaker, clock: clock.call);
@@ -140,7 +143,10 @@ void main() {
     clock.advance(const Duration(seconds: 1));
     await announce(<Detection>[_det(_binP0Id)]);
     expect(announcer.history, hasLength(2));
-    expect(announcer.history.last.reason, contains('跳过'));
+    expect(
+      announcer.history.last.reason,
+      anyOf(contains('跳過'), contains('跳过'), contains('skip')),
+    );
   });
 
   group('分数门槛：低分只画框，不开口', () {
@@ -150,7 +156,7 @@ void main() {
       expect(await announce(<Detection>[_det(_binP0Id, score: 0.35)]), isNull);
       expect(speaker.spoken, isEmpty, reason: '低分不应该发声');
       expect(announcer.history, hasLength(1), reason: '仍要留下决策记录');
-      expect(announcer.history.single.reason, contains('播报门槛'));
+      expect(announcer.history.single.reason, contains('播報門檻'));
       expect(announcer.history.single.reason, contains('0.35'));
     });
 

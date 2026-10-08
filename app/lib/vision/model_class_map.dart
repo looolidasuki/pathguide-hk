@@ -56,10 +56,10 @@ class ModelClassMapping {
 
   /// 给界面用的一句话说明。
   String describe() {
-    if (identity) return '多类模型：$modelClassCount 类，直接对应类别表';
+    if (identity) return '多類模型：$modelClassCount 類，直接對應類別表';
     final names = ids.map((id) => labelOf(id)?.nameEn ?? 'id$id').join('、');
-    return '模型 $modelClassCount 类（$names），映射到项目类别表；'
-        '其余 $unsupportedClassCount 个类别不会出框（未采集数据，非故障）';
+    return '模型 $modelClassCount 類（$names），映射到項目類別表；'
+        '其餘 $unsupportedClassCount 個類別不會出框（未採集數據，非故障）';
   }
 }
 

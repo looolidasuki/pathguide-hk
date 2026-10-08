@@ -30,11 +30,13 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
   # 仅 UI 图标用。
   cupertino_icons: ^1.0.8
 
-  # 粤语播报。
+  # TTS：跟随手机系统语言，缺省英语。
   flutter_tts: ^4.2.5
 
 # ---------------------------------------------------------------------------

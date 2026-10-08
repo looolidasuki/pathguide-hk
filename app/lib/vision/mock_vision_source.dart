@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show Size;
 
+import '../l10n/app_strings.dart';
 import 'detection.dart';
 import 'vision_source.dart';
 
@@ -55,7 +56,7 @@ class MockVisionSource implements VisionSource {
   }
 
   @override
-  String get displayName => '假数据';
+  String get displayName => AppStrings.current.sourceMock;
 
   /// 与 [PlatformVision] 同一语义：**旋转之后**的帧尺寸。
   ///
@@ -83,9 +84,9 @@ class MockVisionSource implements VisionSource {
   Future<VisionSourceStatus> initialize() async {
     _timer?.cancel();
     _timer = Timer.periodic(interval, (_) => _emit());
-    return const VisionSourceStatus(
+    return VisionSourceStatus(
       ok: true,
-      message: '假数据模式：三个按已知规律运动的框，用于校验坐标映射',
+      message: AppStrings.current.mockModeReady,
     );
   }
 

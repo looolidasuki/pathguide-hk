@@ -1,7 +1,10 @@
 import 'dart:async';
 
+import '../l10n/app_locale.dart';
+import '../l10n/app_strings.dart';
 import '../vision/detection.dart';
 import '../vision/labels.dart';
+
 /// 播报所需的**最低置信度**，与「显示门槛」是两件事。
 ///
 /// ## 为什么必须比显示门槛更严
@@ -167,13 +170,27 @@ class Announcer {
       final label = c.label!;
       final reason = _rejectReason(label, c.detection.score, now, force);
       if (reason != null) {
-        _record(label, c.detection.score, '-', now, '跳过：$reason');
+        final s = AppStrings.current;
+        _record(
+          label,
+          c.detection.score,
+          '-',
+          now,
+          '${s.reasonSkipPrefix}$reason',
+        );
         continue;
       }
       final text = announceTextFor(label);
       _lastByClass[label.id] = now;
       _lastAny = now;
-      _record(label, c.detection.score, text, now, force ? '强制播报' : '正常播报');
+      final s = AppStrings.current;
+      _record(
+        label,
+        c.detection.score,
+        text,
+        now,
+        force ? s.reasonForced : s.reasonNormal,
+      );
       // 记下 future 供调用方/测试等待。不 await 是刻意的：onFrame 由相机
       // 帧回调调用，阻塞它会让掉帧；但必须让「说完了」这件事可被观察。
       _lastSpeech = _speak(text, interrupt: _isP0(label));
@@ -189,18 +206,21 @@ class Announcer {
     // 属于**时机**问题；而分数门槛管的是「这个东西到底是不是真的」，
     // 属于**正确性**问题。让 force 绕过它，等于给了一个「逢低分也照念」的后门，
     // 而那正是要防的事。
+    final s = AppStrings.current;
     if (score < minSpeakScore) {
-      return '分数 ${score.toStringAsFixed(2)} 低于播报门槛 '
-          '${minSpeakScore.toStringAsFixed(2)}';
+      return s.scoreBelowFloor(
+        score.toStringAsFixed(2),
+        minSpeakScore.toStringAsFixed(2),
+      );
     }
     if (force) return null;
     final last = _lastByClass[label.id];
     if (last != null && now.difference(last) < perClassCooldown) {
-      return '同类冷却未过';
+      return s.perClassCooldown;
     }
     final any = _lastAny;
     if (any != null && now.difference(any) < globalCooldown) {
-      return '全局冷却未过';
+      return s.globalCooldown;
     }
     return null;
   }
@@ -254,8 +274,7 @@ class Announcer {
 
 /// 一个类别的播报话术。
 ///
-/// 直接念 `name_zh`（繁体，与香港路牌用字一致）。刻意**不**加修饰语：
-/// 视障用户最需要的是「是什么 + 在哪」，修饰语会拖长播报时间，
-/// 而播报延迟在这里等于危险。方位（左/右/前）应由导航层算完再拼进来，
-/// 检测层不知道用户朝向，自己猜会给出错误方位。
-String announceTextFor(Label label) => label.nameZh;
+/// 跟随 [AppLocale.current]：中文系统念 `nameZh`，其余念可读英文名。
+/// 刻意**不**加修饰语：视障用户最需要的是「是什么 + 在哪」。
+String announceTextFor(Label label, [AppLanguage? language]) =>
+    labelDisplayName(label, language);

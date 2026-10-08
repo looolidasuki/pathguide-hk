@@ -9,6 +9,7 @@ import 'dart:ui' show Size;
 
 import 'package:flutter/services.dart';
 
+import '../l10n/app_strings.dart';
 import 'detection.dart';
 import 'platform_contract.dart';
 import 'model_class_map.dart';
@@ -94,7 +95,7 @@ class PlatformVision implements VisionSource {
   String? get error => _loadError;
 
   @override
-  String get displayName => '相机';
+  String get displayName => AppStrings.current.sourceCamera;
 
   /// **旋转之后**的帧尺寸——归一化坐标的坐标系。
   ///
@@ -150,10 +151,11 @@ class PlatformVision implements VisionSource {
     final parsed = parseModelManifest(
       await rootBundle.loadString(defaultModelManifestKey),
     );
+    final s = AppStrings.current;
     if (!parsed.ok) {
       return VisionSourceStatus(
         ok: false,
-        message: '模型清单有问题',
+        message: s.modelManifestBad,
         error: parsed.error,
       );
     }
@@ -171,11 +173,13 @@ class PlatformVision implements VisionSource {
       // 模型与清单对不上：宁可失败也不猜。
       return VisionSourceStatus(
         ok: false,
-        message: '模型与清单不符',
-        error: '模型报告 $_modelClassCount 类，而清单（${manifest.version}）声明 '
-            'modelClassCount=${manifest.modelClassCount}、'
-            'modelClassIds=${manifest.modelClassIds}。两者必须一致——'
-            '猜一个映射会把框标成别的类，而且不会报错。',
+        message: s.modelManifestMismatch,
+        error: s.modelManifestMismatchDetail(
+          modelClassCount: _modelClassCount,
+          version: manifest.version,
+          declaredCount: manifest.modelClassCount,
+          declaredIds: manifest.modelClassIds,
+        ),
       );
     }
     if (ok && mapping != null && !mapping.identity) {
@@ -186,24 +190,28 @@ class PlatformVision implements VisionSource {
     if (!ok) {
       return VisionSourceStatus(
         ok: false,
-        message: '模型未加载',
+        message: s.modelNotLoaded,
         error: _loadError,
       );
     }
     if (!started) {
       // 模型好了但相机没起来：仍是失败，但要区分原因，
       // 否则用户会以为是模型问题。
-      return const VisionSourceStatus(
+      return VisionSourceStatus(
         ok: false,
-        message: '相机未启动',
-        error: '模型已加载，但原生相机未启动：可能未授予权限，或被其他程序占用',
+        message: s.cameraNotStarted,
+        error: s.cameraNotStartedDetail,
       );
     }
+    final mappingNote =
+        mappingFinal != null ? '；${mappingFinal.describe()}' : '';
     return VisionSourceStatus(
       ok: true,
-      message: '模型已加载（类别数 $_modelClassCount'
-          '，输入 $_inputSize）'
-          '${mappingFinal != null ? "；${mappingFinal.describe()}" : ""}',
+      message: s.modelLoaded(
+        classCount: _modelClassCount,
+        inputSize: _inputSize,
+        mappingNote: mappingNote,
+      ),
     );
   }
 
