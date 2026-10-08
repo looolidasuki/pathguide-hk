@@ -1,34 +1,34 @@
-# M0–M2 环境搭建与流水线跑通 · 执行记录
+# M0–M2 環境搭建與流水線跑通 · 執行記錄
 
 **日期：** 2026-09-15
-**执行方式：** Inline Execution（当前会话，带检查点）
-**结论：** 训练环境已就绪，数据→标注→训练→评测→报告全链路已端到端跑通，产出真实非零指标。
+**執行方式：** Inline Execution（當前會話，帶檢查點）
+**結論：** 訓練環境已就緒，數據→標註→訓練→評測→報告全鏈路已端到端跑通，產出真實非零指標。
 
 ---
 
-## 1. 实测环境
+## 1. 實測環境
 
-| 项 | 值 |
+| 項 | 值 |
 |---|---|
-| 操作系统 | Windows |
-| Python | **3.12.3**（`uv venv`；系统默认 3.14.4 过新，PyTorch 无对应 wheel） |
-| 环境管理 | **uv 0.12.13 + venv**（本机未安装 conda，计划中的 conda 步骤已替换） |
+| 操作系統 | Windows |
+| Python | **3.12.3**（`uv venv`；系統默認 3.14.4 過新，PyTorch 無對應 wheel） |
+| 環境管理 | **uv 0.12.13 + venv**（本機未安裝 conda，計劃中的 conda 步驟已替換） |
 | PyTorch | **2.11.0+cu128** |
 | torchvision | 0.26.0+cu128 |
 | CUDA runtime | 12.8 |
-| GPU | **NVIDIA GeForce RTX 5070** / sm_120 (Blackwell) / 11.91 GB / 驱动 616.56 |
+| GPU | **NVIDIA GeForce RTX 5070** / sm_120 (Blackwell) / 11.91 GB / 驅動 616.56 |
 | ultralytics | 8.3.253 |
 | opencv-python | 5.0.0.93 |
-| 磁盘可用 | 1188 GB |
-| 建议 batch | 12（冒烟实测；流水线使用 8 以留余量） |
+| 磁盤可用 | 1188 GB |
+| 建議 batch | 12（冒煙實測；流水線使用 8 以留餘量） |
 
-**GPU 关键验证：** `sm_120` 必须搭配 CUDA 12.8+ 的 PyTorch 构建。已实测矩阵乘法通过，无 "no kernel image" 错误。
+**GPU 關鍵驗證：** `sm_120` 必須搭配 CUDA 12.8+ 的 PyTorch 構建。已實測矩陣乘法通過，無 "no kernel image" 錯誤。
 
-`runs/env_report.json` 为机读版本，7 项检查全部 OK。
+`runs/env_report.json` 為機讀版本，7 項檢查全部 OK。
 
 ---
 
-## 2. 端到端跑通结果
+## 2. 端到端跑通結果
 
 命令：
 
@@ -41,142 +41,142 @@ python scripts\check_labels.py
 python scripts\run_pipeline.py --skip-generate --epochs 60 --imgsz 416 --batch 8 --workers 0
 ```
 
-| 环节 | 结果 |
+| 環節 | 結果 |
 |---|---|
-| 数据生成 | 30 张合成图（含 6 张负样本），91 个标注框，9 个来源文件夹 |
-| manifest | 30 条，缺标签 0 |
-| 分组分层划分 | train 12 / val 9 / test 9，**泄漏校验通过** |
-| 标签门禁 | 致命错误 0 |
-| 训练 | YOLOv8n，60 epochs，3,013,968 参数，8.2 GFLOPs，GPU 正常 |
-| 评测（test 折） | mAP@0.5 = **0.1013**，macro Recall = **0.7257**，12 个类别有指标 |
-| 报告 | `runs/pipeline_report.md` |
+| 數據生成 | 30 張合成圖（含 6 張負樣本），91 個標註框，9 個來源文件夾 |
+| manifest | 30 條，缺標籤 0 |
+| 分組分層劃分 | train 12 / val 9 / test 9，**泄漏校驗通過** |
+| 標籤門禁 | 致命錯誤 0 |
+| 訓練 | YOLOv8n，60 epochs，3,013,968 參數，8.2 GFLOPs，GPU 正常 |
+| 評測（test 折） | mAP@0.5 = **0.1013**，macro Recall = **0.7257**，12 個類別有指標 |
+| 報告 | `runs/pipeline_report.md` |
 
-**这些指标本身没有意义**——30 张合成图、16 个类别，样本量远低于计划要求的 2,500–3,000 张。它们的作用是证明**链路连通**，而不是模型性能。
+**這些指標本身沒有意義**——30 張合成圖、16 個類別，樣本量遠低於計劃要求的 2,500–3,000 張。它們的作用是證明**鏈路連通**，而不是模型性能。
 
-真实数据到位后，只需把第 1 步换成 `extract_frames.py` → `dedup.py`，其余步骤不变。
+真實數據到位後，只需把第 1 步換成 `extract_frames.py` → `dedup.py`，其餘步驟不變。
 
 ---
 
-## 3. 排查过程中发现并修复的 4 个真实缺陷
+## 3. 排查過程中發現並修復的 4 個真實缺陷
 
-这些都是**在真实采集数据上同样会犯**的错误，不是合成数据特有问题。
+這些都是**在真實採集數據上同樣會犯**的錯誤，不是合成數據特有問題。
 
-### 缺陷 1（最严重）：标签未镜像图像目录结构
+### 缺陷 1（最嚴重）：標籤未鏡像圖像目錄結構
 
-**现象：** 训练与评测全部 `Instances = 0`，指标全为 0，**且不报任何错误**。
+**現象：** 訓練與評測全部 `Instances = 0`，指標全為 0，**且不報任何錯誤**。
 
-**根因：** Ultralytics 的 `img2label_paths()` 是把路径里的 `\images\` **替换**为 `\labels\` 并保留其余层级：
+**根因：** Ultralytics 的 `img2label_paths()` 是把路徑裏的 `\images\` **替換**為 `\labels\` 並保留其餘層級：
 
 ```
 images/route_A_synthetic_src00/xxx.jpg
   -> labels/route_A_synthetic_src00/xxx.txt   # 期望
 ```
 
-而我们把标签扁平写在 `labels/xxx.txt`，因此**每一个标签都找不到**。
+而我們把標籤扁平寫在 `labels/xxx.txt`，因此**每一個標籤都找不到**。
 
-**为什么危险：** 它不报错。指标全 0 看起来像"模型没学好"，会把排查方向引向超参、数据量、模型容量，而真实原因是路径契约。
+**為什麼危險：** 它不報錯。指標全 0 看起來像"模型沒學好"，會把排查方向引向超參、數據量、模型容量，而真實原因是路徑契約。
 
-**修复：** `gen_synthetic.py`、`make_manifest.py`、`check_labels.py` 三处统一改为镜像结构，并写入 spec §6.2 决定四。
+**修復：** `gen_synthetic.py`、`make_manifest.py`、`check_labels.py` 三處統一改為鏡像結構，並寫入 spec §6.2 決定四。
 
-### 缺陷 2：manifest 丢失子目录
+### 缺陷 2：manifest 丟失子目錄
 
-**现象：** `train.txt` 写出的路径指向不存在的文件。
+**現象：** `train.txt` 寫出的路徑指向不存在的文件。
 
-**根因：** manifest 只记录文件名（`xxx.jpg`），未记录相对 `images/` 的路径。
+**根因：** manifest 只記錄文件名（`xxx.jpg`），未記錄相對 `images/` 的路徑。
 
-**附带风险：** 真实采集时不同来源文件夹可能存在同名帧（多机位 `IMG_0001.jpg`），只记文件名会让**标签互相覆盖**，且分组泄漏校验失效。
+**附帶風險：** 真實採集時不同來源文件夾可能存在同名幀（多機位 `IMG_0001.jpg`），只記文件名會讓**標籤互相覆蓋**，且分組泄漏校驗失效。
 
-**修复：** manifest 列 `image_name` 改为 `image_rel`（相对 `images/` 的 posix 路径，含子目录）。
+**修復：** manifest 列 `image_name` 改為 `image_rel`（相對 `images/` 的 posix 路徑，含子目錄）。
 
-### 缺陷 3：划分清单使用相对正斜杠路径
+### 缺陷 3：劃分清單使用相對正斜槓路徑
 
-**现象：** Ultralytics 报 `No such file or directory`。
+**現象：** Ultralytics 報 `No such file or directory`。
 
-**根因（两点叠加）：**
-1. Ultralytics 从 **CWD** 解析相对路径，而非从 yaml 的 `path` 字段；
-2. `img2label_paths()` 在 Windows 上用 `os.sep` 拼 `\images\`，正斜杠路径无法匹配。
+**根因（兩點疊加）：**
+1. Ultralytics 從 **CWD** 解析相對路徑，而非從 yaml 的 `path` 字段；
+2. `img2label_paths()` 在 Windows 上用 `os.sep` 拼 `\images\`，正斜槓路徑無法匹配。
 
-**修复：** 划分清单写**绝对原生路径**（`Path` 拼接，非字符串拼接），并加单元测试断言路径为绝对且不含正斜杠。
+**修復：** 劃分清單寫**絕對原生路徑**（`Path` 拼接，非字符串拼接），並加單元測試斷言路徑為絕對且不含正斜槓。
 
-### 缺陷 4：合成生成器的类别集合退化
+### 缺陷 4：合成生成器的類別集合退化
 
-**现象：** 最初 train 折只有 1 张正样本，test 折全是负样本。
+**現象：** 最初 train 折只有 1 張正樣本，test 折全是負樣本。
 
-**根因：** 生成器让每个来源都含**完全相同的 16 类**，于是划分脚本把它们全部归入同一个分层桶；桶内前两个来源被固定分给 val/test，train 几乎无正样本。
+**根因：** 生成器讓每個來源都含**完全相同的 16 類**，於是劃分腳本把它們全部歸入同一個分層桶；桶內前兩個來源被固定分給 val/test，train 幾乎無正樣本。
 
-**说明：** 这是合成生成器的缺陷，真实数据下每个采集点位的类别集合天然不同，不会这样退化。但它验证了划分脚本的**分层优先级裁决**（无泄漏 > val 覆盖全类 > 比例）是有效的——脚本确实保证了各折都拿到来源。
+**説明：** 這是合成生成器的缺陷，真實數據下每個採集點位的類別集合天然不同，不會這樣退化。但它驗證了劃分腳本的**分層優先級裁決**（無泄漏 > val 覆蓋全類 > 比例）是有效的——腳本確實保證了各折都拿到來源。
 
-**修复：** 生成器改为把每轮目标轮转切片给不同来源，使各来源类别集合不同。
+**修復：** 生成器改為把每輪目標輪轉切片給不同來源，使各來源類別集合不同。
 
 ---
 
-## 4. 受限沙箱适配（重要）
+## 4. 受限沙箱適配（重要）
 
-当前执行环境禁止打开**命名管道**，因此：
+當前執行環境禁止打開**命名管道**，因此：
 
-| 影响 | 处理 | 是否影响你 |
+| 影響 | 處理 | 是否影響你 |
 |---|---|---|
-| DataLoader 多进程失败 | `workers=0` | **是**——你在普通终端应设为 4–8 |
-| Ultralytics `cache_labels` 用 ThreadPool | `scripts/env_setup.py` 探测后打顺序补丁 | **否**——普通终端会自动探测为可用，不打补丁 |
-| TFLite 导出挂起 | 改在普通终端执行 `scripts/export_model.py` | **是**——需你手动执行一次 |
+| DataLoader 多進程失敗 | `workers=0` | **是**——你在普通終端應設為 4–8 |
+| Ultralytics `cache_labels` 用 ThreadPool | `scripts/env_setup.py` 探測後打順序補丁 | **否**——普通終端會自動探測為可用，不打補丁 |
+| TFLite 導出掛起 | 改在普通終端執行 `scripts/export_model.py` | **是**——需你手動執行一次 |
 
-适配细节已写入 spec §14，包括 `cache_labels` 补丁的 4 条实现约束（补丁目标类、`verify_image_label` 签名、缓存字典必需键、`im_file` 必须为 str）。
+適配細節已寫入 spec §14，包括 `cache_labels` 補丁的 4 條實現約束（補丁目標類、`verify_image_label` 簽名、緩存字典必需鍵、`im_file` 必須為 str）。
 
 ---
 
 ## 5. 交付物
 
-| 文件 | 说明 |
+| 文件 | 説明 |
 |---|---|
-| `.env.ps1` | **环境激活脚本**：激活 venv + 重定向 `UV_CACHE_DIR` / `YOLO_CONFIG_DIR` / `MPLCONFIGDIR` |
-| `requirements.txt` | 依赖清单（torch 需单独用 cu128 索引安装） |
-| `configs/classes.json` | 16 类类别表（单一事实源） |
-| `scripts/env_setup.py` | 沙箱适配：写路径重定向 + `cache_labels` 补丁 |
-| `scripts/env_check.py` | 环境自检（7 项），产出 `runs/env_report.json` |
-| `scripts/gen_synthetic.py` | 合成数据生成（**仅用于验证流水线**） |
-| `scripts/extract_frames.py` | 视频抽帧 + 模糊过滤 |
-| `scripts/dedup.py` | 感知哈希去重（评测域刻意保留冗余） |
+| `.env.ps1` | **環境激活腳本**：激活 venv + 重定向 `UV_CACHE_DIR` / `YOLO_CONFIG_DIR` / `MPLCONFIGDIR` |
+| `requirements.txt` | 依賴清單（torch 需單獨用 cu128 索引安裝） |
+| `configs/classes.json` | 16 類類別表（單一事實源） |
+| `scripts/env_setup.py` | 沙箱適配：寫路徑重定向 + `cache_labels` 補丁 |
+| `scripts/env_check.py` | 環境自檢（7 項），產出 `runs/env_report.json` |
+| `scripts/gen_synthetic.py` | 合成數據生成（**僅用於驗證流水線**） |
+| `scripts/extract_frames.py` | 視頻抽幀 + 模糊過濾 |
+| `scripts/dedup.py` | 感知哈希去重（評測域刻意保留冗餘） |
 | `scripts/make_manifest.py` | manifest 生成 |
-| `scripts/split_dataset.py` | 分组分层划分 + 泄漏校验 |
-| `scripts/check_labels.py` | 标签质量门禁 |
-| `scripts/run_pipeline.py` | 端到端编排 |
-| `scripts/run_all.py` | 完整复现脚本 |
-| `scripts/export_model.py` | TFLite 导出（**须在普通终端运行**） |
-| `scripts/smoke_test.py` | Windows+CUDA 冒烟测试 |
-| `tests/` | 6 个测试文件，**47 个用例全部通过** |
+| `scripts/split_dataset.py` | 分組分層劃分 + 泄漏校驗 |
+| `scripts/check_labels.py` | 標籤質量門禁 |
+| `scripts/run_pipeline.py` | 端到端編排 |
+| `scripts/run_all.py` | 完整復現腳本 |
+| `scripts/export_model.py` | TFLite 導出（**須在普通終端運行**） |
+| `scripts/smoke_test.py` | Windows+CUDA 冒煙測試 |
+| `tests/` | 6 個測試文件，**47 個用例全部通過** |
 
 ---
 
 ## 6. 下一步
 
-### 立即可做（普通终端）
+### 立即可做（普通終端）
 
 ```powershell
 cd "C:\Users\user\PycharmProjects\Accessible Visual Guidance"
 . .\.env.ps1
-python scripts\env_check.py            # 确认 7 项全 OK
-python -m pytest tests\ -v             # 确认 47 passed
+python scripts\env_check.py            # 確認 7 項全 OK
+python -m pytest tests\ -v             # 確認 47 passed
 python scripts\export_model.py --weights runs\pg_pipeline\weights\best.pt --int8
 ```
 
-导出后还需**手动复测 INT8 量化精度**（Ultralytics 的 `val()` 不支持 TFLite 后端），损失 > 1.5% 则回退 FP16。
+導出後還需**手動複測 INT8 量化精度**（Ultralytics 的 `val()` 不支持 TFLite 後端），損失 > 1.5% 則回退 FP16。
 
-### 进入真实数据阶段
+### 進入真實數據階段
 
-1. **实地核实**彩明商场与调景岭站的连通方式，以及商场内目标店/锚点店清单（阻塞节点图与 logo 数据采集）。
-2. 按 `configs/collect_plan.md` 采集（**第 1 周内必须先拍满 `footbridge_entrance` ≥ 250 张**）。
-3. 清空 `data/dataset/`，把第一步换成 `extract_frames.py` → `dedup.py`，其余流水线不变。
-4. 人工精标 300 张种子集 + 200 张冻结基线（`data/golden/`）。
+1. **實地核實**彩明商場與調景嶺站的連通方式，以及商場內目標店/錨點店清單（阻塞節點圖與 logo 數據採集）。
+2. 按 `configs/collect_plan.md` 採集（**第 1 周內必須先拍滿 `footbridge_entrance` ≥ 250 張**）。
+3. 清空 `data/dataset/`，把第一步換成 `extract_frames.py` → `dedup.py`，其餘流水線不變。
+4. 人工精標 300 張種子集 + 200 張凍結基線（`data/golden/`）。
 
-### 完成 M0–M2 后
+### 完成 M0–M2 後
 
-进入 M3（Flutter Demo）。M2 出口验收模板见计划 Task 12；M3 的输入契约是 `app/assets/models/detector.tflite` + `configs/classes.json` + `configs/logos.json`。
+進入 M3（Flutter Demo）。M2 出口驗收模板見計劃 Task 12；M3 的輸入契約是 `app/assets/models/detector.tflite` + `configs/classes.json` + `configs/logos.json`。
 
 ---
 
-## 7. 后续执行记录
+## 7. 後續執行記錄
 
-| 日期 | 内容 | 文档 |
+| 日期 | 內容 | 文檔 |
 |---|---|---|
-| 2026-09-22 | 人工复核一轮（trashbin 44 张）：跑通「预标 → 人工复核 → 回写 → 重训」闭环；新增 `xlabel_io.py`、`single_source.py`；实测人工复核 0 微调 / 5 删误检 / 41 补漏检，零框图像 9 → 0；对照实验 mAP@0.5 0.502 → 0.788、macro Recall 0.500 → 0.750 | [`2026-09-22-human-review-round-trashbin.md`](2026-09-22-human-review-round-trashbin.md) |
+| 2026-09-22 | 人工複核一輪（trashbin 44 張）：跑通「預標 → 人工複核 → 回寫 → 重訓」閉環；新增 `xlabel_io.py`、`single_source.py`；實測人工複核 0 微調 / 5 刪誤檢 / 41 補漏檢，零框圖像 9 → 0；對照實驗 mAP@0.5 0.502 → 0.788、macro Recall 0.500 → 0.750 | [`2026-09-22-human-review-round-trashbin.md`](2026-09-22-human-review-round-trashbin.md) |
 
