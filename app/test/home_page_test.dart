@@ -127,16 +127,24 @@ void main() {
       expect(find.textContaining('讀招牌'), findsOneWidget);
     });
 
-    testWidgets('★ 可操作項只有兩個（焦點移動成本）', (tester) async {
+    testWidgets('★ 焦點順序：兩個模式在前，設定位於最後', (tester) async {
       final session = VisionSession(
         speaker: _FakeSpeaker(),
         sourceFactory: () => _FakeSource(),
       );
       await pumpHome(tester, session: session);
 
-      // 兩個按鈕，沒有裸 IconButton。
-      expect(find.byType(IconButton), findsNothing);
+      // 兩個主模式仍是 FilledButton（強調動作），設定是次級的 OutlinedButton：
+      // 形狀不同，所以「按下去會發生什麼」不需要靠顏色分辨。
       expect(find.byType(FilledButton), findsNWidgets(2));
+      expect(find.byType(OutlinedButton), findsOneWidget);
+      // 仍然不允許裸圖標充當按鈕
+      expect(find.byType(IconButton), findsNothing);
+
+      // 設定必須排在最後：從桌面圖標到「開始引導」仍是第 1 個焦點站。
+      final guideTop = tester.getTopLeft(find.text('開始引導')).dy;
+      final settingsTop = tester.getTopLeft(find.text('設定')).dy;
+      expect(settingsTop, greaterThan(guideTop), reason: '設定不得排在主模式之前');
     });
 
     testWidgets('點「讀字」進入讀字畫面，並有返回出口', (tester) async {

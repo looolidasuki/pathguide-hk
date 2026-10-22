@@ -4,14 +4,18 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'l10n/app_locale.dart';
 import 'l10n/app_strings.dart';
+import 'settings/app_settings.dart';
 import 'ui/home_page.dart';
 
 /// 領路通 · PathGuide HK —— M3 最小可见 Demo。
 ///
 /// UI 与 TTS 跟随手机系统语言；不支持的语言回落到英语。
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   AppLocale.current = AppLocale.resolve();
+
+  // 讀設定要 await：語速必須在第一句播報之前就位。
+  final settings = await AppSettings.load();
 
   // 室外强光下演示，深色系统栏更省电也更清楚。
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
@@ -21,11 +25,14 @@ void main() {
     systemNavigationBarIconBrightness: Brightness.light,
   ));
 
-  runApp(const PathGuideApp());
+  runApp(PathGuideApp(settings: settings));
 }
 
 class PathGuideApp extends StatefulWidget {
-  const PathGuideApp({super.key});
+  const PathGuideApp({super.key, this.settings});
+
+  /// 使用者設定。`main` 讀完就注入；沒注入時首頁自己建純記憶體的一份。
+  final AppSettings? settings;
 
   @override
   State<PathGuideApp> createState() => _PathGuideAppState();
@@ -91,7 +98,7 @@ class _PathGuideAppState extends State<PathGuideApp>
       localeResolutionCallback: (locale, supported) {
         return AppLocale.applyResolved(locale, supported);
       },
-      home: const HomePage(),
+      home: HomePage(settings: widget.settings),
     );
   }
 }
