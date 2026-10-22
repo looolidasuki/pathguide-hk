@@ -127,10 +127,19 @@ class VisionSession {
   /// 套用播報語速。**只對真正的 TTS 生效**。
   ///
   /// 為什麼不在 [Speaker] 介面上加方法：那會讓每一個測試假實現都要跟著改，
-  /// 而語速只跟真實 TTS 有關。
+  /// 而語速只跟真實 TTS 有關。所以換成別的 Speaker 實作時這裡**安靜地什麼都不做**——
+  /// 不是漏了，是刻意的（語速對 `NullSpeaker` 這種假實現沒有意義）。
+  ///
+  /// 失敗也不往外拋：這條路徑接在「讀設定檔」之後，而啟動流程絕不能被一個
+  /// 無關緊要的偏好設定擋死（同 [stopSpeaking]）。
   Future<void> applySpeechRate(double rate) async {
     final s = speaker;
-    if (s is FlutterTtsSpeaker) await s.setSpeechRate(rate);
+    if (s is! FlutterTtsSpeaker) return;
+    try {
+      await s.setSpeechRate(rate);
+    } catch (_) {
+      // 語速套不上只是「聽起來不是他選的速度」，不該讓設定載入失敗。
+    }
   }
 
   /// 測試用：直接指定來源，跳過真正的相機啟動。

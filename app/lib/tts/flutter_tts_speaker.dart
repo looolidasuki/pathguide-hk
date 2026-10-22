@@ -23,10 +23,29 @@ class FlutterTtsSpeaker implements Speaker {
     double? speechRate,
   })  : _tts = tts ?? FlutterTts(),
         _systemLocale = systemLocale ?? (() => PlatformDispatcher.instance.locale),
-        _speechRate = speechRate ?? defaultSpeechRate;
+        _speechRate = _clampRate(speechRate ?? defaultSpeechRate);
 
   /// 預設語速。三檔中的「正常」（見 `settings/app_settings.dart`）。
   static const double defaultSpeechRate = 0.45;
+
+  /// 語速合法區間的下界。低於它引擎要嘛不發聲，要嘛慢到像壞掉。
+  static const double _minSpeechRate = 0.1;
+
+  /// 語速合法區間的上界。高於它幾乎聽不出字（尤其粵語）。
+  static const double _maxSpeechRate = 1.0;
+
+  /// 把任意語速夾進合法區間。**建構子與 [setSpeechRate] 只能走這一個入口。**
+  ///
+  /// 為什麼一定要共用：這兩條路徑都是「外部值進入引擎」的門，而且指向同一個
+  /// 引擎參數。建構子的 `speechRate:` 是**唯一的啟動注入路徑**（設定檔裡持久化的值）
+  /// ——若只有 `setSpeechRate` 夾、建構子不夾，一個越界的存檔值就會原封不動地
+  /// 在首次 `initialize()` 時送進引擎，而 `initialize()` 正是啟動流程本身。
+  /// 共用一個 helper 之後，兩條路徑在結構上不可能各自漂移。
+  ///
+  /// `num.clamp` 的靜態型別是 `num`，直接賦值給 `double` 欄位會編不過（analyze 會紅），
+  /// 所以要 `.toDouble()`。
+  static double _clampRate(double rate) =>
+      rate.clamp(_minSpeechRate, _maxSpeechRate).toDouble();
 
   final FlutterTts _tts;
 
@@ -47,12 +66,24 @@ class FlutterTtsSpeaker implements Speaker {
   /// 目前語速（給測試與設定頁讀）。
   double get speechRate => _speechRate;
 
-  /// 執行時改語速。`initialize()` 之後呼叫才有意義，但先呼叫也不會壞：
-  /// 它只是設值，真正的套用在 `initialize()` 內。
+  /// 執行時改語速：先記住，再順手試著立刻套用。
+  ///
+  /// 真正的引擎設定在 `initialize()` 內（見該處），但這裡也會打一次引擎呼叫，
+  /// 讓「App 已經在跑、使用者拉滑條」的情境立刻生效，不必等下一次初始化。
+  ///
+  /// **先呼叫也不會壞**：有些平台在 `initialize()` 之前就拒絕 `setSpeechRate`。
+  /// 那種失敗**只記進 [lastSpeechError]，不會往外拋**——這條路徑接在設定載入之後，
+  /// 而啟動流程是視障使用者唯一不能死的地方。記下來而不是吞掉，是為了別再製造
+  /// 本專案反覆吃虧的那種「靜默失敗」。
   Future<void> setSpeechRate(double rate) async {
-    // `num.clamp` 的靜態型別是 `num`，直接賦值給 `double` 欄位會編不過（analyze 會紅）。
-    _speechRate = rate.clamp(0.1, 1.0).toDouble();
-    await _tts.setSpeechRate(_speechRate);
+    _speechRate = _clampRate(rate);
+    try {
+      await _tts.setSpeechRate(_speechRate);
+    } catch (e) {
+      _lastError = 'TTS 設定語速失敗：$e';
+      // ignore: avoid_print
+      print('[PathGuide][TTS] $_lastError');
+    }
   }
 
   bool _ready = false;
@@ -217,12 +248,15 @@ class FlutterTtsSpeaker implements Speaker {
     return aLang == wLang && wLang.length >= 2;
   }
 
-  /// 最後一次發聲失敗的原因；null 表示沒有失敗過。
+  /// 最後一次發聲相關失敗的原因；null 表示沒有失敗過。
   ///
   /// 為什麼要對外露出：`speak()` 的失敗原本是**完全靜默**的（直接 `return`），
   /// 使用者聽到的是「什麼都沒有」，而我們在日誌裡也找不到任何痕跡。
   /// 這在真機上無法區分「沒觸發」與「觸發了但沒聲音」——正是本專案反覆吃虧的
   /// 那類「靜默失敗」。
+  ///
+  /// 語速設定失敗（[setSpeechRate]）也記在這裡：它同樣是「只影響聽起來怎樣、
+  /// 不該讓流程停下來，但必須留下痕跡」的那類問題。成功發聲會把它清回 null。
   String? get lastSpeechError => _lastError;
   String? _lastError;
 
