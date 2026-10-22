@@ -303,6 +303,59 @@ class AppStrings {
 
   String get modelInfo => _zh ? '模型資訊' : 'Model info';
 
+  /// 模型大小的顯示文字，例如 `2.87 MB`。
+  ///
+  /// 單位也算文案：`' MB'` 這種字面量留在 widget 裡，就等於每張畫面各寫一次
+  /// 同一句話，有一天要改單位就得追好幾處。
+  String modelSize(double megabytes) => '${megabytes.toStringAsFixed(2)} MB';
+
+  /// 清單沒寫檔案大小時，大小欄位要顯示什麼。
+  String get modelSizeUnknown => '—';
+
+  /// 模型資訊那一行的完整摘要，例如「18 類 · 2.87 MB · 2026-10-02.stage2」。
+  ///
+  /// 「類」與「classes」是文案不是佈局，所以要跟其他字串一起翻。
+  String modelSummaryLine({
+    required int classCount,
+    required String sizeText,
+    required String version,
+  }) =>
+      _zh
+          ? '$classCount 類 · $sizeText · $version'
+          : '$classCount classes · $sizeText · $version';
+
+  /// 摘要還沒讀回來（或讀失敗）時要說什麼。
+  ///
+  /// **不能唸破折號**：螢幕閱讀器唸「—」是 “dash”，對使用者零資訊；
+  /// 但「載入中」至少告訴他再等一下。
+  String get modelInfoLoading => _zh ? '載入中' : 'Loading';
+
+  /// 模型資訊整塊的**唯一**一句話：標題一次、摘要一次。
+  ///
+  /// 整塊只留一個語意節點（內層文字全走 `ExcludeSemantics`），所以這句話
+  /// 就是使用者聽到的那一句，不會先聽到標題、再聽一次標題加摘要。
+  String modelInfoSpoken(String summary) =>
+      _zh ? '模型資訊：$summary' : 'Model info: $summary';
+
+  /// 主速度列的一句話：動作 + 現況 + 下一步。
+  ///
+  /// 螢幕閱讀器唸的是「標籤 + 按鈕」，所以標籤要自己說清楚按下去會怎樣；
+  /// 只唸「播報速度，正常」等於什麼都沒說。
+  String speechSpeedAction(String current) => _zh
+      ? '播報速度，現為$current，點兩下調整'
+      : 'Speech speed, currently $current, double-tap to change';
+
+  /// 「已選取」三個字。
+  ///
+  /// 顏色與勾選圖示對全盲使用者都不存在，選中狀態必須能用聽的。
+  String get speechSpeedSelected => _zh ? '已選取' : 'selected';
+
+  /// 語速選項列的標籤：動作 + 結果 + 狀態。
+  String speechSpeedChoice(String name, {required bool selected}) {
+    if (!selected) return _zh ? '選$name' : 'Choose $name';
+    return _zh ? '$name，$speechSpeedSelected' : '$name, $speechSpeedSelected';
+  }
+
   String get account => _zh ? '帳號' : 'Account';
 
   String get accountGuest => _zh ? '訪客（可完整使用識別）' : 'Guest (full detection)';
