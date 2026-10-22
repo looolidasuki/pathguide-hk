@@ -9,14 +9,24 @@
 
 ## 0. 一句話結論
 
-**端上只跑一個模型**：3 類（行人 / 自行車 / 垃圾桶）的 YOLO11n 微調版，
-TFLite int8、輸入 416、2.74 MiB，隨 App 打包，**離線**運行。
+> ⚠️ **本節與 §1 記的是「3 類 int8」那一版，已經不是端上真正在跑的模型。**
+> 2026-10-23 核對（`scripts/check_tflite_decode.py` 實測張量）確認：
+> `app/assets/models/detector.tflite` 現在是 **18 類 / 輸入 `[1,416,416,3]`（NHWC）/
+> 輸出 `[1,22,3549]` channel-first / **float32** / 2,873,120 B**，
+> 來源 `runs/pg_stage2`（`detector.json` 的 `version` 為 `2026-10-02.stage2`）。
+> 也就是說：**端上是 float32 而不是 int8**，§1 的「2.74 MiB / int8 / `[6,11,7]`」
+> 是 3 類時代的紀錄，僅供歷史對照。
+> 同時修正：`scripts/export_tflite.py` 的 `DEFAULT_WEIGHTS` 那時還指着 `pg_poc3`，
+> 已改為 `pg_stage2`，`tests/test_published_model.py` 因此由紅轉綠。
+> **端上 18 類 f32 的真機延遲目前沒有實測數字**（歷史 416f32 = 324 ms 是 3 類模型的量測）。
+
+**端上只跑一個模型**：YOLO11n 微調版，TFLite、輸入 416，隨 App 打包，**離線**運行。
 其餘模型（COCO、YOLO-World、Grounding DINO、SAM 2.1、LocateAnything-3B）
 **只在訓練/標註階段在服務器上跑，永遠不下發到手機**。
 
 ---
 
-## 1. 端側模型（當前發佈版）
+## 1. 端側模型（3 類 int8 —— 歷史版本，非當前端上模型）
 
 | 項 | 值 |
 |---|---|

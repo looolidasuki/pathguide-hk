@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:ui' show PlatformDispatcher;
+import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/foundation.dart'
   show defaultTargetPlatform, kIsWeb, TargetPlatform;
@@ -17,9 +17,21 @@ import 'announcer.dart';
 ///
 /// Never hard-code Cantonese as the only preset.
 class FlutterTtsSpeaker implements Speaker {
-  FlutterTtsSpeaker({FlutterTts? tts}) : _tts = tts ?? FlutterTts();
+  FlutterTtsSpeaker({FlutterTts? tts, Locale Function()? systemLocale})
+      : _tts = tts ?? FlutterTts(),
+        _systemLocale = systemLocale ?? (() => PlatformDispatcher.instance.locale);
 
   final FlutterTts _tts;
+
+  /// 讀取「系統語言」的接縫。
+  ///
+  /// 為什麼需要注入：`_candidatesForSystem()` 原本直接讀
+  /// `PlatformDispatcher.instance.locale`，而那是**真實平台單例**——
+  /// widget 測試裡把 `tester.binding.platformDispatcher.localeTestValue`
+  /// 設成 zh-HK **不會**影響它。結果是「zh-HK 首選粵語」「zh-CN 先用普通話」
+  /// 這些最關鍵的分支在測試裡一律走 en-US 那條，等於沒測。
+  /// 有了這個接縫，測試才能把 locale 餵進去驗證候選順序。
+  final Locale Function() _systemLocale;
   bool _ready = false;
   String? _resolved;
 
@@ -121,7 +133,7 @@ class FlutterTtsSpeaker implements Speaker {
   /// Order follows the **system** region first. Do not prefer Cantonese for
   /// every Chinese locale (e.g. `zh-CN` must try `zh-CN` before `yue-HK`).
   List<String> _candidatesForSystem() {
-    final locale = PlatformDispatcher.instance.locale;
+    final locale = _systemLocale();
     final lang = locale.languageCode.toLowerCase();
     final country = (locale.countryCode ?? '').toUpperCase();
     final script = locale.scriptCode;

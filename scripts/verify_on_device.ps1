@@ -234,8 +234,31 @@ if ($hud) {
         Info "      若亮屏仍为 0，常见原因：相机被其他 App 占用、权限被系统回收、或设备进入省电限制。"
     }
 } else {
+    # ★ 沒有 HUD 行是**正常**的。
+    #
+    # 「HUD fps=」這串字產自 Dart 側的 `_logHud`，而它在 `0d1a31c`
+    # （2026-10-09，「主畫面改成單一產品畫面，內部工具全部移出 app」）
+    # 隨開發面板一起被刪掉了。可用
+    # `git log -S"HUD fps=" -- app/lib/ui/demo_page.dart` 查證。
+    #
+    # 本段原本寫「没抓到 HUD 状态行——说明 Dart 侧一帧都没收到」，
+    # 那會把**每一次正常運行**都報成故障。2026-10-23 更正。
+    #
+    # 替代的證據通道有兩條，都不需要看螢幕：
+    #   1. 原生 logcat（tag PathGuideVision）：模型就绪 / 相机会话已启动 / 分析帧失败
+    #   2. 截圖內容分析（scripts/analyze_device_screenshots.py）：亮度與邊緣密度
+    #      能區分「相機在取景」與「全黑」——滅屏時 CameraX 不出幀，兩者極易混淆。
     Info ""
-    Info "没抓到 HUD 状态行——说明 Dart 侧一帧都没收到（EventChannel 或相机分析回路没跑起来）。"
+    Info "Dart 側沒有 HUD 行（正常：該行已於 0d1a31c 移除）。改看原生三條證據："
+    foreach ($pat in @("模型就绪", "相机会话已启动", "分析帧失败")) {
+        $hit = Select-String -Path $logFile -Pattern $pat -ErrorAction SilentlyContinue
+        if ($hit) {
+            Info ("  [{0}] 命中 {1} 条；最后一条：{2}" -f $pat, $hit.Count, $hit[-1].Line.Trim())
+        } else {
+            Info ("  [{0}] 未命中" -f $pat)
+        }
+    }
+    Info "提示：要確認相機真的在出幀，跑 scripts/analyze_device_screenshots.py 看截圖亮度。"
 }
 
 $crashes = Select-String -Path $logFile -Pattern "FATAL EXCEPTION|AndroidRuntime" -ErrorAction SilentlyContinue
@@ -243,5 +266,5 @@ if ($crashes) { Info "日志里有崩溃记录，务必查看。" }
 
 Write-Host ""
 Write-Host "完成。产物在：$outDir" -ForegroundColor Green
-Write-Host "截图与日志已就位，可以直接读图确认 HUD 上的 transposed / geo / 框数。"
+Write-Host "截图与日志已就位：可直接读图确认画面，并在日志里看 transposed / 模型加载映射 / 分析帧失败数。"
 

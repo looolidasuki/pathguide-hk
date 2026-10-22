@@ -183,6 +183,15 @@ class PlatformVision implements VisionSource {
               ) : null;
     if (ok && mapping == null) {
       // 模型与清单对不上：宁可失败也不猜。
+      //
+      // ★ 必须把 `_loaded` 归零。这里踩过一次（2026-10-23 由移植过来的
+      // `test/platform_mapping_test.dart` 抓到）：上一步 `_loadModel([])`
+      // 是**成功**的，于是 `_loaded` 已经是 true；只 return 一个 ok:false
+      // 的状态对象，会让 `isReady` 在「模型与清单不符」时继续报 true。
+      // 后果是任何按 `isReady`（而不是按状态对象）判断的调用方，
+      // 都会把一个已经明确拒用的模型当成可用——正是本文件第 176-177 行
+      // 那段注释要防的情况。
+      _loaded = false;
       return VisionSourceStatus(
         ok: false,
         message: s.modelManifestMismatch,
@@ -200,6 +209,7 @@ class PlatformVision implements VisionSource {
     final mappingFinal = mapping;
 
     if (!ok) {
+      _loaded = false;
       return VisionSourceStatus(
         ok: false,
         message: s.modelNotLoaded,
@@ -209,6 +219,9 @@ class PlatformVision implements VisionSource {
     if (!started) {
       // 模型好了但相机没起来：仍是失败，但要区分原因，
       // 否则用户会以为是模型问题。
+      //
+      // 同理归零 `_loaded`：initialize 说失败，`isReady` 就不该说就绪。
+      _loaded = false;
       return VisionSourceStatus(
         ok: false,
         message: s.cameraNotStarted,

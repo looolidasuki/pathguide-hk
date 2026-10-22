@@ -95,16 +95,6 @@ class AppStrings {
 
   String get showLabels => _zh ? '顯示標籤' : 'Show labels';
 
-  String get startCapture => _zh ? '開始採集' : 'Start capture';
-
-  String get stopCapture => _zh ? '停止採集' : 'Stop capture';
-
-  String captureSavedCount(int count) =>
-      _zh ? '已採集 $count 張' : 'Saved $count frames';
-
-  String get captureNeedsCamera =>
-      _zh ? '請先啟動相機再採集' : 'Start the camera before capturing';
-
   String get invalidDetections => _zh ? '無效' : 'Invalid';
 
   String get input => _zh ? '輸入' : 'Input';
@@ -231,14 +221,10 @@ class AppStrings {
   /// 停止引導。label 同樣是動作 + 結果。
   String get stopGuidance => _zh ? '結束引導' : 'End guidance';
 
-  // --- 採集（把畫面留存下來，供之後的雲端標註迴路）---
-
-  /// 採集進行中（給畫面的狀態句）。
-  String get captureStarted => _zh ? '正在採集畫面' : 'Capturing frames';
-
-  /// 採集中的按鈕標籤。**必須講清楚它在留存畫面**——
-  /// 這是唯一會把使用者的畫面存下來的功能，不能只寫「停止」。
-  String get stopCaptureLabel => _zh ? '停止採集' : 'Stop capture';
+  // --- 採集 ---
+  //
+  // 產品畫面上已無採集入口（見 `docs/UPSTREAM-MERGE-ASSESSMENT.md` §6.2），
+  // 所以這裡的採集字串一併移除：留著只會被下一個人當成「還有這個功能」。
 
   /// 點下語音開關後的確認（讓使用者知道按到了）。
   String get voiceOn => _zh ? '語音已開啟' : 'Voice on';

@@ -16,7 +16,11 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.0+1
+# 版本記錄（versionName+versionCode）：
+#   1.0.0+1  初次裝機版（3 類模型、單一 demo 畫面）
+#   2.0.0+2  18 類模型 + 引導／讀字雙模式 + OCR 讀字 + 移除採集入口
+#            （模組層面：auth / l10n / capture / diag / text 均已成形）
+version: 2.0.0+2
 
 environment:
   sdk: ^3.13.4
@@ -38,6 +42,7 @@ dependencies:
 
   # TTS：跟随手机系统语言，缺省英语。
   flutter_tts: ^4.2.5
+  shared_preferences: ^2.5.6
 
 # ---------------------------------------------------------------------------
 # 刻意**不**引入的依赖，以及原因（改动前务必读一遍）

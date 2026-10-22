@@ -8,10 +8,13 @@ CLASSES_PATH = REPO_ROOT / "configs" / "classes.json"
 ALIASES_PATH = REPO_ROOT / "configs" / "class_aliases.json"
 
 EXPECTED_GROUPS = ["footbridge", "obstacle", "guide", "indoor", "classifier", "train_only"]
-N_CLASSES = 50
+N_CLASSES = 52
 
 # v4 新增的两个泛化类（纯追加，不动任何既有 id）。
 V4_APPENDED = {48: "obstacle", 49: "escalator"}
+
+# v5 新增的两个方向类（纯追加）：落樓梯 / 上樓梯，由香港九類資料集帶入。
+V5_APPENDED = {50: "downstairs", 51: "upstairs"}
 
 # v1（16 类）时的 id -> name_en，用于锁定「天桥专项类从未变动」这一不变量。
 # 改动这些会让既有标注数据错位，因此用测试硬性保护。
@@ -122,7 +125,9 @@ def test_v4_appended_two_general_classes(classes):
     这是 v4 唯一允许的改动形态：类别表是 YOLO 标签契约，
     动了既有槽位就会让已标注数据的索引全体错位，而训练只会表现为 mAP 偏低。
     """
-    got = {c["id"]: c["name_en"] for c in classes if c["id"] >= 48}
+    # 注意范围必须夹到 48-49：v5 又追加了 50/51，写成 id>=48 会随每次追加而失效
+    # （那是在测当下，不是在测 v4 这个不变式）。
+    got = {c["id"]: c["name_en"] for c in classes if 48 <= c["id"] <= 49}
     assert got == V4_APPENDED, f"v4 追加的类应为 {V4_APPENDED}，实际 {got}"
 
     # 既有的 0-47 必须仍然存在且顺序不变
@@ -168,14 +173,55 @@ def test_id_stability_declared_matches(classes):
     assert doc["id_stability"]["stable_since_v2"] == list(range(23))
 
 
-def test_version_is_4_with_history(classes):
+def test_v5_appended_two_direction_classes(classes):
+    """v5 追加 50/51（落樓梯／上樓梯），v6 只改中文名，两者都不动既有槽位。"""
+    got = {c["id"]: c["name_en"] for c in classes if c["id"] >= 50}
+    assert got == V5_APPENDED, f"v5 追加的类应为 {V5_APPENDED}，实际 {got}"
+
+    # 既有 0-49 必须仍然存在且顺序不变
+    assert [c["id"] for c in classes if c["id"] <= 49] == list(range(50))
+
+    # 方向类最容易被标成一个「意思差不多」的类，所以必须写清与 id 1 stairs 的边界
+    for cid in V5_APPENDED:
+        c = next(x for x in classes if x["id"] == cid)
+        assert c["priority"] == "P0", f"id {cid} 是可能致伤的类，应为 P0"
+        assert c["announced"] is True, f"id {cid} 必须可播报"
+        note = c.get("note", "").strip()
+        assert note, f"id {cid} 缺 note"
+        assert len(note) > 80, f"id {cid} 的 note 太短，不足以说明方向边界"
+        assert "stairs" in note, f"id {cid} 的 note 必须说明与 id 1 stairs 的分工"
+
+
+def test_v6_renamed_escalator_labels_keep_ids(classes):
+    """v6 只改中文显示名（扶梯 → 扶手電梯），id / name_en / 映射一律不动。
+
+    改显示名是**安全**的：YOLO 标签存的是索引，不是名字。
+    但正因为改名字不会报错，才要用测试钉住「改的是名字、没顺手改 id」。
+    """
+    by_id = {c["id"]: c for c in classes}
+    for cid, name_en in ((2, "escalator_outdoor"), (19, "escalator_indoor"), (49, "escalator")):
+        assert by_id[cid]["name_en"] == name_en, f"id {cid} 的 name_en 被动了"
+
+    # 三处中文名都必须改成「扶手電梯」的写法（含戶外／商場前缀）
+    assert by_id[2]["name_zh"] == "戶外扶手電梯"
+    assert by_id[19]["name_zh"] == "商場扶手電梯"
+    assert by_id[49]["name_zh"] == "扶手電梯"
+
+
+def test_version_is_6_with_history(classes):
     with CLASSES_PATH.open(encoding="utf-8") as f:
         doc = json.load(f)
-    assert doc["version"] == 4
-    assert len(doc["history"]) >= 4
-    assert doc["history"][-1]["version"] == 4
-    # 每次扩表都必须在 history 里写清「动了什么、为什么安全」
-    assert "追加" in doc["history"][-1]["change"]
+    assert doc["version"] == 6
+    assert len(doc["history"]) >= 6
+    assert [h["version"] for h in doc["history"]] == list(range(1, 7))
+
+    # 每次扩表都必须在 history 里写清「动了什么、为什么安全」。
+    # v5 是追加（要写「追加」）；v6 是改名（要写清动的是名字、不是 id）。
+    v5 = next(h for h in doc["history"] if h["version"] == 5)
+    assert "追加" in v5["change"]
+    v6 = next(h for h in doc["history"] if h["version"] == 6)
+    assert "扶手電梯" in v6["change"]
+    assert "ID" in v6["change"] or "id" in v6["change"], "v6 必须写明 id 未改动"
 
 
 def test_umbrella_class_removed(classes):
@@ -264,6 +310,7 @@ def test_unmeasured_thresholds_are_declared(aliases):
     # 用 <=（而不是 ==）是为了让「以后新增类」不必改这条测试——只要新类也记进去。
     assert set(range(23, 48)) <= declared, "v3 新增的 25 类都应列入待重标"
     assert set(V4_APPENDED) <= declared, "v4 新增的类也应列入待重标"
+    assert set(V5_APPENDED) <= declared, "v5 新增的方向类同样没有实测阈值，必须列入待重标"
 
 
 def test_out_of_taxonomy_words_are_not_already_classes(classes, aliases):

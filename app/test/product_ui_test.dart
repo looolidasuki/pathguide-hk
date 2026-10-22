@@ -94,12 +94,6 @@ class _FakeSource implements VisionSource {
   }
 }
 
-/// 取得畫面的 State，用來呼叫測試專用接縫。
-///
-/// 型別是 `dynamic` 因為 `_DemoPageState` 是私有的——這是刻意的：
-/// 那個接縫只用來設定「採集中」這個狀態，不是要讓測試去摸內部結構。
-dynamic stateOf(WidgetTester tester) => tester.state(find.byType(DemoPage));
-
 /// 把畫面渲染出來並收集**所有文字**（含語意標籤）。
 Future<String> renderAndCollectText(
   WidgetTester tester, {
@@ -289,58 +283,22 @@ void main() {
       expect(find.text('開啟語音'), findsOneWidget);
     });
 
-    testWidgets('★ 採集按鈕說出自己在留存畫面，不是只寫「開始」', (tester) async {
+    testWidgets('★ 引導畫面沒有採集入口（留存畫面不是走路時要做的決定）', (tester) async {
       await renderAndCollectText(
         tester,
         speaker: _FakeSpeaker(),
         sourceFactory: () => _FakeSource(),
       );
 
-      // 這是唯一會把使用者畫面存下來的功能。標籤必須讓他聽得懂
-      // 「這會拍下畫面」，而不是一個中性的「開始」。
-      expect(find.text('開始採集'), findsOneWidget);
-    });
-
-    testWidgets('採集進行中時標籤與圖示都改變（不只靠顏色）', (tester) async {
-      await renderAndCollectText(
-        tester,
-        speaker: _FakeSpeaker(),
-        sourceFactory: () => _FakeSource(),
-      );
-
-      // 用接縫直接把狀態設成「採集中」。不按按鈕的理由是
-      // `_toggleCapture` 有一道正確的守衛：來源不是原生相機就拒絕，
-      // 而測試用的是假來源——按下去永遠走「被拒絕」那條路。
-      stateOf(tester).capturingForTest = true;
-      await tester.pumpAndSettle();
-
-      expect(find.text('停止採集'), findsOneWidget);
+      // 採集按鈕曾與「結束引導」並排，是這張畫面上最容易誤觸的一顆。
+      // 它已整個移除，引導中只留兩個真正的出口。
       expect(find.text('開始採集'), findsNothing);
-      // 狀態只靠顏色是無效的（全盲看不到、色覺障礙也可能分不出），
-      // 所以圖示也要跟著換。
-      expect(find.byIcon(Icons.stop_circle), findsOneWidget);
-      expect(find.byIcon(Icons.camera_alt), findsNothing);
-    });
-
-    testWidgets('結束引導會順帶停止採集（否則會一直唸相機失敗）', (tester) async {
-      await renderAndCollectText(
-        tester,
-        speaker: _FakeSpeaker(),
-        sourceFactory: () => _FakeSource(),
-      );
-
-      stateOf(tester).capturingForTest = true;
-      await tester.pumpAndSettle();
-      expect(find.text('停止採集'), findsOneWidget);
-
-      await tester.tap(find.text('結束引導'));
-      await tester.pumpAndSettle();
-
-      // 回到未啟動狀態後，採集按鈕整排都不在了（那兩個動作沒有相機時
-      // 只會回一句「請先啟動引導」）。
       expect(find.text('停止採集'), findsNothing);
-      expect(find.text('開始採集'), findsNothing);
-      expect(find.text('啟動引導'), findsOneWidget);
+      expect(find.byIcon(Icons.camera_alt), findsNothing);
+      expect(find.byIcon(Icons.stop_circle), findsNothing);
+
+      expect(find.text('關閉語音'), findsOneWidget);
+      expect(find.text('結束引導'), findsOneWidget);
     });
   });
 }

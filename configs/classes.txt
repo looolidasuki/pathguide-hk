@@ -48,3 +48,5 @@ sign_post
 bucket
 obstacle
 escalator
+downstairs
+upstairs

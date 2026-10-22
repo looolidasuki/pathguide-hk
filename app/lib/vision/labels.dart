@@ -48,7 +48,7 @@ const List<Label> kLabels = <Label>[
   Label(
     id: 2,
     nameEn: 'escalator_outdoor',
-    nameZh: '戶外扶梯',
+    nameZh: '戶外扶手電梯',
     group: 'footbridge',
     priority: 'P0',
     announced: true,
@@ -184,7 +184,7 @@ const List<Label> kLabels = <Label>[
   Label(
     id: 19,
     nameEn: 'escalator_indoor',
-    nameZh: '商場扶梯',
+    nameZh: '商場扶手電梯',
     group: 'indoor',
     priority: 'P0',
     announced: true,
@@ -424,19 +424,35 @@ const List<Label> kLabels = <Label>[
   Label(
     id: 49,
     nameEn: 'escalator',
-    nameZh: '扶梯',
+    nameZh: '扶手電梯',
     group: 'footbridge',
     priority: 'P1',
+    announced: true,
+  ),
+  Label(
+    id: 50,
+    nameEn: 'downstairs',
+    nameZh: '落樓梯',
+    group: 'footbridge',
+    priority: 'P0',
+    announced: true,
+  ),
+  Label(
+    id: 51,
+    nameEn: 'upstairs',
+    nameZh: '上樓梯',
+    group: 'footbridge',
+    priority: 'P0',
     announced: true,
   ),
 ];
 
 /// 模型输出维度。推理结果长度与之不符即为模型与类别表不匹配。
-const int kNumClasses = 50;
+const int kNumClasses = 52;
 
 /// 播报优先级顺序（先 announced，再 P0 → P1，再 id）。
 const List<int> kAnnouncementOrder = <int>[
-  0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 14, 17, 19, 21, 23, 24, 25, 5, 10, 12, 13, 15, 16, 18, 20, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 48, 49, 37, 38, 39, 40, 41, 42, 43, 44, 47, 45, 46,
+  0, 1, 2, 3, 4, 6, 7, 8, 9, 11, 14, 17, 19, 21, 23, 24, 25, 50, 51, 5, 10, 12, 13, 15, 16, 18, 20, 22, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 48, 49, 37, 38, 39, 40, 41, 42, 43, 44, 47, 45, 46,
 ];
 
 /// 按 id 取类别。id 越界时返回 null —— 不要静默回退到 0，那会掩盖模型/类别表不匹配。

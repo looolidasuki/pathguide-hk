@@ -3,7 +3,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/material.dart';
 
-import '../capture/frame_sampler.dart';
 import '../capture/text_read_result.dart';
 import '../diag/status_log.dart';
 import '../l10n/app_strings.dart';
@@ -100,31 +99,6 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
   /// 只能二選一：要嘛使用者按了停、回來又被擅自啟動，
   /// 要嘛切出去再回來就一直是停的。
   bool _pausedByLifecycle = false;
-
-  /// 採集：把相機原圖定時存進應用私有目錄，供之後的雲端標註迴路使用。
-  ///
-  /// ## 為什麼它是使用者按得到的按鈕，而不是背景自動跑
-  ///
-  /// 它是**唯一會把畫面留存下來的功能**。這種事不該在使用者不知情時發生——
-  /// 這個 App 拍的是香港街頭，而使用者是視障者，他沒辦法看一眼畫面來判斷
-  /// 「剛才拍了什麼」。所以由他決定什麼時候開始、什麼時候停。
-  ///
-  /// 這也是它在主畫面上的理由：它需要一個**說得出自己在做什麼**的標籤，
-  /// 而不是藏在某個進階頁裡。
-  FrameSampler? _frameSampler;
-  bool _capturing = false;
-
-  /// 直接設定採集狀態。
-  ///
-  /// 為什麼要開這個接縫：`_toggleCapture` 有一道**正確的**守衛——
-  /// 來源不是原生相機就拒絕（回一句「請先啟動引導」），所以 widget 測試
-  /// 用假來源按下去永遠是「被拒絕」的那條路，量不到「採集中」的樣子。
-  /// 有了這個 setter，標籤與圖示的狀態變化就能被斷言，
-  /// 不必為了測試把守衛拆掉或做一個假的 PlatformVision。
-  @visibleForTesting
-  set capturingForTest(bool value) {
-    setState(() => _capturing = value);
-  }
 
   bool _speakEnabled = true;
 
@@ -293,10 +267,6 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
     // 使用者自己按的「結束引導」要清掉恢復意圖；切背景造成的停則保留它，
     // 等 [didChangeAppLifecycleState] 在回到前景時恢復。
     if (!byLifecycle) _pausedByLifecycle = false;
-
-    // 採集要跟著引導停：相機沒了之後它只會一直拿到「尚無相機幀」的失敗，
-    // 而每一次都會唸一句錯誤給使用者聽。
-    _stopCapture();
 
     _announcer.reset();
     _spotter.reset();
@@ -487,64 +457,14 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
   }
 
   // ------------------------------------------------------------- 採集
-
-  /// 開始／停止採集。
-  ///
-  /// ## 為什麼「被拒絕」也要出聲
-  ///
-  /// 這是原本最嚴重的缺口：使用者按了、被拒、而且**聽不到任何解釋**，
-  /// 只能反覆按同一顆按鈕。所以每一條離開路徑都有一句話。
-  void _toggleCapture() {
-    if (_capturing) {
-      _stopCapture();
-      _say(_s.stopCapture);
-      return;
-    }
-
-    final source = _source;
-    if (!_guiding || source is! PlatformVision) {
-      setState(() => _status = _s.captureNeedsCamera);
-      _say(_s.captureNeedsCamera);
-      return;
-    }
-
-    _frameSampler?.stop();
-    _frameSampler = FrameSampler(
-      capture: source.captureFrame,
-      onResult: (result) {
-        if (!mounted) return;
-        if (!result.ok && result.error != null) {
-          setState(() => _status = result.error!);
-        }
-        // ★ 刻意**不**播報每一張的數量：那會洗版，把真正重要的障礙物播報
-        //   蓋掉（Announcer 有冷卻，經不起連續灌訊息）。數量留在畫面上。
-        //   但**失敗必須出聲**，那是使用者必須知道的事。
-        if (!result.ok && result.error != null) _say(result.error!);
-      },
-    );
-    _frameSampler!.start();
-    setState(() => _capturing = true);
-    _say(_s.startCapture);
-  }
-
-  void _stopCapture() {
-    _teardownCapture();
-    if (mounted) setState(() {});
-  }
-
-  /// 只拆資源，**不碰介面**。
-  ///
-  /// 為什麼要與 [_stopCapture] 分開：`dispose()` 也要停採集，而在
-  /// `dispose()` 裡呼叫 `setState` 會直接拋
-  /// `'_lifecycleState != _ElementLifecycle.defunct' is not true` ——
-  /// **元素已經 defunct 了，`setState` 不再是合法動作**。
-  /// `mounted` 判斷在這裡騙不了人：unmount 過程中它仍然是 true。
-  /// （這是 widget 測試抓到的，不是看出來的。）
-  void _teardownCapture() {
-    _frameSampler?.stop();
-    _frameSampler = null;
-    _capturing = false;
-  }
+  //
+  // 產品畫面上**沒有**採集入口。幀採集（[FrameSampler]、`PlatformVision.captureFrame`）
+  // 仍然保留在程式庫裡給資料流水線與測試用，但它不再是一顆使用者按得到的按鈕。
+  //
+  // 移除理由（與 `docs/UPSTREAM-MERGE-ASSESSMENT.md` §6.2 是同一條）：
+  // 它與「結束引導」並排，是引導畫面上最容易誤觸的一顆，而它做的事
+  // ——把畫面留存下來——並不是使用者在**走路時**要做的決定。
+  // 引導畫面因此從 4 個控件降到 3 個。
 
   /// 直接對喇叭說話，**繞過** [Announcer] 的冷卻。
   ///
@@ -559,9 +479,6 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
-    // 用 _teardownCapture 而不是 _stopCapture：後者會 setState，
-    // 而在 dispose 裡 setState 是非法動作（元素已 defunct）。
-    _teardownCapture();
     _statusTimer?.cancel();
     _sub?.cancel();
     // ★ 不 dispose 來源：相機由 [VisionSession] 持有、跨模式存活。
@@ -666,8 +583,9 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
 
   /// 底部動作區。
   ///
-  /// 引導中時三個可操作項（語音、採集、結束引導），未啟動時只有一個
-  /// （啟動引導）——因為另外兩個在沒有相機時都只會回一句「請先啟動引導」。
+  /// 引導中時兩個可操作項（語音、結束引導），未啟動時只有一個
+  /// （啟動引導）——因為語音開關在沒有相機時沒有意義，
+  /// 而「結束引導」在沒開始時按下只會回一句「請先啟動引導」。
   Widget _actionArea() {
     return Container(
       width: double.infinity,
@@ -683,8 +601,6 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
             children: <Widget>[
               Expanded(child: _voiceButton()),
               if (_guiding) ...<Widget>[
-                const SizedBox(width: 8),
-                Expanded(child: _captureButton()),
                 const SizedBox(width: 8),
                 Expanded(child: _stopButton()),
               ],
@@ -761,35 +677,6 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
         onPressed: _stopGuidance,
         icon: const Icon(Icons.stop, size: 22),
         label: Text(_s.stopGuidance),
-      ),
-    );
-  }
-
-  /// 採集開關。
-  ///
-  /// ## 為什麼它的標籤比別的按鈕長
-  ///
-  /// 其餘按鈕只要說「按下去會怎樣」就夠了。這一顆不一樣：它是**唯一會把
-  /// 使用者的畫面留存下來**的功能，而使用者是視障者——他沒辦法看一眼畫面
-  /// 判斷「剛才拍了什麼」。所以標籤必須說出「採集」這件事本身，不能只寫
-  /// 「開始／停止」。
-  ///
-  /// 進行中時**同時**改變圖示與顏色：狀態只靠顏色是無效的（全盲使用者看不到，
-  /// 而色覺障礙者也可能分不出），所以形狀也要跟著變。
-  Widget _captureButton() {
-    final active = _capturing;
-    return SizedBox(
-      height: 48,
-      child: OutlinedButton.icon(
-        onPressed: _toggleCapture,
-        style: active
-            ? OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFFFF7043),
-                side: const BorderSide(color: Color(0xFFFF7043)),
-              )
-            : null,
-        icon: Icon(active ? Icons.stop_circle : Icons.camera_alt, size: 22),
-        label: Text(active ? _s.stopCaptureLabel : _s.startCapture),
       ),
     );
   }

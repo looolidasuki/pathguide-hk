@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 6,
   "note": "跨模型文本标签的归一表。YOLO-World / LocateAnything / Grounding DINO 输出的都是自由文本，必须归一到 configs/classes.json 的类别 id，否则模型间的框无法比较。新增说法时只改这里。",
   "matching": {
     "note": "归一顺序：精确别名 -> 词集合 Jaccard -> 字符相似度。低于阈值返回「未判定」而非强行归类——强行归类会产生错误标注，且训练时不报错。",
@@ -18,8 +18,8 @@
     }
   },
   "unmeasured_thresholds": {
-    "note": "这些类的 gdin_threshold 尚未实测，采到数据后用 gdin 重标；在此之前零样本阶段的框数不可信。v4 新增的 48/49 也在其中。",
-    "ids": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49]
+    "note": "这些类的 gdin_threshold 尚未实测，采到数据后用 gdin 重标；在此之前零样本阶段的框数不可信。v4 新增的 48/49 与 v5 新增的 50/51 也在其中。",
+    "ids": [23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51]
   },
   "classes": [
     {
@@ -35,7 +35,7 @@
       "la_aliases": ["stairs", "staircase", "stairway", "steps", "stair", "steps of stairs"]
     },
     {
-      "id": 2, "name_en": "escalator_outdoor", "name_zh": "戶外扶梯",
+      "id": 2, "name_en": "escalator_outdoor", "name_zh": "戶外扶手電梯",
       "verify_query": "outdoor escalator", "gdin_threshold": 0.35,
       "yolo_world_prompts": ["escalator", "an outdoor escalator", "outdoor escalator"],
       "la_aliases": ["outdoor escalator", "escalator outdoors", "moving staircase"]
@@ -148,7 +148,7 @@
       "la_aliases": ["door", "doors", "push door", "pull door", "wooden door", "metal door", "entrance door"]
     },
     {
-      "id": 19, "name_en": "escalator_indoor", "name_zh": "商場扶梯",
+      "id": 19, "name_en": "escalator_indoor", "name_zh": "商場扶手電梯",
       "verify_query": "indoor escalator", "gdin_threshold": 0.35,
       "yolo_world_prompts": ["indoor escalator", "mall escalator", "escalator inside a building"],
       "la_aliases": ["indoor escalator", "mall escalator", "escalator in a mall", "shopping mall escalator", "escalators indoors"]
@@ -355,13 +355,31 @@
                      "obstruction", "obstacle", "blockage", "roadblock"]
     },
     {
-      "id": 49, "name_en": "escalator", "name_zh": "扶梯",
+      "id": 49, "name_en": "escalator", "name_zh": "扶手電梯",
       "verify_query": "escalator",
       "gdin_threshold": 0.30,
       "note": "★ v4 新增的**通用扶梯类**。它解掉了本文件 matching.ambiguous_aliases 里原本的一条歧义：文字「escalator」分不出是 id 2 户外还是 id 19 商场，过去一律返回未决；现在有通用类，可直接归到 49。**id 2 / 19 转为休眠**（零标注）；将来要细分时应**新增**子类，不要复用那两个槽位。",
       "yolo_world_prompts": ["an escalator", "a moving staircase", "an escalator in a station",
                              "an escalator in a shopping mall"],
       "la_aliases": ["escalator", "escalators", "moving staircase", "travelator", "moving walkway"]
+    },
+    {
+      "id": 50, "name_en": "downstairs", "name_zh": "落樓梯",
+      "verify_query": "downstairs",
+      "gdin_threshold": 0.30,
+      "note": "★ v5 新增（香港九類資料集帶入）。與 id 1 stairs 的分工：id 1 只說得出「有樓梯」，50/51 說得出**方向**。**標註以拍攝者行進方向為準**——同一個樓梯從兩端看會得到兩個不同標籤，這是刻意的（標籤描述使用者該做什麼，不是台階的幾何）。純側面、看不出上下的視角一律標 id 1 stairs。⚠️ 阈值未实测，先按同类近似值填。",
+      "yolo_world_prompts": ["a staircase going down", "stairs leading down", "downward steps"],
+      "la_aliases": ["downstairs", "stairs down", "staircase going down", "stairway down",
+                     "downward stairs", "steps down", "descending stairs"]
+    },
+    {
+      "id": 51, "name_en": "upstairs", "name_zh": "上樓梯",
+      "verify_query": "upstairs",
+      "gdin_threshold": 0.30,
+      "note": "★ v5 新增（香港九類資料集帶入）。與 50 downstairs / 1 stairs 的分工見 id 50 的 note。方向信息對「能不能走這裡」是決定性的：只知道「有樓梯」給不出可執行結論（輪椅上不去，而 App 若只會說「前方有樓梯」，使用者仍得自己判斷）。⚠️ 阈值未实测。",
+      "yolo_world_prompts": ["a staircase going up", "stairs leading up", "upward steps"],
+      "la_aliases": ["upstairs", "stairs up", "staircase going up", "stairway up",
+                     "upward stairs", "steps up", "ascending stairs"]
     }
   ],
   "out_of_taxonomy_candidates": {

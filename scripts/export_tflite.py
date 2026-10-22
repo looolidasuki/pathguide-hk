@@ -38,13 +38,17 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-# 默认权重 = **当前已发布的那一份**（runs/pg_poc3，3 类）。
+# 默认权重 = **当前已发布的那一份**（runs/pg_stage2，18 类，2,873,120 B）。
 #
 # 这里必须指向已发布的 run，不能指向「最近跑过的 run」：
 # 旧的 runs/pg_review_v0 是**24 类**模型，而类别表后来扩到了 48 类、旧表已作废。
 # 若默认值还指着它，一条 `python export_tflite.py` 就会导出一个
 # 类别数与 classes.json 对不上的模型——而且**不报错**，只是每个框都标错类。
-DEFAULT_WEIGHTS = REPO_ROOT / "runs" / "pg_poc3" / "weights" / "best.pt"
+#
+# 2026-10-23 修正：这里原本指着 pg_poc3（3 类，2,871,365 B），而端上跑的
+# 早已是 pg_stage2（18 类）。`tests/test_published_model.py::test_默认导出源就是端上那一份`
+# 正是为此而设，它一直在报红；现在默认源与 assets 逐字节一致（sha256 8054e951…）。
+DEFAULT_WEIGHTS = REPO_ROOT / "runs" / "pg_stage2" / "weights" / "best.pt"
 ASSETS_MANIFEST = REPO_ROOT / "app" / "assets" / "models" / "detector.json"
 ASSETS_MODEL = REPO_ROOT / "app" / "assets" / "models" / "detector.tflite"
 
