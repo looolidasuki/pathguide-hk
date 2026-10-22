@@ -17,9 +17,16 @@ import 'announcer.dart';
 ///
 /// Never hard-code Cantonese as the only preset.
 class FlutterTtsSpeaker implements Speaker {
-  FlutterTtsSpeaker({FlutterTts? tts, Locale Function()? systemLocale})
-      : _tts = tts ?? FlutterTts(),
-        _systemLocale = systemLocale ?? (() => PlatformDispatcher.instance.locale);
+  FlutterTtsSpeaker({
+    FlutterTts? tts,
+    Locale Function()? systemLocale,
+    double? speechRate,
+  })  : _tts = tts ?? FlutterTts(),
+        _systemLocale = systemLocale ?? (() => PlatformDispatcher.instance.locale),
+        _speechRate = speechRate ?? defaultSpeechRate;
+
+  /// 預設語速。三檔中的「正常」（見 `settings/app_settings.dart`）。
+  static const double defaultSpeechRate = 0.45;
 
   final FlutterTts _tts;
 
@@ -32,6 +39,22 @@ class FlutterTtsSpeaker implements Speaker {
   /// 這些最關鍵的分支在測試裡一律走 en-US 那條，等於沒測。
   /// 有了這個接縫，測試才能把 locale 餵進去驗證候選順序。
   final Locale Function() _systemLocale;
+
+  /// 目前語速。由設定頁灌進來（`speechRate:`），也可在執行時改。
+  /// 原本這裡是寫死的 0.45，見 `initialize()`。
+  double _speechRate;
+
+  /// 目前語速（給測試與設定頁讀）。
+  double get speechRate => _speechRate;
+
+  /// 執行時改語速。`initialize()` 之後呼叫才有意義，但先呼叫也不會壞：
+  /// 它只是設值，真正的套用在 `initialize()` 內。
+  Future<void> setSpeechRate(double rate) async {
+    // `num.clamp` 的靜態型別是 `num`，直接賦值給 `double` 欄位會編不過（analyze 會紅）。
+    _speechRate = rate.clamp(0.1, 1.0).toDouble();
+    await _tts.setSpeechRate(_speechRate);
+  }
+
   bool _ready = false;
   String? _resolved;
 
@@ -49,7 +72,7 @@ class FlutterTtsSpeaker implements Speaker {
   Future<String?> initialize() async {
     if (_ready) return _resolved;
 
-    await _tts.setSpeechRate(0.45);
+    await _tts.setSpeechRate(_speechRate);
     await _tts.setPitch(1.0);
     await _tts.setVolume(1.0);
     if (defaultTargetPlatform == TargetPlatform.android) {

@@ -188,4 +188,29 @@ void main() {
     expect(argsOf('speak'), <Object?>['前面有樓梯']);
     expect(speaker.resolvedLanguage, 'zh-HK');
   });
+
+  // 語速改由設定頁（`settings/app_settings.dart`）決定之後，上面那條
+  // 「固定 0.45」不再是唯一事實：注入的值必須真的走到 TTS 引擎。
+  test('建構時給的語速會在 initialize 被套用', () async {
+    final speaker = FlutterTtsSpeaker(
+      systemLocale: () => const Locale('zh', 'HK'),
+      speechRate: 0.35,
+    );
+    await speaker.initialize();
+    expect(
+      calls.where((c) => c.method == 'setSpeechRate').first.arguments,
+      0.35,
+    );
+  });
+
+  test('setSpeechRate 會立刻套用並記住', () async {
+    final speaker = FlutterTtsSpeaker(systemLocale: () => const Locale('zh', 'HK'));
+    await speaker.initialize();
+    await speaker.setSpeechRate(0.55);
+    expect(speaker.speechRate, 0.55);
+    expect(
+      calls.where((c) => c.method == 'setSpeechRate').last.arguments,
+      0.55,
+    );
+  });
 }

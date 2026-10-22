@@ -124,6 +124,15 @@ class VisionSession {
     }
   }
 
+  /// 套用播報語速。**只對真正的 TTS 生效**。
+  ///
+  /// 為什麼不在 [Speaker] 介面上加方法：那會讓每一個測試假實現都要跟著改，
+  /// 而語速只跟真實 TTS 有關。
+  Future<void> applySpeechRate(double rate) async {
+    final s = speaker;
+    if (s is FlutterTtsSpeaker) await s.setSpeechRate(rate);
+  }
+
   /// 測試用：直接指定來源，跳過真正的相機啟動。
   @visibleForTesting
   void useSourceForTest(VisionSource src) {
