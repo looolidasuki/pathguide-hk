@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:pathguide/l10n/app_locale.dart';
+import 'package:pathguide/l10n/app_strings.dart';
 import 'package:pathguide/tts/announcer.dart';
 import 'package:pathguide/ui/demo_page.dart';
 import 'package:pathguide/ui/home_page.dart';
@@ -101,6 +102,20 @@ void main() {
     AppLocale.current = AppLanguage.zh;
   });
 
+  /// 把字級調到 200%，並把畫布縮成一部 360×640 dp 的手機。
+  ///
+  /// 兩個都要：只看 200%、畫布還是預設的 800×600 時，en 的長句在 800 dp
+  /// 寬下不會折行，那條測試就抓不到「固定高度把第二行切掉」。
+  /// 真正的觸發條件是「窄機 + 大字」。
+  void scaleTo200(WidgetTester tester, AppLanguage language) {
+    tester.view.devicePixelRatio = 3.0;
+    tester.view.physicalSize = const Size(1080, 1920); // 360×640 dp
+    addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+    AppLocale.current = language;
+  }
+
   group('主界面', () {
     testWidgets('★ 只有兩個模式可選，且標籤就是結果', (tester) async {
       final session = VisionSession(
@@ -128,23 +143,71 @@ void main() {
     });
 
     testWidgets('★ 焦點順序：兩個模式在前，設定位於最後', (tester) async {
-      final session = VisionSession(
-        speaker: _FakeSpeaker(),
-        sourceFactory: () => _FakeSource(),
-      );
-      await pumpHome(tester, session: session);
+      // 焦點順序只存在於語意樹裡，所以要先開語意再泵。
+      final handle = tester.ensureSemantics();
+      // 必須在測試body內收掉：addTearDown 的回呼在
+      // flutter_test 的 _endOfTestVerifications 之後才跑，
+      // 那時 handle 還開著就會被判成漏掉的 SemanticsHandle。
+      try {
+        final s = AppStrings.of(AppLanguage.zh);
+        final session = VisionSession(
+          speaker: _FakeSpeaker(),
+          sourceFactory: () => _FakeSource(),
+        );
+        await pumpHome(tester, session: session);
 
-      // 兩個主模式仍是 FilledButton（強調動作），設定是次級的 OutlinedButton：
-      // 形狀不同，所以「按下去會發生什麼」不需要靠顏色分辨。
-      expect(find.byType(FilledButton), findsNWidgets(2));
-      expect(find.byType(OutlinedButton), findsOneWidget);
-      // 仍然不允許裸圖標充當按鈕
-      expect(find.byType(IconButton), findsNothing);
+        // 兩個主模式仍是 FilledButton（強調動作），設定是次級的 OutlinedButton：
+        // 形狀不同，所以「按下去會發生什麼」不需要靠顏色分辨。
+        expect(find.byType(FilledButton), findsNWidgets(2));
+        expect(find.byType(OutlinedButton), findsOneWidget);
+        // 仍然不允許裸圖標充當按鈕
+        expect(find.byType(IconButton), findsNothing);
 
-      // 設定必須排在最後：從桌面圖標到「開始引導」仍是第 1 個焦點站。
-      final guideTop = tester.getTopLeft(find.text('開始引導')).dy;
-      final settingsTop = tester.getTopLeft(find.text('設定')).dy;
-      expect(settingsTop, greaterThan(guideTop), reason: '設定不得排在主模式之前');
+        final guide = find.widgetWithText(FilledButton, s.modeGuidance);
+        final read = find.widgetWithText(FilledButton, s.modeReadText);
+        final settings = find.widgetWithText(OutlinedButton, s.settingsTitle);
+        expect(guide, findsOneWidget);
+        expect(read, findsOneWidget);
+        expect(settings, findsOneWidget);
+
+        // (1) 位置：設定必須在**兩顆**模式按鈕之後。
+        //
+        // 舊寫法只比第一顆（settingsTop > 開始引導的 top），所以把設定
+        // 插進兩顆模式**中間**也會通過——那正是最該擋住的回歸。
+        final guideBottom = tester.getBottomLeft(guide).dy;
+        final readBottom = tester.getBottomLeft(read).dy;
+        final settingsTop = tester.getTopLeft(settings).dy;
+        expect(settingsTop, greaterThan(guideBottom), reason: '設定不得排在「開始引導」之前');
+        expect(settingsTop, greaterThan(readBottom), reason: '設定不得排在「讀字」之前');
+
+        // (2) 焦點／語意順序：位置對不等於焦點站對。
+        //
+        // TalkBack 爬的是**語意樹**，不是看 y 座標；只有語意樹的順序才是
+        // 使用者實際走的順序。用 flutter_test 的
+        // simulatedAccessibilityTraversal() 把樹走一遍，取三個按鈕節點
+        // 的順序（這就是「焦點移動成本」那條需求的真實量測）。
+        final buttonLabels = tester.semantics
+            .simulatedAccessibilityTraversal()
+            .where((node) => node.flagsCollection.isButton)
+            .map((node) => node.label)
+            .toList();
+
+        expect(buttonLabels, hasLength(3), reason: '首頁只有三個可操作項');
+        expect(buttonLabels[0], contains(s.modeGuidance), reason: '第 1 站必須是「開始引導」');
+        expect(buttonLabels[1], contains(s.modeReadText), reason: '第 2 站必須是「讀字」');
+        expect(buttonLabels[2], contains(s.settingsTitle), reason: '設定必須是最後一站');
+
+        // (3) 「標籤 + 第二行說明」必須落在**同一個**節點裡，
+        //     螢幕閱讀器才會一次唸完，不必再多滑一次。
+        //     只唸「設定」等於唸了一個沒有結果提示的名詞。
+        expect(buttonLabels[0], contains(s.modeGuidanceHint));
+        expect(buttonLabels[2], contains(s.settingsHint),
+            reason: '設定鈕要說出裡面有什麼（只調整語音速度…）');
+      } finally {
+        // dispose() 不可呼叫兩次（會讓 outstanding handle 計數變成負數並觸發
+        // assert），所以這裡是唯一的收尾點，不再保留 addTearDown。
+        handle.dispose();
+      }
     });
 
     testWidgets('點「讀字」進入讀字畫面，並有返回出口', (tester) async {
@@ -166,6 +229,45 @@ void main() {
       expect(find.byType(HomePage), findsOneWidget);
       expect(find.byType(ReadTextPage), findsNothing);
     });
+  });
+
+  // 200% 字級是**這張畫面**的硬性約束（不是設定頁專屬）：
+  // 首頁是每位使用者一定會看到、而且唯一能離開的一頁。
+  //
+  // 固定高度（以前的 `SizedBox(height: 72)` / `SizedBox(height: 48)`）在
+  // 200% 字級下會讓標籤或說明折行後往外溢，Flutter 在測試裡把
+  // RenderFlex overflow 當成**例外**，所以「這條測試綠」就等於
+  // 「首頁沒有被裁掉」。zh / en 各跑一次：en 的句子長得多，是真正會爆的
+  // 那一邊。
+  group('★ 200% 字級不截斷', () {
+    for (final language in AppLanguage.values) {
+      testWidgets('200% 字級（${language.name}）：首頁三個入口都不截斷',
+          (tester) async {
+        scaleTo200(tester, language);
+
+        final session = VisionSession(
+          speaker: _FakeSpeaker(),
+          sourceFactory: () => _FakeSource(),
+        );
+        await pumpHome(tester, session: session);
+        final s = AppStrings.of(language);
+
+        final guide = find.widgetWithText(FilledButton, s.modeGuidance);
+        final read = find.widgetWithText(FilledButton, s.modeReadText);
+        final settings = find.widgetWithText(OutlinedButton, s.settingsTitle);
+        expect(guide, findsOneWidget);
+        expect(read, findsOneWidget);
+        expect(settings, findsOneWidget);
+
+        // 100% 字級下的下限是 72 / 72 / 48：200% 只能長大，不能變矮。
+        expect(tester.getSize(guide).height, greaterThan(72.0),
+            reason: '200% 下「${s.modeGuidance}」要長高，不能被 72 切掉');
+        expect(tester.getSize(read).height, greaterThan(72.0),
+            reason: '200% 下「${s.modeReadText}」要長高，不能被 72 切掉');
+        expect(tester.getSize(settings).height, greaterThan(48.0),
+            reason: '200% 下「${s.settingsTitle}」要長高，不能被 48 切掉');
+      });
+    }
   });
 
   group('兩個模式互斥', () {

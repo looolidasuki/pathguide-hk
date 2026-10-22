@@ -15,7 +15,21 @@ void main() async {
   AppLocale.current = AppLocale.resolve();
 
   // 讀設定要 await：語速必須在第一句播報之前就位。
-  final settings = await AppSettings.load();
+  //
+  // 但**啟動不可以死在這裡**。`SharedPreferences.getInstance()` 會拋
+  // （平台通道沒接上 → MissingPluginException、儲存檔毀損、權限被拒），
+  // 而這一行在 `runApp` **之前**：拋出去就等於既沒有畫面也沒有語音——
+  // 看不見的使用者拿到的是一支不說話的死機，而且沒有任何出口可以離開。
+  // 所以失敗一律退回純記憶體的一份：語速回到預設（「正常」），
+  // 引導／讀字／障礙物播報完全照常。成功時行為一個字都沒變。
+  AppSettings settings;
+  try {
+    settings = await AppSettings.load();
+  } catch (e) {
+    // 不彈窗、不擋路：只留一行 log，讓使用者照樣進得了主界面。
+    debugPrint('[PathGuide] 讀取設定失敗（已忽略，改用預設語速）：$e');
+    settings = AppSettings.memory();
+  }
 
   // 室外强光下演示，深色系统栏更省电也更清楚。
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(

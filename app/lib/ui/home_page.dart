@@ -30,9 +30,12 @@ import 'settings_page.dart';
 ///   而且是次級形狀（`OutlinedButton`），所以它不會擋在「開始引導」前面，
 ///   也不會被誤當成第三個主模式。
 /// - **標籤就是結果**：不用「模式一」「選項 A」這類要記憶的詞。
-/// - **按鈕加大**（每個 72 高）：低視力使用者的觸控精確度通常較差，
-///   而這是全 App 最常按的兩個東西。
+/// - **按鈕加大**（100% 字級下每個至少 72 高）：低視力使用者的觸控精確度
+///   通常較差，而這是全 App 最常按的兩個東西。72／48 都只是**下限**
+///   （`minHeight`），200% 字級時按鈕會自己長高，不會把說明切掉。
 /// - 每個模式都有一句說明，**進入後也會再播報一次**自己在哪裡。
+/// - 整頁可以捲：200% 字級 + 窄機時三個入口比螢幕高，不捲就等於把
+///   「設定」（最後一站）直接裁掉。
 class HomePage extends StatefulWidget {
   const HomePage({super.key, this.session, this.settings});
 
@@ -85,7 +88,10 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: const Color(0xFF0B0F13),
       body: SafeArea(
-        child: Padding(
+        // **可以捲**，不是硬塞：200% 字級下（尤其 en 的長句）三個入口
+        // 加起來比一片 640 dp 高的螢幕高。固定佈局會把下半截裁掉，
+        // 而被裁掉的正好是最後一站的「設定」——使用者連聽都聽不到它在。
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -115,22 +121,54 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => _open(ReadTextPage(session: _session)),
               ),
               const SizedBox(height: 24),
-              // 次級入口：**形狀**（外框 vs 實心）就分得出來是「附帶的東西」，
-              // 不必靠顏色深淺——低視力與色盲都看不出深淺。
-              SizedBox(
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: () => _open(SettingsPage(settings: _settings)),
-                  icon: const Icon(Icons.settings_outlined, size: 22),
-                  label: Text(
-                    s.settingsTitle,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ),
-              ),
-              const Spacer(),
+              _settingsEntry(s),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// 次級入口：設定。
+  ///
+  /// **形狀**（外框 vs 實心）就分得出來這是「附帶的東西」，
+  /// 不必靠顏色深淺——低視力與色盲都看不出深淺。
+  ///
+  /// 但它和兩顆模式按鈕一樣是「**標籤 + 第二行說明**」，說明放在按鈕
+  /// **裡面**：只唸「設定」時，螢幕閱讀器唸的是「設定, 按鈕」——一個
+  /// 目的地名詞，沒有結果提示，使用者不知道進去能得到什麼（要進去、
+  /// 再退出，才知道裡面是什麼）。說明一起唸，才知道是「只調整語音速度」。
+  Widget _settingsEntry(AppStrings s) {
+    return ConstrainedBox(
+      // 不寫死高度：200% 字級時這一行要長高。48 只是 100% 字級下的下限
+      // （等於最小觸控目標）；內容超過就往下長，不會被裁掉。
+      constraints: const BoxConstraints(minHeight: 48),
+      child: OutlinedButton(
+        onPressed: () => _open(SettingsPage(settings: _settings)),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        ),
+        child: Row(
+          children: <Widget>[
+            const Icon(Icons.settings_outlined, size: 22),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  // 次級入口的字級比模式小一階：看得出誰是主角，
+                  // 但形狀（外框）與說明（第二行）跟模式一致。
+                  Text(s.settingsTitle, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 2),
+                  Text(
+                    s.settingsHint,
+                    style: const TextStyle(fontSize: 12, color: Colors.white70),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -148,22 +186,27 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  /// 一個模式按鈕。**高度刻意做大**（72），並帶一句說明。
+  /// 一個模式按鈕。**100% 字級下至少 72 高**，並帶一句說明。
   ///
   /// 說明放在按鈕**內部**（而不是旁邊的小字）：這樣螢幕閱讀器會把
   /// 「標籤 + 說明」一起唸出來，使用者不必再多滑一次去讀說明。
+  ///
+  /// 高度寫成 `minHeight`（下限）而不是固定高度，理由跟
+  /// `settings_page.dart` 的語速那一列一樣：200% 字級時標籤與說明都會
+  /// 折成兩三行，固定 72 會把下半句直接切掉，而切掉的正是「這個模式
+  /// 會做什麼」——那句話是看不見的使用者唯一的線索。
   Widget _modeButton({
     required IconData icon,
     required String label,
     required String hint,
     required VoidCallback onTap,
   }) {
-    return SizedBox(
-      height: 72,
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 72),
       child: FilledButton(
         onPressed: onTap,
         style: FilledButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         ),
         child: Row(
           children: <Widget>[
