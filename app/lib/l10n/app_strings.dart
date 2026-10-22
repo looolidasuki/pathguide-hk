@@ -283,6 +283,29 @@ class AppStrings {
 
   /// 回到主界面。
   String get backToHome => _zh ? '返回' : 'Back';
+
+  // --- 設定頁 ---
+  //
+  // 設定頁只有三類內容：播報速度、模型資訊、返回。**刻意沒有第三塊**
+  // 「未來功能」清單——每一項都要花一次焦點移動去聽「這個還沒做」。
+
+  String get settingsTitle => _zh ? '設定' : 'Settings';
+
+  String get settingsHint => _zh ? '只調整語音速度；辨識門檻由程式決定' : 'Speech speed only';
+
+  String get speechSpeed => _zh ? '播報速度' : 'Speech speed';
+
+  String get speechSpeedSlow => _zh ? '慢' : 'Slow';
+
+  String get speechSpeedNormal => _zh ? '正常' : 'Normal';
+
+  String get speechSpeedFast => _zh ? '快' : 'Fast';
+
+  String get modelInfo => _zh ? '模型資訊' : 'Model info';
+
+  String get account => _zh ? '帳號' : 'Account';
+
+  String get accountGuest => _zh ? '訪客（可完整使用識別）' : 'Guest (full detection)';
 }
 
 /// Localized display / speak name for a detection label.
