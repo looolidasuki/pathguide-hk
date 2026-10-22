@@ -72,6 +72,17 @@ class ModelEnvelope {
   final int inputSize;
   final List<int> modelClassIds;
   final String sha256;
+
+  /// 模型下載地址。**空字串 `''` 是「沒有下載可用」的哨兵值**（離線／內建模型：
+  /// 模型就在 APK 裡，無處可下），不是「空字串其實也合法」。伺服器下發的清單
+  /// 一律給真地址；只有離線／端上來源才給 `''`。
+  ///
+  /// ★ 呼叫方**必須先 `isEmpty` 判斷**，不可以直接把它丟給 `Uri.parse`／
+  ///   `baseUri.resolve`：`Uri.parse('')` 不會失敗，它回一個空相對引用
+  ///   （`path == ''`、`isAbsolute == false`），於是 `base.resolve('')` 會安靜
+  ///   解回 base 本身 —— 在 `https://api.example.com/v1/` 上就變成「去抓 API 根
+  ///   路徑」，不報錯、也不下載到任何模型；`Uri.tryParse('') == null` 同樣判斷
+  ///   不出缺失。空字串必須當成「沒有下載」來擋。
   final String downloadUrl;
 }
 

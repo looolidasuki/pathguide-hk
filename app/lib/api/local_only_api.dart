@@ -10,17 +10,46 @@ import 'path_guide_api.dart';
 /// 存在的意義：讓「未登入也能完整使用」這條規則有**可測的代碼**，
 /// 而不是靠「我們沒調那個接口」這種口頭保證。
 class LocalOnlyApi implements PathGuideApi {
+  /// `manifestLoader` 是「讀端上模型清單」的唯一入口，預設就是
+  /// `rootBundle.loadString(defaultModelManifestKey)`——行為與沒有這個參數時完全相同。
+  ///
+  /// 為什麼要留這道縫：清單資源讀不到、或清單缺 `bytes`／`sha256`，這兩條錯誤路徑
+  /// 在沒有縫的情況下只能在生產環境踩到（`rootBundle.loadString` 綁在模組級常數上），
+  /// 測試無從釘住「失敗時到底拋什麼型別」。
   LocalOnlyApi({
     required this.installId,
     this.platform = 'android',
     this.locale = 'zh-HK',
     String? guestToken,
-  }) : _guestToken = guestToken ?? 'local-guest-${installId.hashCode}';
+    Future<String> Function()? manifestLoader,
+  })  : _guestToken = guestToken ?? 'local-guest-${installId.hashCode}',
+        _manifestLoader = manifestLoader ?? _loadBundledManifest;
 
   final String installId;
   final String platform;
   final String locale;
   final String _guestToken;
+  final Future<String> Function() _manifestLoader;
+
+  static Future<String> _loadBundledManifest() =>
+      rootBundle.loadString(defaultModelManifestKey);
+
+  /// 讀清單，並把「讀不到」統一成契約裡的失敗型別。
+  ///
+  /// `rootBundle.loadString` 失敗（資源被移出 `pubspec.yaml` 之類）拋的是
+  /// `FlutterError`，**不是** `ApiFailure`；呼叫方若只寫 `on ApiFailure` 做降級
+  /// 就會漏接，所以在這裡包成 `ApiFailure(code: 'manifest_bad')`。
+  Future<String> _readManifest() async {
+    try {
+      return await _manifestLoader();
+    } on ApiFailure {
+      // 已經是契約型別，原樣傳出去，不要包兩層。
+      rethrow;
+    } catch (e) {
+      throw ApiFailure(
+          code: 'manifest_bad', message: '端上模型清單讀不到：$e', retryable: false);
+    }
+  }
 
   /// 訪客身分是本機推導的：同一個安裝就是同一個 guestId。
   /// 這讓「沒有網也能當訪客」成立（spec §4.1）。
@@ -39,8 +68,7 @@ class LocalOnlyApi implements PathGuideApi {
 
   @override
   Future<ModelEnvelope> latestModel() async {
-    final parsed =
-        parseModelManifest(await rootBundle.loadString(defaultModelManifestKey));
+    final parsed = parseModelManifest(await _readManifest());
     final m = parsed.manifest;
     if (m == null) {
       // `const`：`ApiFailure` 是 const 建構子，全部參數都是字面量，
@@ -68,14 +96,10 @@ class LocalOnlyApi implements PathGuideApi {
       modelClassIds: m.modelClassIds,
       sha256: sha256,
       // `''` 是「沒有下載地址」的哨兵值（離線：模型就在 APK 裡，無處可下），
-      // 不是「空字串其實也合法」。
-      //
-      // ★ 呼叫方必須用 `downloadUrl.isEmpty` 判斷，**不能**用
-      //   `Uri.tryParse(downloadUrl) == null`：`Uri.parse('')` 不會失敗，
-      //   它回一個「空相對引用」（`path == ''`、`isAbsolute == false`），
-      //   於是 `baseUri.resolve('')` 會安靜地解回 base 本身 ——
-      //   在 `https://api.example.com/v1/` 上就變成「去抓 API 根路徑」，
-      //   不報錯、不下載、也不下載到任何模型。空字串必須當成缺失來擋。
+      // 不是「空字串其實也合法」。完整規矩（呼叫方必須先 `isEmpty`，
+      // 不能拿 `Uri.parse('')` 去試）寫在欄位上：`api_types.dart` 的
+      // `ModelEnvelope.downloadUrl` —— 寫在那裡才能約束**其他實現**（`HttpApi`）
+      // 與後面的下載任務，而不是只留在這一行旁邊。
       downloadUrl: '',
     );
   }
