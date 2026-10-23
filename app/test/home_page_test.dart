@@ -276,6 +276,61 @@ void main() {
       expect(find.byType(AuthPage), findsNothing);
       expect(find.byType(SettingsPage), findsOneWidget);
     });
+
+    // ★ 正式 App 不可以偽造一次登入。
+    //
+    // 這條測試刻意**不注入** authService：走的就是正式入口那條路
+    // （`HomePage` 的預設 → `UnavailableAuthService`）。
+    //
+    // 釘住的缺陷：預設以前是 `MockAuthService`，而它的預設結果是
+    // `SignedIn(MockAuthService.defaultAccount)`——`mock.user@pathguide.test`
+    // ／`Mock User`。於是使用者按一下「用 Google 帳號登入」，帳號頁就播報
+    // 「登入成功」並返回，設定頁寫「已登入」，而云端能力一個都不存在。
+    // 對看不見的使用者，那句話是他對「我的資料有沒有送出」的唯一依據。
+    testWidgets('★ 正式預設（沒注入 authService）不會偽造登入：沒有「已登入」也沒有「登入成功」',
+        (tester) async {
+      final session = VisionSession(
+        speaker: _FakeSpeaker(),
+        sourceFactory: () => _FakeSource(),
+      );
+      await pumpHome(tester, session: session); // 刻意不注入 authService
+      final s = AppStrings.of(AppLanguage.zh);
+
+      await tester.tap(find.text(s.settingsTitle));
+      await tester.pumpAndSettle();
+
+      // 帳號入口還在（不是把帳號功能拆掉），但狀態照實說「訪客」。
+      final accountRow = find.widgetWithText(OutlinedButton, s.account);
+      expect(accountRow, findsOneWidget,
+          reason: '帳號入口還在，只是誠實地說現在是訪客');
+      expect(find.textContaining(s.accountGuest), findsOneWidget);
+      expect(find.text(s.accountSignedIn), findsNothing,
+          reason: '沒有後端時設定頁不可以說「已登入」');
+
+      await tester.tap(accountRow);
+      await tester.pumpAndSettle();
+      expect(find.byType(AuthPage), findsOneWidget, reason: '帳號頁仍然進得去');
+
+      // 沒有後端 -> 一種登入方式都不提供。空集合的意義就是：
+      // 畫面上不會出現一顆按下去只會失敗（或假裝成功）的按鈕。
+      expect(find.text(AuthStrings.current.signInWithGoogle), findsNothing);
+      expect(find.text(AuthStrings.current.signInWithPasskey), findsNothing);
+      expect(find.text(AuthStrings.current.signInWithApple), findsNothing);
+      expect(find.text(AuthStrings.current.useEmail), findsNothing);
+
+      // 核心斷言：整條流程裡沒有任何「成功」的字樣。
+      final as = AuthStrings.current;
+      expect(find.text(as.announceSignedIn), findsNothing);
+      expect(find.text(as.signedIn), findsNothing);
+      expect(find.text(s.accountSignedIn), findsNothing);
+
+      // 出得來，而且回去之後仍然是訪客（回去以後又會重讀一次狀態）。
+      await tester.tap(find.text(as.notNow));
+      await tester.pumpAndSettle();
+      expect(find.byType(SettingsPage), findsOneWidget);
+      expect(find.textContaining(s.accountGuest), findsOneWidget);
+      expect(find.text(s.accountSignedIn), findsNothing);
+    });
   });
 
   // 200% 字級是**這張畫面**的硬性約束（不是設定頁專屬）：

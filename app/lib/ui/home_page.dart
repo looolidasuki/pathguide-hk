@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../auth/auth_service.dart';
-import '../auth/mock_auth_service.dart';
+import '../auth/unavailable_auth_service.dart';
 import '../l10n/app_strings.dart';
 import '../settings/app_settings.dart';
 import '../vision/vision_session.dart';
@@ -53,7 +53,8 @@ class HomePage extends StatefulWidget {
   /// 使用者設定。沒注入就建一個純記憶體的（測試、或直接開這一頁時）。
   final AppSettings? settings;
 
-  /// 帳號狀態的來源。沒注入就建一個本機 stub（見 [_authService]）。
+  /// 帳號狀態的來源。沒注入就建一個**誠實的「尚未提供」stub**
+  /// （[UnavailableAuthService]，見 [_authService]）。
   final AuthService? authService;
 
   @override
@@ -64,20 +65,30 @@ class _HomePageState extends State<HomePage> {
   late final VisionSession _session = widget.session ?? VisionSession();
   late final AppSettings _settings = widget.settings ?? AppSettings.memory();
 
-  /// 帳號服務。**預設是本機 stub**。
+  /// 帳號服務。**預設是「沒有後端」的誠實 stub**（[UnavailableAuthService]）。
   ///
-  /// `MockAuthService` 是純本地假貨：不發任何網絡請求（`mock_auth_service.dart`
-  /// 檔頭與 spec 的「純本機 stub」裁定），所以「後端還不存在」也能走完整帳號
-  /// 流程——設定頁的帳號列與 `AuthPage` 因此是真的進得去，而不是只存在於
-  /// `main_auth_debug.dart` 的測試入口裡。
+  /// ★ 這裡以前接的是 `MockAuthService`，那是一個**會偽造成功**的假貨：
+  /// 它的預設結果是 `SignedIn` 帶一個假帳號（`mock.user@pathguide.test`／
+  /// `Mock User`），於是**正式 App 會假裝登入成功**——帳號頁播報
+  /// 「登入成功」並返回，設定頁的帳號列顯示「已登入」。
   ///
-  /// 它**不會**偽造登入狀態：沒有存過帳號時 `restore()` 回 `null`，設定頁就
-  /// 照實說「訪客（可完整使用識別）」。假裝已登入會讓使用者以為自己登入了，
-  /// 而云端能力其實全部不通——那比誠實的訪客狀態糟得多。
+  /// 對看不見的使用者，這是關於**安全狀態**的謊言：他會相信自己登入了、
+  /// 以為上傳與同步真的送到伺服器，而那些能力一個都不存在（Spec 1 沒有
+  /// 後端）。誠實的訪客狀態永遠勝過假的已登入狀態。
+  ///
+  /// [UnavailableAuthService] 反過來做三件誠實的事：
+  /// `restore()` 回 `null`（設定頁照實說「訪客（可完整使用識別）」）、
+  /// `availableProviders()` 回空集合（帳號頁**不畫**任何一顆按了也不會成功的
+  /// 登入按鈕）、所有會產生登入狀態的方法都回 `AuthFailed`（永不 `SignedIn`）。
+  ///
+  /// `MockAuthService` **沒有被刪**：它是測試的來源（它可以「故意失敗」，
+  /// 讓離線／取消／需要連結這些分支真的被執行到）。它只是不可以再被
+  /// 正式入口使用。
   ///
   /// ⚠️ **後端就緒後把這一行換成真正的 `AuthService` 實現**（`HttpApi` 的
   /// 登入端點），設定頁與帳號頁一行都不用改。
-  late final AuthService _authService = widget.authService ?? MockAuthService();
+  late final AuthService _authService =
+      widget.authService ?? const UnavailableAuthService();
 
   /// 自己建的設定才由自己釋放；`main` 注入的那份比這一頁活得久，不能動。
   bool get _ownsSettings => widget.settings == null;

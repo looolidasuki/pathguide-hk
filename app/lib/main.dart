@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'auth/unavailable_auth_service.dart';
 import 'l10n/app_locale.dart';
 import 'l10n/app_strings.dart';
 import 'settings/app_settings.dart';
@@ -112,7 +113,19 @@ class _PathGuideAppState extends State<PathGuideApp>
       localeResolutionCallback: (locale, supported) {
         return AppLocale.applyResolved(locale, supported);
       },
-      home: HomePage(settings: widget.settings),
+      // 帳號服務：**正式入口接的是「沒有後端」的誠實 stub**。
+      //
+      // 以前這裡（經由 `HomePage` 的預設）接的是 `MockAuthService`，而它的
+      // 預設結果是 `SignedIn` 帶假帳號（`mock.user@pathguide.test`）——
+      // 正式 App 因此會**假裝登入成功**：帳號頁播報「登入成功」、設定頁顯示
+      // 「已登入」。對看不見的使用者，這是關於安全狀態的謊言。
+      //
+      // `UnavailableAuthService` 永遠回報「不能用」而不是「成功」：設定頁的
+      // 帳號列照實說「訪客」，帳號頁一種登入方式都不提供。理由見該檔檔頭。
+      home: HomePage(
+        settings: widget.settings,
+        authService: const UnavailableAuthService(),
+      ),
     );
   }
 }
