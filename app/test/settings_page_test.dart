@@ -3,6 +3,8 @@ import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pathguide/auth/auth_service.dart';
+import 'package:pathguide/auth/mock_auth_service.dart';
 import 'package:pathguide/l10n/app_locale.dart';
 import 'package:pathguide/l10n/app_strings.dart';
 import 'package:pathguide/settings/app_settings.dart';
@@ -18,12 +20,20 @@ int countOccurrences(String haystack, String needle) =>
 void main() {
   setUp(() => AppLocale.current = AppLanguage.zh);
 
-  Future<AppSettings> pump(WidgetTester tester) async {
+  /// 掛上設定頁。`authService` 預設不給：不給就**不畫帳號列**，
+  /// 所以前面三條既有測試（播報速度／模型資訊／返回）不受帳號功能影響。
+  Future<AppSettings> pump(
+    WidgetTester tester, {
+    AuthService? authService,
+    VoidCallback? onOpenAccount,
+  }) async {
     final settings = AppSettings.memory();
     await tester.pumpWidget(MaterialApp(
       home: SettingsPage(
         settings: settings,
         modelSummary: () async => kInjectedSummary,
+        authService: authService,
+        onOpenAccount: onOpenAccount,
       ),
     ));
     await tester.pumpAndSettle();
@@ -51,6 +61,36 @@ void main() {
   Future<void> openSpeedSheet(WidgetTester tester, AppStrings s) async {
     await tester.tap(find.widgetWithText(OutlinedButton, s.speechSpeed));
     await tester.pumpAndSettle();
+  }
+
+  /// 把帳號列捲進視窗，回傳 **捲進來之後**才存在的 finder。
+  ///
+  /// 360×640 dp + 200% 字級時，帳號列落在 `ListView` 可見區**底下**，而
+  /// `ListView` 只建可見範圍（含 cacheExtent）的子項——沒捲到的話整列根本
+  /// 還沒被建出來，`find` 自然是 0 個。這是測試視窗只有 640 dp 高的問題，
+  /// 不是頁面把字裁掉。
+  ///
+  /// 捲進來之後那一列才真的被排版、被繪製；`RenderFlex` 溢出是**畫**的
+  /// 時候才丟出來的，所以「捲 → 再斷言」抓的仍然是「有沒有被裁掉」，
+  /// 而且比不捲更嚴：不捲的話那條溢出的 bug 根本沒機會發生。
+  ///
+  /// 刻意不改成「把視窗調高」（例如 360×1200）來讓東西全部建出來：帳號列的
+  /// 風險在**寬**——「訪客（可完整使用識別）」要塞進 360 dp 就得折行長高；
+  /// 捲動完全不動寬度，維持原本要驗的那個條件。
+  Future<Finder> revealAccountRow(WidgetTester tester, AppStrings s) async {
+    final accountRow = find.widgetWithText(OutlinedButton, s.account);
+    await tester.scrollUntilVisible(
+      accountRow,
+      200,
+      // 指定這一頁的 `ListView`：頁面上只有它一個 `Scrollable`，
+      // 但寫明白才不會哪天多出別的捲動區就默默失效。
+      scrollable: find.descendant(
+        of: find.byType(ListView),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return accountRow;
   }
 
   testWidgets('★ 設定頁只有三類內容：播報速度、模型資訊、返回', (tester) async {
@@ -121,6 +161,27 @@ void main() {
           );
         }
       });
+
+      // 帳號列的狀態文字是這一頁最長的一句（zh 的「訪客（可完整使用識別）」
+      // 就有 11 個全形字），窄機 + 200% 是它唯一會撞牆的組合。
+      testWidgets('200% 字級（${language.name}）：帳號列不截斷', (tester) async {
+        scaleTo200(tester, language);
+        await pump(tester, authService: MockAuthService());
+        final s = AppStrings.of(language);
+
+        // 先捲到帳號列：它在折線以下，不捲就還沒被建出來（見 `revealAccountRow`）。
+        final accountRow = await revealAccountRow(tester, s);
+        expect(accountRow, findsOneWidget);
+        expect(
+          tester.getSize(accountRow).height,
+          greaterThanOrEqualTo(60.0),
+          reason: '200% 只能長大不能變矮；固定高度就是把字切掉',
+        );
+        // 狀態那句話必須完整存在（不是被裁掉的半句）。
+        expect(find.textContaining(s.accountGuest), findsOneWidget);
+        // 捲進來之後那一列會真的被排版、被繪製：200% 下任何 RenderFlex 溢出
+        // 都會直接讓這條測試失敗，所以「測試綠」本身就等於「帳號列沒有被裁掉」。
+      });
     }
   });
 
@@ -190,6 +251,86 @@ void main() {
 
     gate.complete(null);
     await tester.pumpAndSettle();
+    handle.dispose();
+  });
+
+  // --- 帳號列（Task 10）---
+
+  testWidgets('★ 訪客狀態要說清楚「識別仍可完整使用」，不是只寫「未登入」', (tester) async {
+    await pump(tester, authService: MockAuthService());
+
+    expect(find.textContaining('訪客'), findsOneWidget);
+    expect(find.textContaining('完整使用'), findsOneWidget);
+    expect(
+      find.textContaining('未登入'),
+      findsNothing,
+      reason: '只寫「未登入」等於暗示功能被鎖住，但訪客本來就能完整使用識別',
+    );
+  });
+
+  testWidgets('帳號列可點，且不是裸圖標', (tester) async {
+    final handle = tester.ensureSemantics();
+    var opened = 0;
+    await pump(
+      tester,
+      authService: MockAuthService(),
+      onOpenAccount: () => opened++,
+    );
+    final s = AppStrings.of(AppLanguage.zh);
+
+    // 真正的那顆按鈕（不是圖示假裝的），而且夠高。
+    final accountRow = find.widgetWithText(OutlinedButton, s.account);
+    expect(accountRow, findsOneWidget);
+    expect(
+      tester.getSize(accountRow).height,
+      greaterThanOrEqualTo(48.0),
+      reason: '可操作項的觸控目標下限是 48',
+    );
+
+    // 一個語意節點，標籤是「動作 + 現況」。
+    final node = find.bySemanticsLabel(RegExp(s.account));
+    expect(node, findsOneWidget, reason: '內層文字若沒被吃掉，會多出兩個只唸一半的節點');
+    final label = tester.getSemantics(node).label;
+    expect(label, contains(s.accountGuest));
+    expect(label, contains('點兩下'), reason: '標籤要說出按下去會怎樣');
+
+    await tester.ensureVisible(find.text(s.account));
+    await tester.tap(find.text(s.account));
+    await tester.pumpAndSettle();
+    expect(opened, 1, reason: '按一次只能呼叫一次');
+
+    handle.dispose();
+  });
+
+  testWidgets('★ 已登入狀態唸「已登入」，不唸「訪客」', (tester) async {
+    final handle = tester.ensureSemantics();
+    // ★ 用現成的 `signedIn` 工廠：它在建構時就備好 `initialAccount` 與
+    //   已寫入的 store，所以 `restore()` 一定回得出帳號，不必先跑一次登入流程。
+    final service = MockAuthService.signedIn(MockAuthService.defaultAccount);
+    await pump(tester, authService: service);
+    final s = AppStrings.of(AppLanguage.zh);
+
+    expect(find.text(s.accountSignedIn), findsOneWidget);
+    expect(
+      find.textContaining('訪客'),
+      findsNothing,
+      reason: '已登入卻還被唸成訪客，使用者會以為登入沒成功',
+    );
+
+    final node = find.bySemanticsLabel(RegExp(s.accountSignedIn));
+    expect(node, findsOneWidget);
+    final label = tester.getSemantics(node).label;
+    expect(label, contains(s.accountSignedIn));
+    expect(countOccurrences(label, s.accountSignedIn), 1, reason: '狀態只能唸一次');
+    expect(label, isNot(contains('訪客')));
+
+    expect(
+      service.calls.where((c) => c == 'restore').length,
+      1,
+      reason: '`restore()` 只能跑一次：設定頁每次重建（例如調語速）都重讀儲存的話，'
+          '帳號列會閃一下「訪客」',
+    );
+
     handle.dispose();
   });
 }

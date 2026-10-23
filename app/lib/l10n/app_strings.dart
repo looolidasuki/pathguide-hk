@@ -363,6 +363,15 @@ class AppStrings {
   /// 已登入狀態的帳號列文字（設定頁帳號列用）。
   String get accountSignedIn => _zh ? '已登入' : 'Signed in';
 
+  /// 設定頁帳號列的**一句話**：動作 + 現況 + 下一步。
+  ///
+  /// 只唸「帳號，訪客」時，使用者不知道這是一顆按鈕、也不知道按下去會發生
+  /// 什麼；而「已登入」若不加動作，他也不會知道這裡還進得去帳號頁。
+  /// 現況字串由呼叫端給（訪客那句要順帶說明識別仍可完整使用）。
+  String accountAction(String state) => _zh
+      ? '帳號，現為$state，點兩下開啟帳號頁'
+      : 'Account, currently $state, double-tap to open account page';
+
   // --- 雲能力門禁的**可操作**說明 ---
   //
   // 門禁訊息不是「無權限」，而是「怎麼才能用」：使用者聽到「無權限」只知道

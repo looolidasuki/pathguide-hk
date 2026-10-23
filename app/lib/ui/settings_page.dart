@@ -1,23 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
+import '../auth/auth_service.dart';
 import '../l10n/app_strings.dart';
 import '../settings/app_settings.dart';
 import '../vision/model_manifest.dart';
 import '../vision/platform_vision.dart' show defaultModelManifestKey;
 import 'app_theme.dart';
 
-/// 設定頁。只有兩塊內容，**刻意不做第三塊**。
+/// 設定頁。三塊內容：播報速度、模型資訊、帳號。
+///
+/// 帳號是**可選的**：只有呼叫端給了 `authService` 才畫那一列。沒給就不畫，
+/// 因為一顆按不動或按了不知道會去哪的按鈕，對看不見的使用者是陷阱。
 ///
 /// 為什麼沒有「未來功能」清單：那種列表對看不見的使用者是純噪音——
 /// 每一項都要花一次焦點移動去聽「這個還沒做」。
 class SettingsPage extends StatefulWidget {
-  const SettingsPage({super.key, required this.settings, this.modelSummary});
+  const SettingsPage({
+    super.key,
+    required this.settings,
+    this.modelSummary,
+    this.authService,
+    this.onOpenAccount,
+  });
 
   final AppSettings settings;
 
   /// 模型資訊的一行摘要。預設從端上清單讀；測試注入固定字串。
   final Future<String?> Function()? modelSummary;
+
+  /// 帳號狀態的來源。**null 就完全不畫帳號列**：這個畫面在不談帳號的
+  /// 呼叫端（含既有測試）裡行為完全不變，不多出一列沒人負責的按鈕。
+  final AuthService? authService;
+
+  /// 帳號列被按下時要做的事（通常是開帳號頁）。
+  final VoidCallback? onOpenAccount;
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
@@ -26,6 +43,15 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   late final Future<String?> _summary =
       (widget.modelSummary ?? _loadModelSummary)();
+
+  /// 帳號狀態**只讀一次**。
+  ///
+  /// `late final` 讓這個 Future 在第一次被讀到時才建立，之後每個重建都拿到
+  /// 同一個 instance；寫成 `FutureBuilder(future: widget.authService!.restore())`
+  /// 的話，設定頁每次 `notifyListeners` 重建就會重讀一次儲存，
+  /// 使用者一調語速帳號列就閃一次「訪客」。
+  late final Future<AuthAccount?> _account =
+      widget.authService?.restore() ?? Future<AuthAccount?>.value(null);
 
   static Future<String?> _loadModelSummary() async {
     final s = AppStrings.current;
@@ -139,6 +165,59 @@ class _SettingsPageState extends State<SettingsPage> {
         SpeechSpeed.normal => s.speechSpeedNormal,
         SpeechSpeed.fast => s.speechSpeedFast,
       };
+
+  /// 帳號列：一句話說完「這是帳號」「現在是訪客還是已登入」「點兩下開帳號頁」。
+  ///
+  /// 語意比照上面的模型資訊：整列**一個**節點，內層文字全走 `ExcludeSemantics`。
+  /// 否則使用者會先聽「帳號」、再聽「訪客（可完整使用識別）」，兩站都聽不出
+  /// 這是一顆按鈕。而 `ExcludeSemantics` 會連按鈕自帶的 tap 一起丟掉，
+  /// 所以外層 `Semantics` 要自己補 `onTap`，不然 TalkBack 點不動。
+  Widget _accountRow(AppStrings s) {
+    return FutureBuilder<AuthAccount?>(
+      future: _account,
+      builder: (context, snap) {
+        // 狀態文字必須誠實：訪客那句自己就說明「識別仍可完整使用」
+        // （`accountGuest`），不是只丟一句「未登入」嚇人。
+        final state = snap.data == null ? s.accountGuest : s.accountSignedIn;
+        return Semantics(
+          container: true,
+          button: true,
+          label: s.accountAction(state),
+          onTap: () => widget.onOpenAccount?.call(),
+          child: ExcludeSemantics(
+            child: ConstrainedBox(
+              // 不寫死高度：200% 字級下「訪客（可完整使用識別）」比剩下的寬度
+              // 長，會折成兩三行；固定高度（例如 60）就是直接切掉。
+              constraints: const BoxConstraints(minHeight: 60),
+              child: OutlinedButton(
+                onPressed: () => widget.onOpenAccount?.call(),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: <Widget>[
+                      Text(s.account, style: const TextStyle(fontSize: 17)),
+                      const SizedBox(width: 8),
+                      // 狀態文字用 `Flexible` 讓它換行長高，而不是撐破這一列。
+                      Flexible(
+                        child: Text(
+                          state,
+                          textAlign: TextAlign.end,
+                          style: const TextStyle(
+                            color: AppColors.accent,
+                            fontSize: 17,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +338,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   );
                 },
               ),
+              // 帳號列只在有人提供 `AuthService` 時才存在：沒有帳號來源卻
+              // 畫一顆按不動的按鈕，對看不見的使用者是純粹的陷阱。
+              if (widget.authService != null) ...<Widget>[
+                const SizedBox(height: 16),
+                _accountRow(s),
+              ],
               const SizedBox(height: 24),
               SizedBox(
                 height: 52,
