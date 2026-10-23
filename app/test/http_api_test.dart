@@ -283,6 +283,78 @@ void main() {
     expect(HttpClientTransport.requestTimeout, const Duration(seconds: 30));
   });
 
+  // ---- Fix round 2：逾時必須**真的中止**在途請求（見 RequestAbortHandle）------
+
+  test('★ 逾時 → 先中止在途請求，再丟 network／可重試（順序不能顛倒）', () async {
+    // 永不完成的請求：伺服器接受了連線卻一個位元組都不回。
+    final stalled = Completer<TransportResponse>();
+    var aborts = 0;
+    final abort = RequestAbortHandle();
+    abort.attach(() => aborts++);
+
+    await expectLater(
+      withRequestTimeout(
+        () => stalled.future,
+        timeout: const Duration(milliseconds: 20),
+        abortInFlight: abort,
+      ),
+      throwsA(isA<ApiFailure>()
+          .having((f) => f.code, 'code', 'network')
+          .having((f) => f.retryable, 'retryable', isTrue)),
+    );
+
+    // 若只是「不再等」，上傳會繼續把 body 流完，Task 9 的重試隊列再把同一格
+    // 送一次 → 重複的 `/v1/frames`。這裡釘住「真的中止了」這件事。
+    expect(aborts, 1, reason: '逾時必須真的中止在途請求，不能只是放手');
+  });
+
+  test('★ 中止只發生一次（重複的逾時通知不會叫第二次 abort）', () {
+    var aborts = 0;
+    final abort = RequestAbortHandle();
+    abort.attach(() => aborts++);
+
+    abort.onTimeout();
+    expect(aborts, 1);
+    abort.onTimeout();
+    abort.onTimeout();
+    expect(aborts, 1, reason: 'abort() 只能叫一次：重複中止沒有意義');
+  });
+
+  test('★ 逾時早於請求物件（openUrl 還在 pending）→ 拿到請求時補中止', () {
+    var aborts = 0;
+    final abort = RequestAbortHandle();
+    abort.onTimeout();
+    // 那個時間點還沒有請求物件可中止，所以暫時一次都沒有。
+    expect(aborts, 0);
+
+    abort.attach(() => aborts++);
+    expect(aborts, 1, reason: '遲到的請求也要被中止，否則它會把 body 流完');
+
+    // 已經中止過就不再補一次（換一個 callback 也一樣）。
+    abort.attach(() => aborts += 100);
+    expect(aborts, 1);
+  });
+
+  test('★ abort() 自己拋錯被吞掉，呼叫方仍只看到 network／可重試', () async {
+    final stalled = Completer<TransportResponse>();
+    final abort = RequestAbortHandle();
+    abort.attach(() {
+      throw StateError('abort() 失敗');
+    });
+
+    await expectLater(
+      withRequestTimeout(
+        () => stalled.future,
+        timeout: const Duration(milliseconds: 20),
+        abortInFlight: abort,
+      ),
+      throwsA(isA<ApiFailure>()
+          .having((f) => f.code, 'code', 'network')
+          .having((f) => f.retryable, 'retryable', isTrue)
+          .having((f) => f.message, 'message', isNotEmpty)),
+    );
+  });
+
   test('★ 上傳的檔案不見了 → missing_file 不可重試（不是 PathNotFoundException）',
       () async {
     // 相對路徑：`flutter test` 的 cwd 是套件根目錄，這個名字保證不存在。

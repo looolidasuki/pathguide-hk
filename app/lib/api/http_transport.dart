@@ -48,27 +48,99 @@ abstract interface class HttpTransport {
   Future<TransportResponse> send(TransportRequest request);
 }
 
-/// 為整個請求加上時限；逾時換成**可重試**的 [ApiFailure]（`network`）。
+/// 逾時一律換成這個：可重試的 `network`。
+const ApiFailure _timeoutFailure = ApiFailure(
+  code: 'network',
+  message: '連線太久沒有回應，請稍後再試',
+  retryable: true,
+);
+
+/// 逾時時**真的**中止在途請求的把手。
+///
+/// 存在的理由：`Future.timeout` 只是「不再等」，底下的請求照樣在跑。上傳一幀
+/// JPEG 時那條連線會繼續把 body 流完，而呼叫方（Task 9 的重試隊列）已經把同一格
+/// 重新排進隊列 —— 後端於是收到兩次 `/v1/frames`，產生兩條一模一樣的紀錄。
+/// [HttpClientRequest.abort] 是 `dart:io` 現成的取消句柄（`abort([exception,
+/// stackTrace])`，`http.dart` 的 `HttpClientRequest`）：它 destroy 掉連線，之後
+/// `IOSink` 的方法（含 `add()`）都不再生效，body 不會繼續流。
+///
+/// 這個類只做三件在測試裡可以釘死、且不碰網絡的事：
+///  1. 請求物件一到手就 [attach] 中止動作；
+///  2. 逾時通知 [onTimeout] **只**觸發一次中止（重複通知不會再叫一次）；
+///  3. 逾時先於請求物件發生時（`openUrl()` 還在 pending），拿到請求的那一刻補
+///     中止 —— 否則那段時間差就會留下一條永遠不會被中止的上傳。
+///
+/// `abort()` 自己拋的錯一律吞掉：它若漏出去，呼叫方看到的會是那個錯，而不是
+/// 逾時該有的 [ApiFailure]（呼叫方要靠 `retryable` 決定要不要重送）。
+class RequestAbortHandle {
+  void Function()? _onAbort;
+  bool _timedOut = false;
+  bool _aborted = false;
+
+  /// 登記「怎麼中止目前這個請求」。已經逾時過就立刻中止這一個。
+  void attach(void Function() onAbort) {
+    _onAbort = onAbort;
+    if (_timedOut) _abortOnce();
+  }
+
+  /// 逾時路徑呼叫：立起標記並中止（請求還沒出現就等 [attach] 補上）。
+  void onTimeout() {
+    _timedOut = true;
+    _abortOnce();
+  }
+
+  void _abortOnce() {
+    if (_aborted) return;
+    final onAbort = _onAbort;
+    // 請求物件還沒出現：等 [attach] 補上（那時 `_timedOut` 已經是 true）。
+    if (onAbort == null) return;
+    // 先立旗再呼叫：中止動作自己拋錯也不會導致被中止第二次。
+    _aborted = true;
+    try {
+      onAbort();
+    } catch (_) {
+      // 見類別說明：刻意吞掉。本層刻意不 import Flutter（拿不到 `debugPrint`），
+      // 也別為了一行 log 把純 Dart 的傳輸層綁上 framework。
+    }
+  }
+}
+
+/// 為整個請求加上時限；逾時**先中止在途請求**，再換成**可重試**的 [ApiFailure]
+/// （`network`）。
+///
+/// 順序不能顛倒：先 [RequestAbortHandle.onTimeout] 再 `throw`。中止若失敗或拋錯，
+/// 錯在 handle 裡被吞掉，呼叫方看到的仍是 `network`／可重試。
+///
+/// 為什麼要中止而不是放手（[RequestAbortHandle] 有完整理由）：本層最重的請求是
+/// 上傳一幀 JPEG，逾時後若只是「不再等」，那條連線會繼續串流，而重試隊列同時
+/// 會把同一格再送一次 → 重複的 `/v1/frames`。逾時發生在兩段時序上都要顧到，
+/// 用同一個 handle 就夠：
+///  * 請求物件還沒出現（`openUrl()` 仍在 pending）：`attach` 時補中止；
+///  * 請求物件已出現、`close()`／body streaming 還在跑：立刻中止。
+/// 已經收到回應（`close()` 完成、正在讀 body）之後，`HttpClientRequest.abort`
+/// 在 `dart:io` 內部是 no-op（回應的 completer 已完成）；那一段也不需要中止 ——
+/// 伺服器已經把回應寫出來了，沒有半截上傳還在流。
 ///
 /// 獨立成頂層函式（而不是寫死在 [HttpClientTransport.send] 裡）是為了可測：
-/// 傳一個永不完成的 Future 進來，就能在不碰真網的前提下釘住「逾時 → 可重試」
-/// 這條轉換。
-///
-/// 逾時**不會**取消底層連線：`dart:io` 沒有取消句柄，本層又不准加依賴。
-/// 被放棄的請求最終會自己失敗，那時它的錯誤由 `.timeout` 的 handler 吃掉，
-/// 不會變成未處理的 zone 錯誤；代價只是那條連線會多佔到它自己逾時為止。
+/// 傳一個永不完成的 Future 進來，就能在不碰真網的前提下釘住「逾時 → 先中止 →
+/// 可重試」這條轉換。
 Future<TransportResponse> withRequestTimeout(
   Future<TransportResponse> Function() work, {
   Duration timeout = HttpClientTransport.requestTimeout,
+  RequestAbortHandle? abortInFlight,
 }) async {
   try {
-    return await work().timeout(timeout);
-  } on TimeoutException {
-    throw const ApiFailure(
-      code: 'network',
-      message: '連線太久沒有回應，請稍後再試',
-      retryable: true,
+    return await work().timeout(
+      timeout,
+      onTimeout: () {
+        abortInFlight?.onTimeout();
+        throw _timeoutFailure;
+      },
     );
+  } on TimeoutException {
+    // 只會來自 `work()` 自己（例如它內部又套了一層 `.timeout`）；逾時那條路徑
+    // 走上面的 `onTimeout`，那裡已經把在途請求中止掉了。
+    throw _timeoutFailure;
   }
 }
 
@@ -168,17 +240,31 @@ class HttpClientTransport implements HttpTransport {
   final HttpClient _client;
 
   @override
-  Future<TransportResponse> send(TransportRequest request) =>
-      withRequestTimeout(() => _send(request));
+  Future<TransportResponse> send(TransportRequest request) {
+    // 一個請求一個 handle：逾時時它才知道要中止哪一個（見 [RequestAbortHandle]）。
+    final abort = RequestAbortHandle();
+    return withRequestTimeout(
+      () => _send(request, abort),
+      abortInFlight: abort,
+    );
+  }
 
-  Future<TransportResponse> _send(TransportRequest request) async {
-    // 先讀檔案、再開連線：檔案不見時連線都還沒建，不會留下一個開著卻沒用到的
-    // 請求（`dart:io` 的 `HttpClientRequest` 沒有關閉語義，只有 `abort()`）。
+  Future<TransportResponse> _send(
+    TransportRequest request,
+    RequestAbortHandle abort,
+  ) async {
+    // 先讀檔案、再開連線：檔案不見時連線都還沒建，就不會留下一個「請求已建立、
+    // 卻註定沒人用」的連線，也不必有誰記得去中止它。
     final uploadPath = request.uploadFilePath;
     final fileBytes =
         uploadPath == null ? null : await readUploadFile(uploadPath);
 
     final req = await _client.openUrl(request.method, request.url);
+    // 從這一行起，逾時就有東西可以真的中止。若逾時在這之前就發生了（`openUrl`
+    // 還在 pending），`attach` 看到標記會立刻補一次中止，不讓它流下去。
+    abort.attach(() {
+      req.abort(TimeoutException('請求逾時，已在傳輸層中止連線'));
+    });
     for (final entry in request.headers.entries) {
       req.headers.set(entry.key, entry.value);
     }
