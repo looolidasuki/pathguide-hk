@@ -7,9 +7,13 @@ import 'path_guide_api.dart';
 /// 真 HTTP 實現。端點與請求內容見 spec §7；狀態碼到 [ApiFailure] 的映射
 /// **全部集中在 [_send]**，其他方法只管把 JSON 轉成 `api_types.dart` 的模型。
 ///
-/// 令牌從建構子的 `token`／[setToken] 進來，不由各方法自己的 `token` 參數決定：
-/// 介面上的 `token` 參數是契約的一部分（`LocalOnlyApi` 用來判「有沒有登入」），
-/// 但真正送出的 `Authorization` 標頭只有一份事實源。
+/// **公開方法只會拋 [ApiFailure]**：狀態碼、連線失敗、逾時、body 不是 JSON、
+/// 欄位型別不對、要送出的 body 序列化不了，全部在這一層收斂完成。呼叫方寫
+/// `on ApiFailure` 就接得到，不必認識 `dart:io`／`dart:convert` 的例外型別 ——
+/// 走路中的使用者沒有第二次機會發現「安靜地什麼都沒說」。
+///
+/// 令牌有兩個來源：[setToken]（或建構子）存的那一份，與各方法自己的 `token`
+/// 參數；兩者並存且**參數優先**，見 [_headersFor]。
 class HttpApi implements PathGuideApi {
   HttpApi({required this.baseUrl, required this.transport, String? token})
       // prefer_initializing_formals 建議 `_token` 也改成 `this._token`，但那會把
@@ -23,11 +27,24 @@ class HttpApi implements PathGuideApi {
 
   void setToken(String? token) => _token = token;
 
-  Map<String, String> get _headers {
+  /// 這次請求要帶的標頭。
+  ///
+  /// `Authorization` 的規則是「**該次呼叫的 `token` 非空就用它**，否則回落到
+  /// [setToken] 存的那一份」。為什麼不能只認一份：
+  /// - 只認 `setToken` → 呼叫端若照介面簽章每呼叫傳 token（Task 8／9 很自然
+  ///   會這樣做），那些參數會被靜默丟掉，請求帶著過期或空的令牌出去 → 401 →
+  ///   `auth_expired`（可重試）→ 佇列無限重試，而且每次都重送同一份過期令牌。
+  /// - 只認參數 → `setToken` 這個既有公開 API 失效，登入一次之後不想每個方法
+  ///   都再傳一次的呼叫端會全部掉驗證。
+  ///
+  /// 空字串一律當成「這次沒有指定」，不是「這次不要帶」：介面用的是
+  /// `required String token`，呼叫端沒有 `null` 可以用來表示「不帶」；
+  /// 真的不要帶就把 [setToken] 設成 `null`。
+  Map<String, String> _headersFor(String? token) {
     final h = <String, String>{'Accept': 'application/json'};
-    final t = _token;
-    if (t != null && t.isNotEmpty) {
-      h['Authorization'] = 'Bearer $t';
+    final effective = (token != null && token.isNotEmpty) ? token : _token;
+    if (effective != null && effective.isNotEmpty) {
+      h['Authorization'] = 'Bearer $effective';
     }
     return h;
   }
@@ -37,7 +54,21 @@ class HttpApi implements PathGuideApi {
   /// `https://api.example.test/v1/auth/login`。
   Uri _u(String path) => baseUrl.resolve(path);
 
+  /// 伺服器回了 2xx，但 body 不是契約要的 JSON 物件。
+  ///
+  /// 現實中的觸發者不是「伺服器寫壞了」，而是**走著走著連上了一個擋在中間的
+  /// 網頁**：商場／電信商的 Wi-Fi 登入頁、代理回的 HTML 錯誤頁、被截斷的 body。
+  /// 這種回應重試沒有意義（下一次還是同一頁），所以不可重試；訊息是唸給人聽的
+  /// **一句話**（Global Constraints：錯誤不彈窗，寫狀態檔 + 一句可聽說明）。
+  static ApiFailure _badResponse() => const ApiFailure(
+        code: 'bad_response',
+        message: '伺服器回應格式不對，請改用離線功能',
+        retryable: false,
+      );
+
   /// 送出請求並回傳解碼後的 JSON 物件。
+  ///
+  /// [token] 是該次呼叫的令牌；非空時優先於 [setToken] 存的值（見 [_headersFor]）。
   ///
   /// 狀態碼映射（**唯一**一處，其他方法不得自行判斷）：
   /// - 401 → `auth_expired`，可重試（重登後再試）
@@ -49,18 +80,42 @@ class HttpApi implements PathGuideApi {
   Future<Map<String, Object?>> _send(
     String method,
     String path, {
+    String? token,
     Map<String, Object?>? body,
     Map<String, String>? fields,
     String? uploadFilePath,
   }) async {
-    final res = await transport.send(TransportRequest(
-      method: method,
-      url: _u(path),
-      headers: _headers,
-      jsonBody: body == null ? null : utf8.encode(jsonEncode(body)),
-      fields: fields,
-      uploadFilePath: uploadFilePath,
-    ));
+    final TransportResponse res;
+    try {
+      res = await transport.send(TransportRequest(
+        method: method,
+        url: _u(path),
+        headers: _headersFor(token),
+        jsonBody: body == null ? null : utf8.encode(jsonEncode(body)),
+        fields: fields,
+        uploadFilePath: uploadFilePath,
+      ));
+    } on ApiFailure {
+      // 傳輸層已經分好類（`missing_file`／逾時 `network`），原樣往上丟。
+      rethrow;
+    } on JsonUnsupportedObjectError {
+      // 呼叫方把不能序列化的東西（`DateTime`、`Duration`、自訂物件）放進 body。
+      // 這是 `Error` 不是 `Exception`，原本會直接穿過呼叫方的 `on ApiFailure`；
+      // 它同樣不是網路問題（重試沒用），但**更不能安靜**。
+      throw const ApiFailure(
+        code: 'client',
+        message: '這次要送出的內容無法送出',
+        retryable: false,
+      );
+    } on Exception {
+      // 傳輸層其他失敗（`SocketException` 連不上、`HttpException` 中途斷線）
+      // 也收斂成契約型別：呼叫方寫 `on ApiFailure` 就接得到，不必認識 `dart:io`。
+      throw const ApiFailure(
+        code: 'network',
+        message: '連線不穩，請稍後再試',
+        retryable: true,
+      );
+    }
 
     if (res.statusCode == 401) {
       throw const ApiFailure(
@@ -87,8 +142,19 @@ class HttpApi implements PathGuideApi {
     if (res.body.trim().isEmpty) {
       return <String, Object?>{};
     }
-    final decoded = jsonDecode(res.body);
-    return decoded is Map<String, Object?> ? decoded : <String, Object?>{};
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(res.body);
+    } on FormatException {
+      throw _badResponse();
+    }
+    if (decoded is Map<String, Object?>) {
+      return decoded;
+    }
+    // 合法 JSON 但不是物件（`[]`、`"ok"`、`null`）：一樣不是契約的形狀。
+    // 這裡**不**安靜回 `{}`：回空物件會讓 `login` 拿到空 token、`latestModel`
+    // 拿到空版本，呼叫方要到下一次請求才以 401 發現，錯誤現場離原因太遠。
+    throw _badResponse();
   }
 
   /// 缺欄位一律 `''`，**永不**把 `null` 插值成字串 `'null'`。
@@ -99,6 +165,43 @@ class HttpApi implements PathGuideApi {
   /// `ModelEnvelope.downloadUrl` 就是照這條規矩寫的），下載器會拿 `'null'`
   /// 去拼 URL，而不是乾淨地判定「沒有下載地址」。
   static String _asString(Object? v) => v == null ? '' : '$v';
+
+  /// 數值欄位轉 `int`（缺欄位／`null` 是合法的 0）。
+  ///
+  /// 型別不對（`"42"`、`true`、物件）→ [ApiFailure] `bad_response`，
+  /// **不讓 `TypeError`／`CastError` 漏出去**：`m['bytes'] as num?` 在值是字串時
+  /// 拋的是 `TypeError`，呼叫方的 `on ApiFailure` 接不到，等於沒有任何說明。
+  static int _asInt(Object? v) {
+    if (v == null) {
+      return 0;
+    }
+    if (v is num) {
+      return v.toInt();
+    }
+    throw _badResponse();
+  }
+
+  /// 整數陣列（`modelClassIds`）：缺欄位 → 空陣列；**任何一個元素不是數字**
+  /// → `bad_response`，不是「跳過那一個」也不是漏出 `TypeError`。
+  ///
+  /// 跳過會讓呼叫方拿到一份「看起來正常、其實少了一類」的清單，那種錯比
+  /// 明確失敗難查得多。
+  static List<int> _asIntList(Object? v) {
+    if (v == null) {
+      return const <int>[];
+    }
+    if (v is! List) {
+      throw _badResponse();
+    }
+    final ids = <int>[];
+    for (final id in v) {
+      if (id is! num) {
+        throw _badResponse();
+      }
+      ids.add(id.toInt());
+    }
+    return ids;
+  }
 
   static DateTime _asDate(Object? v) {
     final parsed = v is String ? DateTime.tryParse(v) : null;
@@ -135,10 +238,15 @@ class HttpApi implements PathGuideApi {
     );
   }
 
+  /// `{token}` 走 body（spec §7 第 3 條），**同時**當作這次請求的令牌。
+  ///
+  /// 不傳給 [_send] 的話，送出的 `Authorization` 會是 [setToken] 存的舊值 ——
+  /// 要換新的那個通常已經過期，拿著它去換只會被回 401 `auth_expired`，
+  /// 於是「更新令牌」變成「無限重試同一份過期令牌」。
   @override
   Future<AuthSession> refresh({required String token}) async {
     final m = await _send('POST', '/v1/auth/refresh',
-        body: <String, Object?>{'token': token});
+        token: token, body: <String, Object?>{'token': token});
     return AuthSession(
       userId: _asString(m['userId']),
       token: _asString(m['token']),
@@ -161,7 +269,7 @@ class HttpApi implements PathGuideApi {
       if (request.longitude != null) 'lng': '${request.longitude}',
     };
     final m = await _send('POST', '/v1/frames',
-        fields: fields, uploadFilePath: request.framePath);
+        token: token, fields: fields, uploadFilePath: request.framePath);
     return UploadReceipt(
       frameId: _asString(m['frameId']),
       status: _asString(m['status']),
@@ -173,13 +281,10 @@ class HttpApi implements PathGuideApi {
     final m = await _send('GET', '/v1/models/latest');
     return ModelEnvelope(
       version: _asString(m['version']),
-      bytes: (m['bytes'] as num?)?.toInt() ?? 0,
-      modelClassCount: (m['modelClassCount'] as num?)?.toInt() ?? 0,
-      inputSize: (m['inputSize'] as num?)?.toInt() ?? 0,
-      modelClassIds: <int>[
-        for (final id in (m['modelClassIds'] as List? ?? const <Object?>[]))
-          (id as num).toInt(),
-      ],
+      bytes: _asInt(m['bytes']),
+      modelClassCount: _asInt(m['modelClassCount']),
+      inputSize: _asInt(m['inputSize']),
+      modelClassIds: _asIntList(m['modelClassIds']),
       sha256: _asString(m['sha256']),
       // 伺服器沒給下載地址 → `''`（`ModelEnvelope.downloadUrl` 的哨兵值），
       // 不是 `'null'`，也不是任何其他「看起來有值」的字串。
@@ -189,7 +294,7 @@ class HttpApi implements PathGuideApi {
 
   @override
   Future<Map<String, Object?>> fetchSettings({required String token}) =>
-      _send('GET', '/v1/settings');
+      _send('GET', '/v1/settings', token: token);
 
   @override
   Future<void> saveSettings({
@@ -197,7 +302,7 @@ class HttpApi implements PathGuideApi {
     required Map<String, Object?> settings,
   }) async {
     await _send('PUT', '/v1/settings',
-        body: <String, Object?>{'settings': settings});
+        token: token, body: <String, Object?>{'settings': settings});
   }
 
   @override
@@ -208,7 +313,7 @@ class HttpApi implements PathGuideApi {
     required String locale,
   }) =>
       // Spec 4 尚未實作：打到真實端點，但契約已定（spec §7）。
-      _send('POST', '/v1/vision/query', body: <String, Object?>{
+      _send('POST', '/v1/vision/query', token: token, body: <String, Object?>{
         'imageSha256': imageSha256,
         'question': question,
         'locale': locale,
@@ -220,6 +325,6 @@ class HttpApi implements PathGuideApi {
     required String utterance,
     required String locale,
   }) =>
-      _send('POST', '/v1/plan',
+      _send('POST', '/v1/plan', token: token,
           body: <String, Object?>{'utterance': utterance, 'locale': locale});
 }
