@@ -359,6 +359,24 @@ class AppStrings {
   String get account => _zh ? '帳號' : 'Account';
 
   String get accountGuest => _zh ? '訪客（可完整使用識別）' : 'Guest (full detection)';
+
+  /// 已登入狀態的帳號列文字（設定頁帳號列用）。
+  String get accountSignedIn => _zh ? '已登入' : 'Signed in';
+
+  // --- 雲能力門禁的**可操作**說明 ---
+  //
+  // 門禁訊息不是「無權限」，而是「怎麼才能用」：使用者聽到「無權限」只知道
+  // 路走不通，聽到「需要登入」才知道下一步要做什麼（spec §1.1）。
+  // 兩句都要順帶說明核心識別不受影響，否則使用者會以為 App 壞了。
+
+  /// 訪客碰到雲能力時的一句話（要說出解鎖方式）。
+  String get deniedNeedsLogin => _zh
+      ? '這功能需要登入；未登入時識別仍可完整使用'
+      : 'Sign in for this feature. Detection works without it';
+
+  /// 已登入但離線時的一句話（要說出缺的是網絡）。
+  String get deniedNeedsNetwork =>
+      _zh ? '暫時沒有網絡；識別不受影響' : 'No network right now. Detection is unaffected';
 }
 
 /// Localized display / speak name for a detection label.
