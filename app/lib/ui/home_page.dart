@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../auth/auth_service.dart';
+import '../auth/mock_auth_service.dart';
 import '../l10n/app_strings.dart';
 import '../settings/app_settings.dart';
 import '../vision/vision_session.dart';
+import 'auth_page.dart';
 import 'read_text_page.dart';
 import 'demo_page.dart';
 import 'settings_page.dart';
@@ -37,13 +40,21 @@ import 'settings_page.dart';
 /// - 整頁可以捲：200% 字級 + 窄機時三個入口比螢幕高，不捲就等於把
 ///   「設定」（最後一站）直接裁掉。
 class HomePage extends StatefulWidget {
-  const HomePage({super.key, this.session, this.settings});
+  const HomePage({
+    super.key,
+    this.session,
+    this.settings,
+    this.authService,
+  });
 
   /// 相機與語音的共用持有者。預設自己建一個；測試注入假的。
   final VisionSession? session;
 
   /// 使用者設定。沒注入就建一個純記憶體的（測試、或直接開這一頁時）。
   final AppSettings? settings;
+
+  /// 帳號狀態的來源。沒注入就建一個本機 stub（見 [_authService]）。
+  final AuthService? authService;
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -53,6 +64,21 @@ class _HomePageState extends State<HomePage> {
   late final VisionSession _session = widget.session ?? VisionSession();
   late final AppSettings _settings = widget.settings ?? AppSettings.memory();
 
+  /// 帳號服務。**預設是本機 stub**。
+  ///
+  /// `MockAuthService` 是純本地假貨：不發任何網絡請求（`mock_auth_service.dart`
+  /// 檔頭與 spec 的「純本機 stub」裁定），所以「後端還不存在」也能走完整帳號
+  /// 流程——設定頁的帳號列與 `AuthPage` 因此是真的進得去，而不是只存在於
+  /// `main_auth_debug.dart` 的測試入口裡。
+  ///
+  /// 它**不會**偽造登入狀態：沒有存過帳號時 `restore()` 回 `null`，設定頁就
+  /// 照實說「訪客（可完整使用識別）」。假裝已登入會讓使用者以為自己登入了，
+  /// 而云端能力其實全部不通——那比誠實的訪客狀態糟得多。
+  ///
+  /// ⚠️ **後端就緒後把這一行換成真正的 `AuthService` 實現**（`HttpApi` 的
+  /// 登入端點），設定頁與帳號頁一行都不用改。
+  late final AuthService _authService = widget.authService ?? MockAuthService();
+
   /// 自己建的設定才由自己釋放；`main` 注入的那份比這一頁活得久，不能動。
   bool get _ownsSettings => widget.settings == null;
 
@@ -60,6 +86,9 @@ class _HomePageState extends State<HomePage> {
   /// 就會推兩層同一個頁面——使用者按一次「返回」之後還停在原地，
   /// 而且看不出來自己其實在第二層。
   bool _pushing = false;
+
+  /// 帳號頁的同一道閂鎖（理由見 [_openAccount]：它不能共用 [_pushing]）。
+  bool _accountPushing = false;
 
   @override
   void initState() {
@@ -144,7 +173,14 @@ class _HomePageState extends State<HomePage> {
       // （等於最小觸控目標）；內容超過就往下長，不會被裁掉。
       constraints: const BoxConstraints(minHeight: 48),
       child: OutlinedButton(
-        onPressed: () => _open(SettingsPage(settings: _settings)),
+        onPressed: () => _open(SettingsPage(
+          settings: _settings,
+          // 少了這兩個參數，設定頁的帳號列**整列不會建出來**
+          // （`settings_page.dart` 的 `if (widget.authService != null)`），
+          // 於是 `AuthPage` 在正式入口裡根本到不了 —— 那是審查的 Critical。
+          authService: _authService,
+          onOpenAccount: _openAccount,
+        )),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         ),
@@ -183,6 +219,39 @@ class _HomePageState extends State<HomePage> {
       );
     } finally {
       _pushing = false;
+    }
+  }
+
+  /// 設定頁的帳號列被按下時：開帳號頁。
+  ///
+  /// **刻意不走 [_open]**：那道閂鎖從「設定頁推上去」一直鎖到「設定頁被彈
+  /// 回來」（`_open` 等的是整個 push 的 Future），走它帳號頁會永遠推不出來。
+  /// 這裡給帳號頁自己一道閂鎖，理由和 [_open] 一樣：螢幕閱讀器一次啟動會
+  /// 連點兩下，沒有閂鎖就會推兩層帳號頁。
+  void _openAccount() {
+    unawaited(_pushAccountPage());
+  }
+
+  Future<void> _pushAccountPage() async {
+    if (_accountPushing) return;
+    _accountPushing = true;
+    try {
+      await Navigator.of(context).push<void>(
+        MaterialPageRoute<void>(
+          builder: (_) => AuthPage(
+            // 本機 stub，理由見 [_authService]。
+            service: _authService,
+            // 三種出口（「稍後再說」／登入完成／帳號頁的「回到引導」）都回到
+            // 設定頁：使用者就是從那裡進來的，而且 `auth_page.dart` 的契約是
+            // 「進去一定出得來」——把使用者留在帳號頁是最嚴重的一種缺陷。
+            onSkip: () => Navigator.of(context).pop(),
+            onSignedIn: (_) => Navigator.of(context).pop(),
+            onBackToGuidance: () => Navigator.of(context).pop(),
+          ),
+        ),
+      );
+    } finally {
+      _accountPushing = false;
     }
   }
 

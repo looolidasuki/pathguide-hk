@@ -190,6 +190,88 @@ void main() {
     expect(await api.fetchSettings(token: 't'), isEmpty);
   });
 
+  // ---- Final fix wave：伺服器契約的錯誤 body 必須被採用 -----------------------
+
+  test('★ 伺服器給了 {code,message,retryable} 就用它，不是自製的狀態碼句', () async {
+    transport.response = TransportResponse(
+      statusCode: 400,
+      body: jsonEncode(<String, Object?>{
+        'code': 'frame_duplicate',
+        'message': '這一幀已經收過了，不需要重送',
+        'retryable': true,
+      }),
+    );
+
+    await expectLater(
+      api.uploadFrame(
+        token: 't',
+        request: UploadFrameRequest(
+          framePath: '/tmp/frame_1.jpg',
+          capturedAt: DateTime.utc(2026, 10, 23),
+          modelVersion: 'm1',
+        ),
+      ),
+      throwsA(isA<ApiFailure>()
+          .having((f) => f.code, 'code', 'frame_duplicate')
+          // 使用者聽到的是伺服器說的那句話，不是「請求不被接受（400）」
+          // ——舊寫法把整包 body 丟掉，於是「這一幀重複了」永遠傳不到人耳。
+          .having((f) => f.message, 'message', '這一幀已經收過了，不需要重送')
+          // 伺服器說可重試，就照它的（400 本身映射出來是不可重試）。
+          .having((f) => f.retryable, 'retryable', isTrue)),
+    );
+  });
+
+  test('伺服器 body 沒有 retryable 時，沿用狀態碼推出來的值', () async {
+    transport.response = TransportResponse(
+      statusCode: 429,
+      body: jsonEncode(
+          <String, Object?>{'code': 'rate_limited', 'message': '慢一點'}),
+    );
+    await expectLater(
+      api.latestModel(),
+      throwsA(isA<ApiFailure>()
+          .having((f) => f.code, 'code', 'rate_limited')
+          .having((f) => f.retryable, 'retryable', isTrue)),
+    );
+
+    transport.response = TransportResponse(
+      statusCode: 500,
+      body: jsonEncode(
+          <String, Object?>{'code': 'server_busy', 'message': '維護中'}),
+    );
+    await expectLater(
+      api.latestModel(),
+      throwsA(isA<ApiFailure>()
+          .having((f) => f.code, 'code', 'server_busy')
+          .having((f) => f.retryable, 'retryable', isFalse)),
+    );
+  });
+
+  test('★ body 不是契約（HTML／垃圾／缺 message）→ 回退到狀態碼映射', () async {
+    // 中間擋了一個 Wi-Fi 登入頁或代理錯誤頁。
+    transport.response = const TransportResponse(
+        statusCode: 502, body: '<html>Bad gateway</html>');
+    await expectLater(
+      api.latestModel(),
+      throwsA(isA<ApiFailure>()
+          .having((f) => f.code, 'code', 'server')
+          .having((f) => f.message, 'message', contains('502'))
+          .having((f) => f.retryable, 'retryable', isFalse)),
+    );
+
+    // 合法 JSON、有 code，但沒有 message：訊息是要唸給人聽的，不得是空字串
+    // 或 `'null'`，所以這種 body 不算契約，退回狀態碼映射。
+    transport.response =
+        const TransportResponse(statusCode: 404, body: '{"code":"nope"}');
+    await expectLater(
+      api.fetchSettings(token: 't'),
+      throwsA(isA<ApiFailure>()
+          .having((f) => f.code, 'code', 'client')
+          .having((f) => f.message, 'message', isNotEmpty)
+          .having((f) => f.retryable, 'retryable', isFalse)),
+    );
+  });
+
   // ---- Fix round 1：以下釘住 review 的五條發現 -------------------------------
 
   test('★ 200 但 body 是 HTML（Wi-Fi 登入頁）→ bad_response 不可重試', () async {

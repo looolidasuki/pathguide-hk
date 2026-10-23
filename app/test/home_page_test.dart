@@ -3,12 +3,17 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:pathguide/auth/auth_service.dart';
+import 'package:pathguide/auth/auth_strings.dart';
+import 'package:pathguide/auth/mock_auth_service.dart';
 import 'package:pathguide/l10n/app_locale.dart';
 import 'package:pathguide/l10n/app_strings.dart';
 import 'package:pathguide/tts/announcer.dart';
+import 'package:pathguide/ui/auth_page.dart';
 import 'package:pathguide/ui/demo_page.dart';
 import 'package:pathguide/ui/home_page.dart';
 import 'package:pathguide/ui/read_text_page.dart';
+import 'package:pathguide/ui/settings_page.dart';
 import 'package:pathguide/vision/detection.dart';
 import 'package:pathguide/vision/vision_session.dart';
 import 'package:pathguide/vision/vision_source.dart';
@@ -92,8 +97,11 @@ class _FakeSource implements VisionSource {
 Future<void> pumpHome(
   WidgetTester tester, {
   required VisionSession session,
+  AuthService? authService,
 }) async {
-  await tester.pumpWidget(MaterialApp(home: HomePage(session: session)));
+  await tester.pumpWidget(MaterialApp(
+    home: HomePage(session: session, authService: authService),
+  ));
   await tester.pumpAndSettle();
 }
 
@@ -228,6 +236,45 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byType(HomePage), findsOneWidget);
       expect(find.byType(ReadTextPage), findsNothing);
+    });
+
+    // 審查的 Critical：首頁沒把 `authService`／`onOpenAccount` 傳給設定頁，
+    // 於是設定頁的帳號列**整列不會建出來**，`AuthPage` 在正式入口裡根本到不了
+    // （只存在於 `main_auth_debug.dart` 與測試裡）。這條測試把整條路徑釘住：
+    // 首頁 → 設定 → 帳號列 → 帳號頁 → 出得來。
+    testWidgets('★ 從首頁進得了帳號頁（帳號入口不是只存在於 debug 入口）', (tester) async {
+      final service = MockAuthService();
+      final session = VisionSession(
+        speaker: _FakeSpeaker(),
+        sourceFactory: () => _FakeSource(),
+      );
+      await pumpHome(tester, session: session, authService: service);
+      final s = AppStrings.of(AppLanguage.zh);
+
+      await tester.tap(find.text(s.settingsTitle));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SettingsPage), findsOneWidget);
+      final accountRow = find.widgetWithText(OutlinedButton, s.account);
+      expect(accountRow, findsOneWidget,
+          reason: '沒把 authService 傳給設定頁，帳號列就不會被建出來');
+
+      // ★ 誠實的訪客狀態：stub 沒有存過帳號，`restore()` 回 null，
+      //   不得偽造出「已登入」讓使用者以為云端能力可用。
+      expect(find.textContaining(s.accountGuest), findsOneWidget);
+      expect(find.text(s.accountSignedIn), findsNothing);
+
+      await tester.tap(accountRow);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(AuthPage), findsOneWidget, reason: '帳號頁真的被推上去了');
+      expect(service.calls, contains('restore'), reason: '用的是注入的那個服務');
+
+      // 進去也出得來：帳號頁的「稍後再說」回到設定頁（不是把使用者關起來）。
+      await tester.tap(find.text(AuthStrings.current.notNow));
+      await tester.pumpAndSettle();
+      expect(find.byType(AuthPage), findsNothing);
+      expect(find.byType(SettingsPage), findsOneWidget);
     });
   });
 

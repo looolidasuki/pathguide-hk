@@ -1,4 +1,4 @@
-# 前端 API 契約與訪客門禁 — 實作計劃
+﻿# 前端 API 契約與訪客門禁 — 實作計劃
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -400,7 +400,7 @@ abstract final class AppColors {
 ```dart
   String get settingsTitle => _zh ? '設定' : 'Settings';
 
-  String get settingsHint => _zh ? '調整播報速度；其餘由程式決定' : 'Speech speed only';
+  String get settingsHint => _zh ? '只調整語音速度；辨識門檻由程式決定' : 'Speech speed only';
 
   String get speechSpeed => _zh ? '播報速度' : 'Speech speed';
 
@@ -456,8 +456,12 @@ class _SettingsPageState extends State<SettingsPage> {
           parseModelManifest(await rootBundle.loadString(defaultModelManifestKey));
       final m = parsed.manifest;
       if (m == null) return null;
-      final mib = (m.bytes / (1024 * 1024)).toStringAsFixed(2);
-      return '${m.modelClassCount} 類 · $mib MB · ${m.version}';
+      // `ModelManifest.bytes` 是 `int?`（清單可能沒寫），所以不能直接除。
+      final bytes = m.bytes;
+      final size = bytes == null
+          ? '—'
+          : '${(bytes / (1024 * 1024)).toStringAsFixed(2)} MB';
+      return '${m.modelClassCount} 類 · $size · ${m.version}';
     } catch (_) {
       return null;
     }
@@ -1143,25 +1147,25 @@ class LocalOnlyApi implements PathGuideApi {
 
   @override
   Future<AuthSession> login(
-          {required String method, required String credential}) =>
+          {required String method, required String credential}) async =>
       throw ApiNotAvailable('尚未提供登入服務');
 
   @override
-  Future<AuthSession> refresh({required String token}) =>
+  Future<AuthSession> refresh({required String token}) async =>
       throw ApiNotAvailable('尚未提供登入服務');
 
   @override
   Future<UploadReceipt> uploadFrame(
-          {required String token, required UploadFrameRequest request}) =>
+          {required String token, required UploadFrameRequest request}) async =>
       throw ApiNotAvailable('上傳需要登入與後端');
 
   @override
-  Future<Map<String, Object?>> fetchSettings({required String token}) =>
+  Future<Map<String, Object?>> fetchSettings({required String token}) async =>
       throw ApiNotAvailable('跨端同步尚未提供');
 
   @override
   Future<void> saveSettings(
-          {required String token, required Map<String, Object?> settings}) =>
+          {required String token, required Map<String, Object?> settings}) async =>
       throw ApiNotAvailable('跨端同步尚未提供');
 
   @override
@@ -1170,7 +1174,7 @@ class LocalOnlyApi implements PathGuideApi {
     required String imageSha256,
     required String question,
     required String locale,
-  }) =>
+  }) async =>
       throw ApiNotAvailable('雲端問答尚未提供');
 
   @override
@@ -1178,7 +1182,7 @@ class LocalOnlyApi implements PathGuideApi {
     required String token,
     required String utterance,
     required String locale,
-  }) =>
+  }) async =>
       throw ApiNotAvailable('路線規劃尚未提供');
 }
 ```
@@ -2074,11 +2078,8 @@ Expected: FAIL — `No named parameter with the name 'authService'`
               ],
 ```
 
-在 `app_strings.dart` 追加：
-
-```dart
-  String get accountSignedIn => _zh ? '已登入' : 'Signed in';
-```
+> **注意：`accountSignedIn` 已在 Task 8 一併加入（批次實作時先落地了）。**
+> 本任務**不要**再加一次，否則重複定義會編譯不過。先 grep 確認它存在再往下做。
 
 - [ ] **Step 4: 跑測試與全套_
 

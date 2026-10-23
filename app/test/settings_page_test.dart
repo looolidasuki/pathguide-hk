@@ -185,6 +185,30 @@ void main() {
     }
   });
 
+  // 審查的 must-fix：返回鍵曾是這頁唯一還留著 `SizedBox(height: 52)` 的地方，
+  // 而固定高度正是「200% 字級把字切掉」的元凶（本分支其他地方都改成 minHeight）。
+  //
+  // 這裡做的是**形狀**的斷言，不是高度數字：`getSize(back).height >= 52` 對舊
+  // 寫法也成立（套套邏輯），真正該鎖住的是「沒有那個固定高度的盒子」。
+  testWidgets('★ 返回鍵不是固定 52 高（用 minHeight 下限 + padding）', (tester) async {
+    await pump(tester);
+    final s = AppStrings.of(AppLanguage.zh);
+    final back = find.widgetWithText(OutlinedButton, s.backToHome);
+    expect(back, findsOneWidget);
+
+    expect(
+      find.ancestor(
+        of: back,
+        matching:
+            find.byWidgetPredicate((w) => w is SizedBox && w.height == 52),
+      ),
+      findsNothing,
+      reason: '固定 52 高會讓 200% 字級下的標籤被切掉；要的是 minHeight 下限',
+    );
+    // 下限還在（100% 字級下的觸控目標），只是不再是上限。
+    expect(tester.getSize(back).height, greaterThanOrEqualTo(52.0));
+  });
+
   testWidgets('★ 面板上「目前是哪個語速」聽得出來：selected + 「已選取」', (tester) async {
     final handle = tester.ensureSemantics();
     final settings = await pump(tester);

@@ -11,6 +11,11 @@
 //
 // 這裡的 `_RecordingApi` 只實現 `uploadFrame`：其餘 8 個方法透過 `noSuchMethod`
 // 在真的被呼叫時才炸，所以「這個測試只碰上傳」是被釘住的，不是靠人眼。
+//
+// ★ 模型版本：`UploadQueue` 的預設 provider 讀的是 `rootBundle` 的發布清單，
+//   那是 Flutter 的資源通道——純 `test()` 沒有 binding 時它會失敗，於是
+//   provider 降級成 `fallbackModelVersion`（並回報）。所以這裡的行為測試
+//   **不**斷言特定的版本號；要釘住「版本從清單來」的那一條會注入 provider。
 
 import 'dart:io';
 
@@ -25,6 +30,12 @@ class _RecordingApi implements PathGuideApi {
   final List<UploadFrameRequest> requests = <UploadFrameRequest>[];
   final Set<String> failing = <String>{};
 
+  /// 每個路徑要拋的**特定** [ApiFailure]（用來分辨可重試／不可重試）。
+  final Map<String, ApiFailure> failures = <String, ApiFailure>{};
+
+  /// 每一筆嘗試過的路徑（含失敗的）：用來斷言「不可重試的項目沒有被重打」。
+  final List<String> attempted = <String>[];
+
   /// 拋出**契約外**的錯誤（不是 `ApiFailure`）：用來證明呼叫方仍不會被拖垮。
   final Set<String> exploding = <String>{};
 
@@ -33,6 +44,9 @@ class _RecordingApi implements PathGuideApi {
     required String token,
     required UploadFrameRequest request,
   }) async {
+    attempted.add(request.framePath);
+    final failure = failures[request.framePath];
+    if (failure != null) throw failure;
     if (failing.contains(request.framePath)) {
       throw const ApiFailure(code: 'network', message: 'x', retryable: true);
     }
@@ -359,6 +373,305 @@ void main() {
     expect(api.uploaded, isEmpty);
     // 公開的 trim() 也一樣容錯。
     await q.trim();
+  });
+
+  // ---------- Final fix wave：retryable／trim 紀錄／gate 與 onError 的保護 ----------
+
+  test('★ 不可重試的失敗：停止重試（移出 store）並回報，不是無聲地無限重試', () async {
+    final api = _RecordingApi()
+      ..failures['a.jpg'] = const ApiFailure(
+          code: 'client', message: '這一幀不被接受', retryable: false);
+    final store = _MemoryStore(<String>['a.jpg', 'b.jpg']);
+    final reported = <String>[];
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+      onError: (message, error) => reported.add(message),
+    );
+
+    expect(await q.flush(), 1, reason: 'b 照送；a 不可重試不影響其他項目');
+    expect(api.uploaded, <String>['b.jpg']);
+    expect(store.files, isEmpty,
+        reason: '不可重試的項目要移出 store：留著只會讓隊列永遠卡在同一筆');
+    expect(reported.join(' '), contains('不可重試'),
+        reason: '停止重試必須留下紀錄，否則等於素材無聲消失');
+
+    // 第二次 flush 不得再打一次那個必敗的請求。
+    expect(await q.flush(), 0);
+    expect(api.attempted, <String>['a.jpg', 'b.jpg'],
+        reason: '不可重試的項目不該被重送（舊寫法每次都重打）');
+  });
+
+  test('★ auth_expired 在隊列裡當成不可重試（本版沒有 refresh，重試只會空轉）',
+      () async {
+    final api = _RecordingApi()
+      ..failures['a.jpg'] = const ApiFailure(
+          code: 'auth_expired', message: '登入已過期', retryable: true);
+    final store = _MemoryStore(<String>['a.jpg']);
+    final reported = <String>[];
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+      onError: (message, error) => reported.add(message),
+    );
+
+    expect(await q.flush(), 0);
+    expect(store.files, isEmpty,
+        reason: '同一份過期令牌留著，每次 flush 都只會再拿一次 401');
+    expect(reported.join(' '), contains('auth_expired'));
+
+    expect(await q.flush(), 0);
+    expect(api.attempted, <String>['a.jpg'],
+        reason: '沒有 refresh 流程時重試是空轉，不得無限重試');
+  });
+
+  test('★ trim 丟素材前先回報，而且說得出丟了幾項', () async {
+    final api = _RecordingApi();
+    final store = _MemoryStore(<String>['1.jpg', '2.jpg', '3.jpg']);
+    final reported = <String>[];
+    var filesAtReport = const <String>[];
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+      maxItems: 2,
+      onError: (message, error) {
+        reported.add(message);
+        // 回報的**當下**素材還在：紀錄不能跟著刪除一起消失。
+        filesAtReport = List<String>.from(store.files);
+      },
+    );
+
+    await q.trim();
+
+    expect(store.files, <String>['2.jpg', '3.jpg']);
+    expect(reported, hasLength(1), reason: '一次 trim 只回報一次，不是每項一次');
+    expect(reported.single, contains('丟棄'));
+    expect(reported.single, contains('1 項'),
+        reason: '要說得出丟了幾項（這裡是 1 項）');
+    expect(filesAtReport, hasLength(3),
+        reason: '必須在刪除**之前**回報：刪完才回報，紀錄可能隨著失敗一起消失');
+  });
+
+  test('★ gate() 拋錯：flush 不讓它逃出去，回 0、素材全留', () async {
+    final api = _RecordingApi();
+    final store = _MemoryStore(<String>['a.jpg', 'b.jpg']);
+    final reported = <String>[];
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => throw StateError('門禁不可用'),
+      token: () => 't',
+      onError: (message, error) => reported.add(message),
+    );
+
+    expect(await q.flush(), 0, reason: '門禁讀不到時 flush 仍必須正常返回');
+    expect(api.attempted, isEmpty, reason: '不知道能不能送的時候不可以送出去');
+    expect(store.files, <String>['a.jpg', 'b.jpg'], reason: '沒送出去的素材要留著');
+    expect(reported, isNotEmpty, reason: '門禁失敗要被回報');
+  });
+
+  test('★ onError 自己拋錯不會逃出 trim／flush（回報點不得推翻容錯契約）', () async {
+    final api = _RecordingApi()
+      ..failures['c.jpg'] = const ApiFailure(
+          code: 'client', message: 'x', retryable: false);
+    final store = _MemoryStore(<String>['a.jpg', 'b.jpg', 'c.jpg']);
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+      maxItems: 2,
+      onError: (message, error) => throw StateError('記錄器壞了'),
+    );
+
+    // trim 會丟 1 項 → 觸發 onError（拋錯）→ 必須被吞掉。
+    await q.trim();
+    expect(store.files, <String>['b.jpg', 'c.jpg']);
+
+    // flush：c 不可重試 → 再觸發 onError（拋錯）→ 仍然不得逃出去。
+    expect(await q.flush(), 1);
+    expect(store.files, isEmpty);
+  });
+
+  // ---------- Final fix wave：上傳內容要誠實（版本、拍攝時間） ----------
+
+  test('★ modelVersion 取自發布清單（注入的 provider），不是硬寫的 "local"', () async {
+    final api = _RecordingApi();
+    final store = _MemoryStore(<String>['a.jpg']);
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+      modelVersionProvider: () async => '2026-10-02.stage2',
+    );
+
+    expect(await q.flush(), 1);
+    expect(api.requests.single.modelVersion, '2026-10-02.stage2');
+    expect(api.requests.single.modelVersion, isNot('local'),
+        reason: '硬寫 "local" 等於告訴伺服器「不知道是哪個模型」');
+  });
+
+  test('清單讀不到才回退到 fallbackModelVersion，而且要回報', () async {
+    final api = _RecordingApi();
+    final store = _MemoryStore(<String>['a.jpg']);
+    final reported = <String>[];
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+      modelVersionProvider: () async => throw StateError('清單讀不到'),
+      onError: (message, error) => reported.add(message),
+    );
+
+    expect(await q.flush(), 1, reason: '版本讀不到不該讓整批上傳停擺');
+    expect(api.requests.single.modelVersion, UploadQueue.fallbackModelVersion);
+    expect(reported.join(' '), contains('模型版本'), reason: '降級不是靜默的');
+  });
+
+  test('modelVersion 是空字串時視同讀不到（不送出空欄位）', () async {
+    final api = _RecordingApi();
+    final store = _MemoryStore(<String>['a.jpg']);
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+      modelVersionProvider: () async => '',
+    );
+
+    expect(await q.flush(), 1);
+    expect(api.requests.single.modelVersion, UploadQueue.fallbackModelVersion);
+  });
+
+  test('★ capturedAt 取檔案修改時間（重試時穩定），不是 flush 當下的時刻', () async {
+    final dir = Directory.systemTemp.createTempSync('pathguide_queue_');
+    addTearDown(() {
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
+    });
+    final frame = File('${dir.path}${Platform.pathSeparator}frame_1.jpg');
+    frame.writeAsBytesSync(<int>[0xFF, 0xD8, 0xFF]);
+    // 整秒值：避免檔案系統的次秒精度差異讓這條測試變成平台的擲骰子。
+    final modified = DateTime.utc(2026, 10, 23, 4, 5, 6);
+    frame.setLastModifiedSync(modified);
+
+    final api = _RecordingApi();
+    final store = _MemoryStore(<String>[frame.path]);
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+    );
+
+    expect(await q.flush(), 1);
+    expect(api.requests.single.capturedAt, modified,
+        reason: '以前是 flush 當時的 now()：重試一次就換一個時間，'
+            '伺服器無從知道素材是什麼時候拍的');
+    expect(api.requests.single.capturedAt.isUtc, isTrue);
+  });
+
+  test('★ 路徑存在但**不是一幀檔案**（目錄）時，仍照送且 capturedAt 不是 epoch', () async {
+    // 「存在但不是 frame」這一類：`statSync()` 對目錄本身是**成功**的，回的是
+    // 目錄的 mtime——一個正值、但**不代表這一幀拍攝時刻**的值。要釘住的性質
+    // 只有兩個：這種路徑不會讓上傳被擋掉、也不會把 epoch 帶出去。
+    //
+    // ★ 為什麼用「剛建立的臨時目錄」而不是套件裡現成的 `test/` 目錄：目錄的
+    //   mtime 是「上次有人寫東西進去」的時刻，`test/` 可能是好幾天前。只要
+    //   平台讓 `File(目錄).existsSync()` 為真、且 `statSync` 對目錄成功，一個
+    //   **正確**的實作就會送出那個舊 mtime——對 `test/` 硬要「大約現在」，
+    //   等於把正確的實作判成錯的。臨時目錄在兩種平台語義下都成立：走 stat
+    //   分支時值是「剛剛」，走退回 now() 分支時值也是「剛剛」。
+    final dir = Directory.systemTemp.createTempSync('pathguide_queue_dir_');
+    addTearDown(() {
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
+    });
+    expect(Directory(dir.path).existsSync(), isTrue,
+        reason: '前提：${dir.path} 真的是一個存在的目錄');
+
+    final api = _RecordingApi();
+    final store = _MemoryStore(<String>[dir.path]);
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+    );
+
+    final before = DateTime.now().toUtc();
+    expect(await q.flush(), 1,
+        reason: '時間讀不到（或讀到怪值）不影響「這一幀要不要送」');
+    final after = DateTime.now().toUtc();
+    final capturedAt = api.requests.single.capturedAt;
+    expect(capturedAt.isUtc, isTrue);
+    expect(capturedAt.millisecondsSinceEpoch, greaterThan(0),
+        reason: 'epoch（1970-01-01T00:00:00Z）是平台「這裡沒有時間」的訊號，'
+            '不是任何一幀的拍攝時刻');
+
+    // 放寬到 ±5s：路徑是目錄時走的是 stat 分支（值＝目錄 mtime，剛建立）或
+    // 退回分支（值＝now），兩者都在「剛剛」，但檔案系統的時戳精度可能比
+    // 讀數瞬間更粗（FAT 是 2s）。
+    const tolerance = Duration(seconds: 5);
+    expect(
+      capturedAt.isBefore(before.subtract(tolerance)) ||
+          capturedAt.isAfter(after.add(tolerance)),
+      isFalse,
+      reason: 'capturedAt 與 now() 相差 ${capturedAt.difference(before)}'
+          '（容許 ±${tolerance.inSeconds}s：目錄不是一幀，值只能是「大約現在」）',
+    );
+  });
+
+  test('檔案已不在時 capturedAt 退回 now()，不讓時間讀取失敗擋住上傳', () async {
+    final api = _RecordingApi();
+    // 相對路徑：`flutter test` 的 cwd 是套件根目錄，這個名字保證不存在。
+    const missing = 'test/no_such_frame_in_queue.jpg';
+    // ★ 前提要明說：這條測的是「路徑不存在 → 退回 `now()`」那條分支。
+    //   這一條**不靠** `statSync()` 拋例外才走到退回分支：本機實測 `statSync()`
+    //   對不存在的路徑**不拋**，而是回一份零化的 stat（`modified` 是
+    //   `1970-01-01T00:00:00Z`）。真正擋下來的是 `_capturedAt()` 裡的
+    //   `existsSync()` 與「epoch 視為讀不到」兩道檢查——把任一道拿掉，這條就會
+    //   紅在下面的時間窗口上（capturedAt 變成 1970）。
+    //   少了這個前提說明，一旦真的存在同名檔案（殘留物、換 cwd），失敗訊息
+    //   只會是一句莫名其妙的時間比較，看不出「根本沒走到退回路徑」。
+    expect(File(missing).existsSync(), isFalse,
+        reason: '這條測試的前提是 $missing 不存在，'
+            '否則走的是 mtime 分支，測不到退回路徑');
+    final store = _MemoryStore(<String>[missing]);
+    final q = UploadQueue(
+      api: api,
+      store: store,
+      gate: () => signedInOnline,
+      token: () => 't',
+    );
+
+    final before = DateTime.now().toUtc();
+    expect(await q.flush(), 1);
+    final after = DateTime.now().toUtc();
+    final capturedAt = api.requests.single.capturedAt;
+    expect(capturedAt.isUtc, isTrue);
+
+    // 要的性質只有一個：**大約現在**。原本寫的「不早於 flush 前的一次讀數」
+    // 多要求了一件產品從來沒承諾的事——flush 內的牆鐘讀數必定不早於 flush
+    // 外的一次讀數（牆鐘被校時往回跳、或讀數精度比對瞬間更粗都會翻車）。
+    // 容差窗口表達的是同一個需求，而且不依賴單調時鐘：epoch 0、舊的
+    // flush 時刻、或任何被換掉的陳舊值都遠在窗口外，照樣會紅。
+    const tolerance = Duration(seconds: 1);
+    final delta = capturedAt.difference(before);
+    expect(
+      capturedAt.isBefore(before.subtract(tolerance)) ||
+          capturedAt.isAfter(after.add(tolerance)),
+      isFalse,
+      reason: 'capturedAt 與 now() 相差 $delta'
+          '（容許 ±${tolerance.inSeconds}s：退回路徑必須是大約現在，'
+          '不能是 epoch 0 或某個舊值）',
+    );
   });
 }
 

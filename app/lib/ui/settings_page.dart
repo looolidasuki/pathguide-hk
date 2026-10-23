@@ -345,10 +345,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 _accountRow(s),
               ],
               const SizedBox(height: 24),
-              SizedBox(
-                height: 52,
+              // 不寫死高度：200% 字級時「返回」要長高。52 只是 100% 字級下的
+              // 下限（> 48 的最小觸控目標），內容超過就往下長，不會被裁掉。
+              // 固定高度的 `SizedBox(height: 52)` 是本分支在別處已經改掉的
+              // 形狀——同一頁的語速列與帳號列都是 `minHeight`。
+              ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 52),
                 child: OutlinedButton.icon(
                   onPressed: () => Navigator.of(context).maybePop(),
+                  style: OutlinedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
                   icon: const Icon(Icons.arrow_back, size: 22),
                   label: Text(s.backToHome),
                 ),

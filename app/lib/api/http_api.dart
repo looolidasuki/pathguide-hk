@@ -76,6 +76,11 @@ class HttpApi implements PathGuideApi {
   /// - ≥ 500 → `server`，不可重試
   /// - 其他 ≥ 400 → `client`，不可重試
   ///
+  /// ★ 但**狀態碼只是後備**：伺服器若照 spec §7 回了 `{code, message,
+  /// retryable}`，就用它自己的話（見 [_serverFailure]）。伺服器才知道
+  /// 「這一幀重複了」「這個帳號被鎖住」是什麼意思；自製的「請求不被接受
+  /// （409）」把那份資訊整包丟掉，使用者於是只聽到一個數字。
+  ///
   /// 空 body 當 `{}`：`204 No Content` 是合法的成功回應，不該讓呼叫方去猜。
   Future<Map<String, Object?>> _send(
     String method,
@@ -117,27 +122,9 @@ class HttpApi implements PathGuideApi {
       );
     }
 
-    if (res.statusCode == 401) {
-      throw const ApiFailure(
-          code: 'auth_expired', message: '登入已過期', retryable: true);
-    }
-    if (res.statusCode == 408 || res.statusCode == 429) {
-      throw ApiFailure(
-          code: 'network',
-          message: '暫時連不上（${res.statusCode}）',
-          retryable: true);
-    }
-    if (res.statusCode >= 500) {
-      throw ApiFailure(
-          code: 'server',
-          message: '伺服器暫時有問題（${res.statusCode}）',
-          retryable: false);
-    }
     if (res.statusCode >= 400) {
-      throw ApiFailure(
-          code: 'client',
-          message: '請求不被接受（${res.statusCode}）',
-          retryable: false);
+      // 契約 body 優先；body 不是那個形狀時才用狀態碼映射（見 [_serverFailure]）。
+      throw _serverFailure(res) ?? _statusFailure(res);
     }
     if (res.body.trim().isEmpty) {
       return <String, Object?>{};
@@ -155,6 +142,70 @@ class HttpApi implements PathGuideApi {
     // 這裡**不**安靜回 `{}`：回空物件會讓 `login` 拿到空 token、`latestModel`
     // 拿到空版本，呼叫方要到下一次請求才以 401 發現，錯誤現場離原因太遠。
     throw _badResponse();
+  }
+
+  /// 狀態碼 → [ApiFailure]。**後備**：伺服器給了契約 body 時以 body 為準。
+  static ApiFailure _statusFailure(TransportResponse res) {
+    if (res.statusCode == 401) {
+      return const ApiFailure(
+          code: 'auth_expired', message: '登入已過期', retryable: true);
+    }
+    if (res.statusCode == 408 || res.statusCode == 429) {
+      return ApiFailure(
+          code: 'network',
+          message: '暫時連不上（${res.statusCode}）',
+          retryable: true);
+    }
+    if (res.statusCode >= 500) {
+      return ApiFailure(
+          code: 'server',
+          message: '伺服器暫時有問題（${res.statusCode}）',
+          retryable: false);
+    }
+    return ApiFailure(
+        code: 'client',
+        message: '請求不被接受（${res.statusCode}）',
+        retryable: false);
+  }
+
+  /// 伺服器契約裡的錯誤 body：`{code, message, retryable}`（spec §7）。
+  ///
+  /// 以前這裡把失敗回應的 body **整個丟掉**，只吐一句自製的「請求不被接受
+  /// （409）」。後端於是有能力說清楚「這一幀已經收過了」「這個帳號被鎖住」，
+  /// 而使用者聽到的是同一個數字句——真正需要的一句話被扔掉了。
+  ///
+  /// 認得的形狀很窄，這是刻意的：`code` 與 `message` 都必須是**非空字串**，
+  /// 否則不算契約（例如只有 `{"error": "..."}`、或 body 是一片 HTML）→
+  /// 回 `null`，呼叫方照舊用狀態碼映射。`message` 會被 TTS 直接唸出來，
+  /// 所以空字串等於「什麼都沒說」，不能拿來當訊息。
+  ///
+  /// `retryable` 缺欄位時用狀態碼推出來的值：408／429 的「暫時性」是 HTTP
+  /// 本身的語義，比「body 忘了寫」更可信。
+  static ApiFailure? _serverFailure(TransportResponse res) {
+    final body = res.body.trim();
+    // 先用最便宜的判斷擋掉絕大多數「不是 JSON」的情況（HTML 錯誤頁、
+    // 空 body、被截斷的內容），免得為每一個失敗都跑一次 `jsonDecode`。
+    if (body.isEmpty || !body.startsWith('{')) return null;
+
+    final Object? decoded;
+    try {
+      decoded = jsonDecode(body);
+    } on FormatException {
+      return null;
+    }
+    if (decoded is! Map<String, Object?>) return null;
+
+    final code = decoded['code'];
+    final message = decoded['message'];
+    if (code is! String || code.isEmpty || message is! String || message.isEmpty) {
+      return null;
+    }
+    final retryable = decoded['retryable'];
+    return ApiFailure(
+      code: code,
+      message: message,
+      retryable: retryable is bool ? retryable : _statusFailure(res).retryable,
+    );
   }
 
   /// 缺欄位一律 `''`，**永不**把 `null` 插值成字串 `'null'`。
