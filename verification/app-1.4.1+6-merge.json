@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-23",
+  "appVersion": "1.4.1+6",
+  "tag": "v1.4.1+6-merge",
+  "type": "merge-checkpoint",
+  "change": {
+    "adoptedUpstream": "actiondarr/pathguide 1.4.1+6 (2026-10-28 prerelease snapshot)",
+    "appReplaced": true,
+    "backendAdded": true,
+    "verificationAdded": true,
+    "docsReplacedByUpstreamThree": true,
+    "keptFromPreviousLine": [
+      "python pipeline (scripts/ tests/ data/)",
+      "configs/classes.json v6 + class_aliases.json",
+      "android quick settings tile + localized app_name (restored into upstream app)"
+    ]
+  },
+  "verification": {
+    "flutterTestsPassed": 318,
+    "flutterAnalyze": "No issues found",
+    "pythonTestsPassed": 437,
+    "pythonTestsSkipped": 1,
+    "pythonSkipReason": "shipped model provenance: upstream Colab model, best.pt not in this repository",
+    "androidDebugApkBuilt": true,
+    "androidLaunchContractTests": 30,
+    "deviceInstalled": false,
+    "iosBuildRun": false
+  },
+  "model": {
+    "format": 1,
+    "version": "2026-10-27.mixed10.experimental.1",
+    "file": "detector.tflite",
+    "bytes": 10695172,
+    "modelClassCount": 10,
+    "inputSize": 640,
+    "experimental": true,
+    "validationGatePassed": false,
+    "upstreamMap50": 0.7825363278727946
+  },
+  "androidParity": {
+    "menuOcr": "unsupported on Android (menu_reader.dart requires iOS)",
+    "depthMeasurement": "unsupported on Android (depth_session.dart requires iOS; ARKit on iOS)",
+    "navigation": "Android proxy implemented, not verified on device",
+    "googleSignIn": "requires Android OAuth client + google-services.json (not in repository)",
+    "quickSettingsTile": "restored; runs on Android only",
+    "localizedAppName": "restored (values / zh-rCN / zh-rHK / zh-rTW)"
+  },
+  "fieldEvidence": {
+    "deviceInstalled": false,
+    "androidManualTestRun": false,
+    "tileVisibleInQuickSettings": false,
+    "notes": "No Android device was attached during this checkpoint; adb devices was empty."
+  },
+  "knownLimitations": [
+    "Upstream 1.4.1+6 itself records deviceInstalled=false and validationGatePassed=false; this checkpoint inherits that state and does not improve it.",
+    "Repository path contains a space; the objective_c build hook fails until the tree is reached through a space-free path (subst drive or relocation).",
+    "iOS build was not run in this checkpoint (Windows host)."
+  ]
+}

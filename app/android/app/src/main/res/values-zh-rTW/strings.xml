@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 台灣：與香港同用繁體。 -->
+<resources>
+    <string name="app_name">領路通</string>
+    <string name="tile_label">開始引導</string>
+</resources>

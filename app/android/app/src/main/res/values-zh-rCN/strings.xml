@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 简体（大陸系統）。 -->
+<resources>
+    <string name="app_name">领路通</string>
+    <string name="tile_label">开始引导</string>
+</resources>

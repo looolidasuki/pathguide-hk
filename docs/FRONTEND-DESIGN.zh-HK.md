@@ -302,3 +302,5 @@ flutter test
 工程證據：完整318項Flutter與33項原生數值檢查通過，包括同一曲面舊分散取樣拒答／新局部取樣通過、局部遮擋避讓、全部遮擋及小框拒答、原因／點數與取樣位置變更重新確認。這是合成回歸，不是使用者場景已重現或量尺通過。模型、graph、訓練與雲端服務不變；使用者截圖沒有加入GitHub或訓練。
 
 同輪1.4.1+6最終核對：318項Flutter、33項原生數值檢查、analyze、簽署建置、系統簽章及包內版本／原模型SHA通過。先保存GitHub分支／tag／prerelease，再交付；最新裝機狀態由verification/release-receipts/app-1.4.1+6.json記錄，未將合成回歸當真機問題已解決。
+
+2026-10-23合併檢查點（tag v1.4.1+6-merge）：本倉庫採用上游 1.4.1+6 為 App 基線（app／backend／verification 全量移植，docs 改為三份權威文件）。Android 端補回先前遺漏的無障礙啟動路徑：快速設定磁貼（PathGuideTileService）與四語系 `app_name`／`tile_label`（values、zh-rCN、zh-rHK、zh-rTW），manifest 的 `android:label` 由硬編碼改為 `@string/app_name`。門禁：318項Flutter、analyze 0問題、437項Python（1項按理由skip）、Android debug APK 構建成功、30項Android啟動契約測試通過。未做：本檢查點沒有Android真機、沒有iOS建置，`deviceInstalled` 仍為 false；上游十類實驗權重（gate=false）狀態不變。Android 與 iOS 的功能差距記於同提交的 verification JSON（菜單OCR與深度在Android仍不支援）。
