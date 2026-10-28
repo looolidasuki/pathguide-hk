@@ -1,0 +1,60 @@
+{
+  "date": "2026-10-23",
+  "feature": "menu_reading_and_cantonese_dish_search",
+  "status": "code_verified_pending_real_device_acceptance",
+  "checks": {
+    "flutter_tests": {
+      "passed": 174,
+      "failed": 0
+    },
+    "menu_unit_controller_tests": {
+      "passed": 12,
+      "included_in_full_suite": true
+    },
+    "menu_ui_tests": {
+      "passed": 3,
+      "included_in_full_suite": true
+    },
+    "flutter_analyze": {
+      "issues": 0
+    },
+    "ios_build": {
+      "status": "passed",
+      "codesigned": false,
+      "firebase_configuration_preserved": true
+    },
+    "phone_preview": {
+      "normal_size": "390x844",
+      "large_text_size": "320x568",
+      "large_text_scale": 2,
+      "visually_reviewed": true
+    },
+    "plist_and_pbxproj_lint": "passed",
+    "diff_whitespace": "passed"
+  },
+  "behavior": [
+    "iPhone iOS16+ on-device traditional Chinese and English OCR",
+    "photo scanner and selected image input",
+    "category browsing and editable text search",
+    "Cantonese request extracts dish and automatically speaks matched menu content",
+    "automatic speech completion after transcription pause",
+    "price pairing only from explicit currency or monetary units and unambiguous geometry",
+    "unknown price and not-found responses do not invent menu availability",
+    "optional replay and typed search",
+    "offline Cantonese where supported; per-request opt-in for Apple online fallback",
+    "no Firebase or training photo upload"
+  ],
+  "pending": [
+    "real menu photo OCR accuracy and price layout",
+    "camera scanner usability with VoiceOver",
+    "Cantonese microphone and automatic silence timing on iPhone",
+    "real offline Cantonese availability and online opt-in",
+    "permission refusal and interruptions on real device"
+  ],
+  "platform_limits": [
+    "iPhone first; Android menu input not implemented",
+    "maximum three scan pages and 300 observations per page",
+    "no general food recommendation, allergy or stock query",
+    "bare numbers not automatically treated as prices"
+  ]
+}

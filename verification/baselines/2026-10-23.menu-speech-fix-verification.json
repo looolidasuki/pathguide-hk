@@ -1,0 +1,36 @@
+{
+  "date": "2026-10-23",
+  "feature": "ios_menu_speech_search_and_automatic_readout_fix",
+  "status": "code_verified_pending_real_device_acceptance",
+  "checks": {
+    "flutter_tests": {
+      "passed": 181,
+      "failed": 0
+    },
+    "flutter_analyze": {
+      "issues": 0
+    },
+    "ios_unsigned_build": "passed"
+  },
+  "coverage": [
+    "Cantonese full phrases and punctuation",
+    "Five consecutive automatic readouts",
+    "No-speech retry output",
+    "Inactive queues output; background discards",
+    "VoiceOver announcement without duplicate TTS",
+    "Playback reset per utterance",
+    "Channel phases, delayed final and stale callbacks"
+  ],
+  "pending": [
+    "Actual Apple Speech capture and native silence threshold calibration",
+    "Empty native final preserves best partial on real iPhone",
+    "Real menu OCR and price correctness",
+    "Four phrases five times each without finish or replay",
+    "VoiceOver on/off and real interruptions"
+  ],
+  "logs": {
+    "tests": "/private/tmp/pathguide-menu-fix-full.log",
+    "analysis": "/private/tmp/pathguide-menu-fix-analyze.log",
+    "build": "/private/tmp/pathguide-menu-fix-ios.log"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "format": 1,
+  "version": "2026-10-19.hk9.1",
+  "file": "detector-hk9.tflite",
+  "bytes": 10694183,
+  "sha256": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+  "inputSize": 640,
+  "modelClassCount": 9,
+  "modelClassIds": [
+    11,
+    7,
+    8,
+    50,
+    49,
+    6,
+    9,
+    51,
+    24
+  ],
+  "trainedAt": "2026-10-19"
+}

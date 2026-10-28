@@ -1,0 +1,81 @@
+﻿key,existingLocalDictionaryId,decision,reason
+person,0,model_a_candidate,沿用既有 COCO 定義，不新增 Official 同義類別
+bicycle,1,model_a_candidate,沿用既有 COCO 定義，不新增 Official 同義類別
+car,2,model_a_candidate,沿用既有 COCO 定義，不新增 Official 同義類別
+motorcycle,3,model_a_candidate,沿用既有 COCO 定義，不新增 Official 同義類別
+airplane,4,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+bus,5,model_a_candidate,沿用既有 COCO 定義，不新增 Official 同義類別
+train,6,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+truck,7,model_a_candidate,沿用既有 COCO 定義，不新增 Official 同義類別
+boat,8,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+traffic light,9,separate_state_task,保留字典登記，未納入目前模型輸出；不代表物件無用
+fire hydrant,10,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+stop sign,11,separate_state_task,保留字典登記，未納入目前模型輸出；不代表物件無用
+parking meter,12,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+bench,13,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+bird,14,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+cat,15,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+dog,16,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+horse,17,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+sheep,18,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+cow,19,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+elephant,20,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+bear,21,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+zebra,22,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+giraffe,23,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+backpack,24,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+umbrella,25,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+handbag,26,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+tie,27,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+suitcase,28,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+frisbee,29,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+skis,30,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+snowboard,31,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+sports ball,32,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+kite,33,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+baseball bat,34,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+baseball glove,35,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+skateboard,36,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+surfboard,37,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+tennis racket,38,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+bottle,39,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+wine glass,40,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+cup,41,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+fork,42,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+knife,43,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+spoon,44,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+bowl,45,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+banana,46,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+apple,47,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+sandwich,48,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+orange,49,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+broccoli,50,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+carrot,51,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+hot dog,52,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+pizza,53,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+donut,54,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+cake,55,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+chair,56,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+couch,57,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+potted plant,58,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+bed,59,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+dining table,60,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+toilet,61,later_task_candidate,保留字典登記，未納入目前模型輸出；不代表物件無用
+TV,62,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+laptop,63,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+mouse,64,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+remote,65,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+keyboard,66,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+cell phone,67,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+microwave,68,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+oven,69,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+toaster,70,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+sink,71,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+refrigerator,72,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+book,73,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+clock,74,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+vase,75,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+scissors,76,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+teddy bear,77,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+hair drier,78,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用
+toothbrush,79,outside_current_first_scope,保留字典登記，未納入目前模型輸出；不代表物件無用

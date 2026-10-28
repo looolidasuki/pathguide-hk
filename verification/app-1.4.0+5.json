@@ -1,0 +1,106 @@
+{
+  "date": "2026-10-28",
+  "appVersion": "1.4.0+5",
+  "tag": "v1.4.0+5",
+  "type": "prerelease",
+  "previousAppTag": "v1.3.0+4",
+  "feature": {
+    "name": "Same-frame object and representative surface range trial",
+    "singleARSession": true,
+    "rgbAndDepthSameFrame": true,
+    "objectLimit": 5,
+    "manualSpeechLimit": 3,
+    "centerModeRetained": true,
+    "depthMetric": "Radial range to representative reliable surface within central half of detection box",
+    "notNearestObjectDistance": true,
+    "worldTrackingImplemented": false
+  },
+  "verification": {
+    "flutterTestsPassed": 314,
+    "newFlutterTests": 20,
+    "nativeXCTestPassed": 11,
+    "nativeNumericalChecksPassed": 25,
+    "flutterAnalyze": "No issues found",
+    "iosSignedReleaseBuild": "passed",
+    "systemSignatureVerification": "passed",
+    "builtBundleVersionChecked": "1.4.0+5",
+    "modelManifestMatchesSource": true,
+    "deviceInstalled": false,
+    "jointClassAndDistanceAccuracyValidated": false,
+    "realCameraHandoffValidated": false,
+    "realSiteLocalizationValidated": false
+  },
+  "model": {
+    "format": 1,
+    "version": "2026-10-27.mixed10.experimental.1",
+    "file": "detector.tflite",
+    "bytes": 10695172,
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "inputSize": 640,
+    "modelClassCount": 10,
+    "modelClassIds": [
+      6,
+      11,
+      7,
+      8,
+      9,
+      24,
+      1,
+      49,
+      26,
+      18
+    ],
+    "trainedAt": "2026-10-26",
+    "experimental": true,
+    "map50": 0.7825363278727946,
+    "validationGatePassed": false,
+    "userRequestedTrial": true,
+    "limitations": [
+      "Door precision 28.6%, recall 11.1% at conf0.30 on small foreign validation set.",
+      "No independent fence validation; not an HKDI field benchmark."
+    ]
+  },
+  "engineeringThresholdsNotFieldCalibrated": {
+    "pixelGrid": [
+      5,
+      5
+    ],
+    "centralBoxFraction": 0.5,
+    "sameClassUniqueIoUMin": 0.45,
+    "sampleAgeMaxMs": 350,
+    "silenceExpiryMs": 800,
+    "stableFrames": 3,
+    "stableWindowMaxMs": 700,
+    "stableSpanMinMs": 200,
+    "centralOverlapMaxFraction": 0.1,
+    "visibleFractionMin": 0.6,
+    "planeZM": [
+      0.2,
+      4
+    ],
+    "radialRangeMaxM": 4
+  },
+  "reproduction": {
+    "flutter": "cd app && flutter test --no-pub",
+    "analyze": "cd app && flutter analyze --no-pub",
+    "nativeNumerics": "xcrun swiftc -module-cache-path /private/tmp/pathguide-object-range-swift-cache app/ios/Runner/DepthSampling.swift app/ios/Runner/CameraImageMath.swift app/tool/depth_sampling_check.swift -o /private/tmp/pathguide-object-range-check && /private/tmp/pathguide-object-range-check",
+    "nativeTests": "Run RunnerTests in the Runner workspace on a compatible iOS Simulator; includes actual PixelBuffer full/video range and bundled model shape/hash checks"
+  },
+  "privacy": {
+    "imagesSaved": false,
+    "depthSaved": false,
+    "poseSaved": false,
+    "photoUpload": false,
+    "newCloudAPI": false,
+    "paidGPUEnabled": false,
+    "staticBundledModelCacheOnly": true
+  },
+  "pending": [
+    "Joint class and surface-range ground truth on physical iPhone",
+    "Physical box/depth/preview alignment across orientations and cropping",
+    "Glass/mirror/thin/occluded and crossing objects",
+    "VoiceOver and camera handoff field acceptance",
+    "3D world positions, ground/free space, spatial audio and FSD",
+    "Real graph reference/query localization"
+  ]
+}

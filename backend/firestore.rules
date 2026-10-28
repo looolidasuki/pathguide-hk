@@ -1,0 +1,68 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) {
+      return request.auth != null && request.auth.uid == uid
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+    function guard(uid) { return /databases/$(database)/documents/account_deletions/$(uid); }
+    function profile(uid) { return /databases/$(database)/documents/users/$(uid); }
+    function active(uid) {
+      return exists(profile(uid)) && get(profile(uid)).data.status == 'active' && !exists(guard(uid));
+    }
+    function recentLogin() {
+      return request.auth.token.auth_time is int
+        && request.time.toMillis() / 1000 - request.auth.token.auth_time < 300
+        && request.time.toMillis() / 1000 >= request.auth.token.auth_time;
+    }
+    match /users/{uid} {
+      allow get: if owner(uid);
+      allow list: if false;
+      allow create: if owner(uid) && !exists(guard(uid))
+        && request.resource.data.keys().hasOnly(['schemaVersion','status','termsVersion','createdAt','updatedAt'])
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.status == 'active'
+        && request.resource.data.termsVersion == '2026-10-23.google.v1'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+      // Account roles/status cannot be elevated by a client.
+      allow update: if false;
+      allow delete: if owner(uid) && existsAfter(guard(uid)) && recentLogin()
+        && !exists(/databases/$(database)/documents/users/$(uid)/private/photoConsent);
+      match /photos/{photoId} {
+        allow get, list: if owner(uid) && active(uid);
+        allow write: if false;
+      }
+      match /private/photoConsent {
+        allow get: if owner(uid) && active(uid);
+        allow write: if false;
+      }
+      match /private/emergencyContact {
+        allow get: if owner(uid) && active(uid);
+        allow list: if false;
+        allow create, update: if owner(uid) && active(uid) && !existsAfter(guard(uid))
+          && request.resource.data.keys().hasOnly(['schemaVersion','ownerUid','name','phone','relationship','updatedAt'])
+          && request.resource.data.schemaVersion == 1
+          && request.resource.data.ownerUid == uid
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+          && request.resource.data.phone is string
+          && request.resource.data.phone.matches('^\\+[1-9][0-9]{6,14}$')
+          && (!request.resource.data.phone.matches('^\\+852.*') || request.resource.data.phone.size() == 12)
+          && request.resource.data.relationship is string && request.resource.data.relationship.size() <= 30
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if owner(uid) && (active(uid) || (existsAfter(guard(uid)) && recentLogin()));
+      }
+    }
+    // Minimal immutable tombstone prevents a retry from resurrecting an old UID.
+    match /account_deletions/{uid} {
+      allow get: if owner(uid);
+      allow create: if owner(uid) && recentLogin()
+        && request.resource.data.keys().hasOnly(['schemaVersion','createdAt'])
+        && request.resource.data.schemaVersion == 1
+        && request.resource.data.createdAt == request.time;
+      allow update, delete, list: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-23",
+  "phase": 4,
+  "status": "development_verified_pending_cloud_deployment_and_device_acceptance",
+  "checks": {
+    "flutter_tests": {
+      "passed": 159,
+      "failed": 0
+    },
+    "flutter_analyze": {
+      "issues": 0,
+      "status": "passed"
+    },
+    "ios_debug_build": {
+      "status": "passed",
+      "codesigned": false,
+      "firebase_client_config_used": true
+    },
+    "backend_policy_tests": {
+      "passed": 5,
+      "failed": 0
+    },
+    "firestore_rules_tests": {
+      "passed": 10,
+      "failed": 0
+    },
+    "photo_service_and_storage_tests": {
+      "passed": 7,
+      "failed": 0,
+      "emulator_only": true,
+      "direct_callable_handlers": true
+    },
+    "word_review": {
+      "documents": 3,
+      "pages": 6,
+      "all_pages_visually_checked": true,
+      "a11y_issues": 0
+    },
+    "git_diff_check": {
+      "status": "passed"
+    }
+  },
+  "user_reported_phase3": {
+    "account_and_contact_device_testing": "reported_complete",
+    "individual_voiceover_and_deletion_evidence": "not_recorded"
+  },
+  "cloud": {
+    "project": "pathguide-dev",
+    "phase3_google_signin_and_firestore_rules": "previously_configured_and_published_by_user",
+    "phase4_deployed": false,
+    "billing_changed": false,
+    "photo_upload_enabled_in_local_config": false
+  },
+  "implemented": [
+    "separate versioned consent and epoch",
+    "iPhone same-inference upright JPEG capture without UI overlays",
+    "manual report and controlled automatic candidates",
+    "AES-256-GCM encrypted owner/project-bound offline queue",
+    "persistent local pause after offline withdrawal",
+    "Wi-Fi gate, retry and stable photo identifiers",
+    "verified UID plus expected UID agreement against account-switch races",
+    "App Check-enforced callables",
+    "server JPEG decode, metadata removal, quotas and generation-bound writes",
+    "private Storage rules",
+    "owner progress and cleanup before Auth deletion",
+    "late object cleanup and hourly retention"
+  ],
+  "pending": [
+    "Blaze decision and Storage bucket creation",
+    "App Check provider registration and deployment",
+    "real-device JPEG rotation and same-frame geometry verification",
+    "real App Check token exchange and cloud gateway enforcement",
+    "VoiceOver and Screen Curtain acceptance",
+    "real network interruption and account deletion tests with photos",
+    "candidate quality and phone performance calibration",
+    "Android native photo capture"
+  ],
+  "excluded": [
+    "model training",
+    "annotation/review tool",
+    "personal model download",
+    "automatic emergency messaging",
+    "cloud deployment"
+  ]
+}

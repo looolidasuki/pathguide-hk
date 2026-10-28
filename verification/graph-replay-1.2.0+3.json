@@ -1,0 +1,1187 @@
+{
+  "appVersion": "1.2.0+3",
+  "type": "hand-annotated synthetic logic replay",
+  "isImageLocalizationBenchmark": false,
+  "isRealSiteMap": false,
+  "metricCoordinates": false,
+  "graphId": "sample-building",
+  "mapVersion": "demo-graph-1",
+  "nodeCount": 12,
+  "edgeCount": 12,
+  "closedEdgeCount": 1,
+  "scenarioCount": 10,
+  "traces": [
+    {
+      "scenario": "forward",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N01",
+          "lastTrustedNode": "N01",
+          "candidates": [
+            "N01"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N01",
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "matched",
+          "currentNode": "N02",
+          "lastTrustedNode": "N02",
+          "candidates": [
+            "N02"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N02",
+          "path": [
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "matched",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N03"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N03",
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "captureSequence": 4,
+          "captureTime": "2026-01-01T00:00:20.000Z",
+          "receivedTime": "2026-01-01T00:00:20.000Z",
+          "state": "matched",
+          "currentNode": "N04",
+          "lastTrustedNode": "N04",
+          "candidates": [
+            "N04"
+          ],
+          "matchedObjectCount": 3,
+          "expectedNode": "N04",
+          "path": [
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "captureSequence": 5,
+          "captureTime": "2026-01-01T00:00:25.000Z",
+          "receivedTime": "2026-01-01T00:00:25.000Z",
+          "state": "matched",
+          "currentNode": "N05",
+          "lastTrustedNode": "N05",
+          "candidates": [
+            "N05"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N05",
+          "path": [
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "captureSequence": 6,
+          "captureTime": "2026-01-01T00:00:30.000Z",
+          "receivedTime": "2026-01-01T00:00:30.000Z",
+          "state": "matched",
+          "currentNode": "N06",
+          "lastTrustedNode": "N06",
+          "candidates": [
+            "N06"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N06",
+          "path": [
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "captureSequence": 7,
+          "captureTime": "2026-01-01T00:00:35.000Z",
+          "receivedTime": "2026-01-01T00:00:35.000Z",
+          "state": "matched",
+          "currentNode": "N07",
+          "lastTrustedNode": "N07",
+          "candidates": [
+            "N07"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N07",
+          "path": [
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "dwell",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N03"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "matched",
+          "currentNode": "N04",
+          "lastTrustedNode": "N04",
+          "candidates": [
+            "N04"
+          ],
+          "matchedObjectCount": 3,
+          "expectedNode": "N04",
+          "path": [
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "matched",
+          "currentNode": "N04",
+          "lastTrustedNode": "N04",
+          "candidates": [
+            "N04"
+          ],
+          "matchedObjectCount": 3,
+          "expectedNode": "N05",
+          "path": [
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "captureSequence": 4,
+          "captureTime": "2026-01-01T00:00:20.000Z",
+          "receivedTime": "2026-01-01T00:00:20.000Z",
+          "state": "matched",
+          "currentNode": "N04",
+          "lastTrustedNode": "N04",
+          "candidates": [
+            "N04"
+          ],
+          "matchedObjectCount": 3,
+          "expectedNode": "N05",
+          "path": [
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "captureSequence": 5,
+          "captureTime": "2026-01-01T00:00:25.000Z",
+          "receivedTime": "2026-01-01T00:00:25.000Z",
+          "state": "matched",
+          "currentNode": "N05",
+          "lastTrustedNode": "N05",
+          "candidates": [
+            "N05"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N05",
+          "path": [
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "skip",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N01",
+          "lastTrustedNode": "N01",
+          "candidates": [
+            "N01"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N01",
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "matched",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N03"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N02",
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "matched",
+          "currentNode": "N05",
+          "lastTrustedNode": "N05",
+          "candidates": [
+            "N05"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N04",
+          "path": [
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "captureSequence": 4,
+          "captureTime": "2026-01-01T00:00:20.000Z",
+          "receivedTime": "2026-01-01T00:00:20.000Z",
+          "state": "matched",
+          "currentNode": "N07",
+          "lastTrustedNode": "N07",
+          "candidates": [
+            "N07"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N06",
+          "path": [
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "reverse",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N07",
+          "lastTrustedNode": "N07",
+          "candidates": [
+            "N07"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "matched",
+          "currentNode": "N06",
+          "lastTrustedNode": "N06",
+          "candidates": [
+            "N06"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "matched",
+          "currentNode": "N05",
+          "lastTrustedNode": "N05",
+          "candidates": [
+            "N05"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N07",
+          "path": [
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "captureSequence": 4,
+          "captureTime": "2026-01-01T00:00:20.000Z",
+          "receivedTime": "2026-01-01T00:00:20.000Z",
+          "state": "matched",
+          "currentNode": "N04",
+          "lastTrustedNode": "N04",
+          "candidates": [
+            "N04"
+          ],
+          "matchedObjectCount": 3,
+          "expectedNode": "N06",
+          "path": [
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "captureSequence": 5,
+          "captureTime": "2026-01-01T00:00:25.000Z",
+          "receivedTime": "2026-01-01T00:00:25.000Z",
+          "state": "matched",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N03"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N05",
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "captureSequence": 6,
+          "captureTime": "2026-01-01T00:00:30.000Z",
+          "receivedTime": "2026-01-01T00:00:30.000Z",
+          "state": "matched",
+          "currentNode": "N02",
+          "lastTrustedNode": "N02",
+          "candidates": [
+            "N02"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N04",
+          "path": [
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "captureSequence": 7,
+          "captureTime": "2026-01-01T00:00:35.000Z",
+          "receivedTime": "2026-01-01T00:00:35.000Z",
+          "state": "matched",
+          "currentNode": "N01",
+          "lastTrustedNode": "N01",
+          "candidates": [
+            "N01"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N03",
+          "path": [
+            "N01",
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "fork",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N01",
+          "lastTrustedNode": "N01",
+          "candidates": [
+            "N01"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N01",
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "matched",
+          "currentNode": "N02",
+          "lastTrustedNode": "N02",
+          "candidates": [
+            "N02"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N02",
+          "path": [
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "matched",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N03"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N03",
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "captureSequence": 4,
+          "captureTime": "2026-01-01T00:00:20.000Z",
+          "receivedTime": "2026-01-01T00:00:20.000Z",
+          "state": "matched",
+          "currentNode": "N08",
+          "lastTrustedNode": "N08",
+          "candidates": [
+            "N08"
+          ],
+          "matchedObjectCount": 3,
+          "expectedNode": "N04",
+          "path": [
+            "N08",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "captureSequence": 5,
+          "captureTime": "2026-01-01T00:00:25.000Z",
+          "receivedTime": "2026-01-01T00:00:25.000Z",
+          "state": "matched",
+          "currentNode": "N09",
+          "lastTrustedNode": "N09",
+          "candidates": [
+            "N09"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N03",
+          "path": [
+            "N09",
+            "N08",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "captureSequence": 6,
+          "captureTime": "2026-01-01T00:00:30.000Z",
+          "receivedTime": "2026-01-01T00:00:30.000Z",
+          "state": "matched",
+          "currentNode": "N10",
+          "lastTrustedNode": "N10",
+          "candidates": [
+            "N10"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N08",
+          "path": [
+            "N10",
+            "N09",
+            "N08",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "ambiguous",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N03"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "ambiguous",
+          "currentNode": null,
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N04",
+            "N08"
+          ],
+          "matchedObjectCount": 0,
+          "expectedNode": null,
+          "path": [],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "matched",
+          "currentNode": "N08",
+          "lastTrustedNode": "N08",
+          "candidates": [
+            "N08"
+          ],
+          "matchedObjectCount": 3,
+          "expectedNode": null,
+          "path": [
+            "N08",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "rename",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N08",
+          "lastTrustedNode": "N08",
+          "candidates": [
+            "N08"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N08",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "matched",
+          "currentNode": "N08",
+          "lastTrustedNode": "N08",
+          "candidates": [
+            "N08"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N03",
+          "path": [
+            "N08",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "unknown",
+          "currentNode": null,
+          "lastTrustedNode": "N08",
+          "candidates": [],
+          "matchedObjectCount": 0,
+          "expectedNode": null,
+          "path": [],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "unknown",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N05",
+          "lastTrustedNode": "N05",
+          "candidates": [
+            "N05"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "unknown",
+          "currentNode": null,
+          "lastTrustedNode": "N05",
+          "candidates": [],
+          "matchedObjectCount": 0,
+          "expectedNode": null,
+          "path": [],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "outOfScope",
+          "currentNode": null,
+          "lastTrustedNode": null,
+          "candidates": [],
+          "matchedObjectCount": 0,
+          "expectedNode": null,
+          "path": [],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "late",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N01",
+          "lastTrustedNode": "N01",
+          "candidates": [
+            "N01"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N01",
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:16.000Z",
+          "state": "matched",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [
+            "N03"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N02",
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            3
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:17.000Z",
+          "state": "ignored",
+          "currentNode": "N03",
+          "lastTrustedNode": "N03",
+          "candidates": [],
+          "matchedObjectCount": 0,
+          "expectedNode": null,
+          "path": [
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "captureSequence": 4,
+          "captureTime": "2026-01-01T00:00:20.000Z",
+          "receivedTime": "2026-01-01T00:00:50.000Z",
+          "state": "expired",
+          "currentNode": null,
+          "lastTrustedNode": null,
+          "candidates": [],
+          "matchedObjectCount": 0,
+          "expectedNode": null,
+          "path": [],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "scenario": "relocalize",
+      "observations": [
+        {
+          "captureSequence": 1,
+          "captureTime": "2026-01-01T00:00:05.000Z",
+          "receivedTime": "2026-01-01T00:00:05.000Z",
+          "state": "matched",
+          "currentNode": "N01",
+          "lastTrustedNode": "N01",
+          "candidates": [
+            "N01"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N01",
+            "N02",
+            "N03",
+            "N04",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1
+          ]
+        },
+        {
+          "captureSequence": 2,
+          "captureTime": "2026-01-01T00:00:10.000Z",
+          "receivedTime": "2026-01-01T00:00:10.000Z",
+          "state": "confirming",
+          "currentNode": null,
+          "lastTrustedNode": "N01",
+          "candidates": [
+            "N12"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [],
+          "captureQueue": [
+            1,
+            2
+          ]
+        },
+        {
+          "captureSequence": 3,
+          "captureTime": "2026-01-01T00:00:15.000Z",
+          "receivedTime": "2026-01-01T00:00:15.000Z",
+          "state": "matched",
+          "currentNode": "N12",
+          "lastTrustedNode": "N12",
+          "candidates": [
+            "N12"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": null,
+          "path": [
+            "N12",
+            "N11",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "captureSequence": 4,
+          "captureTime": "2026-01-01T00:00:20.000Z",
+          "receivedTime": "2026-01-01T00:00:20.000Z",
+          "state": "matched",
+          "currentNode": "N11",
+          "lastTrustedNode": "N11",
+          "candidates": [
+            "N11"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N11",
+          "path": [
+            "N11",
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "captureSequence": 5,
+          "captureTime": "2026-01-01T00:00:25.000Z",
+          "receivedTime": "2026-01-01T00:00:25.000Z",
+          "state": "matched",
+          "currentNode": "N05",
+          "lastTrustedNode": "N05",
+          "candidates": [
+            "N05"
+          ],
+          "matchedObjectCount": 2,
+          "expectedNode": "N05",
+          "path": [
+            "N05",
+            "N06",
+            "N07"
+          ],
+          "captureQueue": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    }
+  ]
+}

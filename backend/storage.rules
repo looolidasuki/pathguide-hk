@@ -1,0 +1,8 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // No public download URLs and no client writes. Validated callable functions
+    // bind Firebase UID, consent, content, quotas and object generation.
+    match /{allPaths=**} { allow read, write: if false; }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-28",
+  "version": "1.3.0+4",
+  "appSourceCommit": "6a0e65203dd1804f5682bae2d8a88116f769795a",
+  "remoteBranch": "feature/cross-platform-navigation",
+  "tag": "v1.3.0+4",
+  "tagObject": "9fa2735a3e9fad487bb0bd1ddad6860221934671",
+  "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.3.0%2B4",
+  "prerelease": true,
+  "remoteCommitAndTagVerified": true,
+  "releaseHeadingTagAndCommitVerified": true,
+  "flutterTestsPassed": 294,
+  "nativeDepthSamplingChecksPassed": 12,
+  "analyze": "No issues found",
+  "signedReleaseBuild": "passed",
+  "systemSignatureVerification": "passed",
+  "bundleVersion": "1.3.0+4",
+  "modelSha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+  "deviceModel": "iPhone 15 Pro Max",
+  "deviceInstalled": true,
+  "deviceLaunched": true,
+  "installationBlocker": null,
+  "rulerAccuracyValidated": false,
+  "realCameraHandoffValidated": false,
+  "realSiteLocalizationValidated": false,
+  "previousAppTag": "v1.2.0+3",
+  "installationHistory": [
+    "Initial installation blocked because device had not been unlocked recently",
+    "User confirmed device unlocked; CoreDevice installation and process launch succeeded"
+  ],
+  "proof": "verification/ui/app-1.3.0+4-github-release.jpg",
+  "buildCheckpoint": "verification/app-1.3.0+4.json records the pre-delivery build check; this receipt records the latest release and installation status."
+}

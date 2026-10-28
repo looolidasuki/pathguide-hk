@@ -13,7 +13,7 @@
 ///
 /// 对应原生实现位置：
 /// - Android: `android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt`
-/// - iOS:     `ios/Runner/VisionPlugin.swift`（AVFoundation + TensorFlowLiteSwift）
+/// - iOS:     `ios/Runner/VisionPlugin.swift`
 library;
 
 /// 平台通道名。改动此值必须同时改动两端原生代码。
@@ -72,25 +72,6 @@ abstract final class VisionMethods {
 
   /// 原生侧能力与状态查询：`{ready: bool, modelPath: String?, inputSize: int?}`
   static const String status = 'status';
-
-  /// 把原生侧缓存的**最近一帧相机原图**写成 JPEG。
-  ///
-  /// 无入参。回包：`{ok, path?, width?, height?, bytes?, error?}`。
-  /// 像素不跨 EventChannel——只在原生编码落盘后把路径回给 Dart。
-  static const String captureFrame = 'captureFrame';
-
-  /// 读取**最近一帧相机原图**上的文字（招牌、门牌、指示牌）。
-  ///
-  /// 无入参。回包见 [VisionKeys]：`{ok, text, elements, decodeMs, ocrMs,
-  /// totalMs, width, height}`，失败时 `{ok: false, error}`。
-  ///
-  /// ## 为什么是「按需」而不是「持续」
-  ///
-  /// 本机跑单一 int8 模型已经约 5.2 fps / 187 ms 一次，CPU 基本满载。
-  /// 持续跑 OCR 会与检测互抢 CPU，而且会把障碍物播报洗掉
-  /// （`Announcer` 有冷却，经不起灌消息）。所以 OCR 是**刻意的动作**：
-  /// 对准、停住、读。见 `docs/superpowers/specs/2026-10-09-positioning-and-ocr-evaluation.md`。
-  static const String readText = 'readText';
 }
 
 /// 通道回包与入参的键名。
@@ -164,45 +145,4 @@ abstract final class VisionKeys {
 
   // 文件内容字节复用上面的 [bytes]（同为 Uint8List），不另设键——
   // 同一语义两个键名正是这个契约文件要防止的漂移。
-
-  // ---- captureFrame ----
-  static const String ok = 'ok';
-  static const String error = 'error';
-
-  // ---- readText（OCR）----
-  /// 整帧辨识出来的文字，行之间以换行连接。可能为空字符串（辨识成功但没字）。
-  static const String text = 'text';
-
-  /// 辨识出的文字元素列表，每项是一个 Map：
-  /// `{text, bounds: {left, top, right, bottom}, cornerPoints: [[x, y], ...], confidence}`
-  ///
-  /// 取的是 `element`（字/词）层级，不是行或块——因为本项目要的是
-  /// 「招牌上写了什么」，元素层级才能保留「哪几个字在哪里」。
-  static const String elements = 'elements';
-
-  /// 元素的外接矩形，**像素坐标**，原点在**转正之后**的左上角，
-  /// 与回包的 [readTextWidth] / [readTextHeight] 同一坐标系。
-  ///
-  /// 注意与 [cx]/[cy] 的区别：检测框是**归一化**的，OCR 是**像素**的。
-  /// 两者不可互换——混用会让框画到屏幕外，且不会报错。
-  static const String bounds = 'bounds';
-
-  /// 元素的四角点 `[[x, y] x4]`，处理斜拍招牌时比 [bounds] 更准。
-  static const String cornerPoints = 'cornerPoints';
-
-  /// 元素置信度。ML Kit 的 `Text.Element.confidence`。
-  static const String confidence = 'confidence';
-
-  /// OCR 各段耗时（毫秒），供 spike 量测用——分开回报才知道瓶颈在哪：
-  /// [ocrDecodeMs] 是 YUV→JPEG→Bitmap 的自建转换，[ocrMs] 是 ML Kit 辨识本身。
-  ///
-  /// 分这两段是刻意的：若解码占了大头，那是**我们自己的**问题（该换直转 ARGB），
-  /// 不是 ML Kit 慢。只看总时长得不到这个结论。
-  static const String ocrDecodeMs = 'decodeMs';
-  static const String ocrMs = 'ocrMs';
-  static const String ocrTotalMs = 'totalMs';
-
-  /// OCR 使用的那张图的像素尺寸（转正之后）。
-  static const String readTextWidth = 'width';
-  static const String readTextHeight = 'height';
 }

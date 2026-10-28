@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-23",
+  "feature": "contextual_grayscale_price_ocr_and_currency_fragment_joining",
+  "status": "code_verified_pending_phone_diagnostics_and_acceptance",
+  "version": "2026-10-23.price-crops.1",
+  "reported_phone_behavior": "Text improved; prices still unconfirmed; raw phone OCR not supplied",
+  "checks": {
+    "shared_macos_ocr_on_both_supplied_images": "passed",
+    "flutter_tests": {
+      "passed": 195,
+      "failed": 0
+    },
+    "flutter_analyze": {
+      "issues": 0
+    },
+    "ios_unsigned_build": "passed"
+  },
+  "coverage": [
+    "Refined Mac fixture prices 31/33/36",
+    "Split currency and full-width amounts",
+    "No inferred prices from bare digits or S-prefix",
+    "Cross-row, cross-page and ambiguous fragments rejected",
+    "Raw OCR preserved; diagnostic version and geometry copied locally"
+  ],
+  "pending": [
+    "Actual iPhone raw OCR and post-install end-to-end price readout",
+    "Phone latency for up to 18 local price crops per page"
+  ],
+  "logs": {
+    "tests": "/private/tmp/pathguide-price-full.log",
+    "analysis": "/private/tmp/pathguide-price-analyze.log",
+    "ios": "/private/tmp/pathguide-price-ios.log"
+  }
+}

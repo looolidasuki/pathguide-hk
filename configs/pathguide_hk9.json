@@ -1,0 +1,29 @@
+{
+  "dataset": "pathguide-hk-8classes",
+  "names": [
+    "bicycle",
+    "bin",
+    "bollard",
+    "downstairs",
+    "escalator",
+    "person",
+    "traffic_cone",
+    "upstairs",
+    "wet_floor_sign"
+  ],
+  "modelClassIds": [
+    11,
+    7,
+    8,
+    50,
+    49,
+    6,
+    9,
+    51,
+    24
+  ],
+  "aliases": {
+    "person": "pedestrian",
+    "wet_floor_sign": "caution_slippery"
+  }
+}

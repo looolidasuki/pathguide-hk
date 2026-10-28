@@ -1,0 +1,69 @@
+{
+  "date": "2026-10-28",
+  "appVersion": "1.2.0+3",
+  "tag": "v1.2.0+3",
+  "type": "prerelease",
+  "previousAppTag": "v1.1.0+2",
+  "graph": {
+    "nodes": 12,
+    "edges": 12,
+    "closedEdges": 1,
+    "scenarios": 10,
+    "observations": 47,
+    "synthetic": true,
+    "metricCoordinates": false
+  },
+  "verification": {
+    "flutterTestsPassed": 274,
+    "flutterAnalyze": "No issues found",
+    "iosSignedReleaseBuild": "passed",
+    "modelShaVerified": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "deviceInstalled": false,
+    "realSiteLocalizationValidated": false,
+    "builtBundleVersionChecked": "1.2.0+3"
+  },
+  "model": {
+    "format": 1,
+    "version": "2026-10-27.mixed10.experimental.1",
+    "file": "detector.tflite",
+    "bytes": 10695172,
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "inputSize": 640,
+    "modelClassCount": 10,
+    "modelClassIds": [
+      6,
+      11,
+      7,
+      8,
+      9,
+      24,
+      1,
+      49,
+      26,
+      18
+    ],
+    "trainedAt": "2026-10-26",
+    "experimental": true,
+    "map50": 0.7825363278727946,
+    "validationGatePassed": false,
+    "userRequestedTrial": true,
+    "limitations": [
+      "Door precision 28.6%, recall 11.1% at conf0.30 on small foreign validation set.",
+      "No independent fence validation; not an HKDI field benchmark."
+    ]
+  },
+  "pending": [
+    "Real site graph and independent reference/query images",
+    "Image feature/OCR adapter",
+    "ARKit same-frame depth",
+    "Spatial audio and FSD spatial rendering",
+    "Device interaction and VoiceOver acceptance"
+  ],
+  "sampleReplayPrivacy": {
+    "cameraCapture": false,
+    "GPSCapture": false,
+    "photoUpload": false,
+    "newCloudAPI": false,
+    "paidGPUEnabled": false
+  }
+}

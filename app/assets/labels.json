@@ -1,6 +1,6 @@
 {
   "generated_from": "configs/classes.json",
-  "note": "由 scripts/gen_dart_labels.py 生成，请勿手工编辑。",
+  "note": "由 scripts/gen_dart_labels.py 生成，請勿手工編輯。",
   "num_classes": 52,
   "announcement_order": [
     0,
@@ -167,7 +167,8 @@
       "name_zh": "手推車",
       "group": "obstacle",
       "priority": "P1",
-      "announced": true
+      "announced": true,
+      "note": "v3 由 cart_trolley 改名而来，语义收窄。原先一个类盖住 手推車/唧車/嬰兒車/搬運車 四种形状差异很大的东西，**id 保持不变**以保住既有 2 个标注；后三者另立 hand_truck(39) / pallet(40) / pushchair(41)。"
     },
     {
       "id": 14,
@@ -207,7 +208,8 @@
       "name_zh": "推拉門",
       "group": "indoor",
       "priority": "P1",
-      "announced": true
+      "announced": true,
+      "note": "推/拉/双向由 **tag** 表达（action:pull / action:push / action:both），不拆成类别——拆开会让同一个门在不同帧被标成不同类，且推拉方向常被遮挡。"
     },
     {
       "id": 19,
@@ -247,7 +249,8 @@
       "name_zh": "分岔路口",
       "group": "guide",
       "priority": "P0",
-      "announced": true
+      "announced": true,
+      "note": "PDF 原文标了 (??)，定义确实模糊。本项目的定义：**地面标线或路缘分叉成两条可通行方向的点**，框住分叉处的地面区域（不含建筑）。采集时只收「站在岔口前看得见分叉」的视角。"
     },
     {
       "id": 24,
@@ -263,7 +266,8 @@
       "name_zh": "排隊人潮",
       "group": "obstacle",
       "priority": "P0",
-      "announced": true
+      "announced": true,
+      "note": "与 pedestrian(6) 并存而非替代：单个行人是避让对象，人潮是**不可穿越的块**，处理方式不同（一个绕、一个改道）。PDF 另注人潮有队头/队尾/横跨三种形态。"
     },
     {
       "id": 26,
@@ -295,7 +299,8 @@
       "name_zh": "掘路工程",
       "group": "obstacle",
       "priority": "P1",
-      "announced": true
+      "announced": true,
+      "note": "PDF 注「同時出現多種 label 應可辨識」——本类就是那个复合场景的单一标签，框住整个施工区域。"
     },
     {
       "id": 30,
@@ -311,7 +316,8 @@
       "name_zh": "街邊貨物",
       "group": "obstacle",
       "priority": "P1",
-      "announced": true
+      "announced": true,
+      "note": "商家摆到街上的货。形态无定，是已知较难的一类。"
     },
     {
       "id": 32,
@@ -367,7 +373,8 @@
       "name_zh": "鋪路鋼板",
       "group": "obstacle",
       "priority": "P2",
-      "announced": true
+      "announced": true,
+      "note": "铺在路面上的钢板。既是障碍也是**湿滑面**，对盲杖使用者尤其危险。"
     },
     {
       "id": 39,
@@ -423,7 +430,8 @@
       "name_zh": "路燈",
       "group": "obstacle",
       "priority": "P2",
-      "announced": false
+      "announced": false,
+      "note": "announced=false：路灯到处都有，而「前方有路灯」对视障用户**不可行动**。检测它只用于避撞与场景理解，不播报——否则会把真正该说的话挤掉。"
     },
     {
       "id": 46,
@@ -431,7 +439,8 @@
       "name_zh": "標誌桿",
       "group": "obstacle",
       "priority": "P2",
-      "announced": false
+      "announced": false,
+      "note": "announced=false，理由同 streetlight：细长杆件密集出现，逐根播报等于噪声。"
     },
     {
       "id": 47,
@@ -447,7 +456,8 @@
       "name_zh": "障礙物",
       "group": "obstacle",
       "priority": "P1",
-      "announced": true
+      "announced": true,
+      "note": "v4 新增（用户决定）：**泛化的兜底类**。用途有两个 —— ① 具体类无法判定时给出可播报的结论：对视障用户而言「前面有東西擋路」往往比「那是什么」更重要、也更早能说；② 充当「未识别障碍物」上传闭环的判据（此前实测 98% 的街景帧都有检出，所以「有无检出」不能当条件；有了这一类，就可以用「检出 obstacle 但置信度不高」当条件）。**边界必须遵守，否则标注会漂移**：凡能归入任一具体类（垃圾桶/護柱/交通錐/水馬/單車/圍欄…）的一律用具体类，只有确实无法归类时才标 obstacle；**行人、以及升降機/扶梯/路燈等设施不标 obstacle**。来源：Roboflow everyday-object-finder 的 2156 个 `barrier` 标注（该项目把通用屏障与細分类混标，几何上与水馬/圍欄都不同形，无法安全映到既有类）。"
     },
     {
       "id": 49,
@@ -455,7 +465,8 @@
       "name_zh": "扶手電梯",
       "group": "footbridge",
       "priority": "P1",
-      "announced": true
+      "announced": true,
+      "note": "v4 新增（用户决定）：**通用扶梯**，按「先辨识出来再分」——先能可靠说出「这里有扶梯」，方向与室内外的细分等数据够了再做。**与既有 id 2 escalator_outdoor / id 19 escalator_indoor 的关系**：那两类当前**零标注**；而现有第三方数据的 1980 个 `escalator` 标注**无法区分室内外**（实测其图片含新加坡/樟宜/中国等来源，且标注无方向信息），硬映到其中一个必然有错。因此三者并存，但**只有通用类会有数据**，两个细分槽位暂时休眠——与 v3 删除 ambiguous_vertical 占位类属同一情形，这次保留槽位以免触动索引。将来要细分时，应**新增**方向/场景子类，不要复用这两个槽位。"
     },
     {
       "id": 50,

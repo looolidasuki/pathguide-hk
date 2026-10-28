@@ -1,0 +1,52 @@
+{
+  "date": "2026-10-23",
+  "feature": "menu_small_text_variant_prices_and_camera_presentation",
+  "status": "code_verified_pending_real_device_acceptance",
+  "checks": {
+    "flutter_tests": {
+      "passed": 189,
+      "failed": 0
+    },
+    "flutter_analyze": {
+      "issues": 0
+    },
+    "ios_unsigned_build": "passed",
+    "shared_macos_vision_probe": "passed",
+    "diff_whitespace": "passed",
+    "pbxproj_lint": "passed"
+  },
+  "source_images": [
+    {
+      "name": "dense_menu",
+      "width": 360,
+      "height": 488,
+      "old_observations": 93,
+      "new_observations": 152,
+      "result": "Partial text and prices; missing and incorrect dish characters remain"
+    },
+    {
+      "name": "tea_menu",
+      "width": 360,
+      "height": 507,
+      "old_observations": 28,
+      "new_observations": 36,
+      "result": "Sandwich variants 31,33,36; supplement 3 separate from base options"
+    }
+  ],
+  "limits": [
+    "Observation counts are not accuracy metrics",
+    "macOS Vision results are not iPhone performance or acceptance",
+    "The exact cause of the user device scanner closing has not been proven",
+    "General bracketed shared prices and arbitrary menu layouts remain unresolved"
+  ],
+  "pending": [
+    "iPhone camera permission and stable preview",
+    "Take, retake, accept image and optional scanner fallback",
+    "Actual menu photo OCR and spoken price verification with VoiceOver on/off"
+  ],
+  "logs": {
+    "flutter_tests": "/private/tmp/pathguide-menu-layout-full.log",
+    "flutter_analyze": "/private/tmp/pathguide-menu-layout-analyze.log",
+    "ios_build": "/private/tmp/pathguide-menu-layout-ios.log"
+  }
+}

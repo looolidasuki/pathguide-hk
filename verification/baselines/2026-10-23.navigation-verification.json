@@ -1,0 +1,68 @@
+{
+  "date": "2026-10-23",
+  "feature": "foreground_walking_navigation_cross_platform_v1",
+  "status": "ios_code_verified_android_source_added_pending_configuration_build_and_field_acceptance",
+  "checks": {
+    "flutter_tests": {
+      "passed": 230,
+      "failed": 0
+    },
+    "flutter_analyze": {
+      "issues": 0
+    },
+    "ios_unsigned_release_build": "passed",
+    "backend_node_tests": {
+      "passed": 11,
+      "failed": 0
+    },
+    "android_release_build": {
+      "status": "not_run_missing_toolchain",
+      "message": "[!] No Android SDK found. Try setting the ANDROID_HOME environment variable."
+    },
+    "plist_project_lint": "passed",
+    "node_syntax": "passed",
+    "git_diff_check": "passed"
+  },
+  "implemented": [
+    "Provider-independent Dart contracts, geometry, lifecycle and progress engine",
+    "iOS native MapKit search, walking route, map and Core Location permission/updates",
+    "Shared speech adapter and foreground automatic readouts with reader/TTS exclusion",
+    "Versioned secure local favorites and recent ten places; Google ID-only provider cache",
+    "Android Maps/Places/location/speech adapters, task-owned wake flag and missing-service gates",
+    "Guest Routes callable with enforced App Check, fixed WALK request and Secret Manager parameter",
+    "Independent App Check activation, Android example configuration and legal drafts"
+  ],
+  "test_coverage": [
+    "Synthetic Apple/Google route normalization",
+    "Short/blank steps and preserved notices",
+    "Single jumps, duplicate cached fixes, crossings and parallel legs",
+    "Multi-fix deviation and reroute cooldown/failure",
+    "Moved origin during calculation",
+    "Superseded search, late calculation and late wake acquisition",
+    "Stale timer, background cancellation and explicit resume",
+    "Saved destination rename/delete/restore/corruption recovery",
+    "Five consecutive automatic voice searches and screen-reader exclusion of TTS",
+    "Existing menu/recognition/account/photo regression",
+    "Backend attestation context, guest access, input validation, geometry, quota, timeout and fixed upstream"
+  ],
+  "not_performed": [
+    "iPhone installation, actual microphone and outdoor route acceptance",
+    "Android Kotlin/Gradle dependency resolution, APK build and native runtime tests; no Android SDK or Java configured",
+    "Google Maps/Places/Routes billing, API keys, cloud quotas, App Check device registration or callable deployment",
+    "Public hosting and owner contact completion of privacy/terms drafts",
+    "VoiceOver/TalkBack field studies, three route categories with repeated walks, calls/headsets, thirty-minute battery/thermal checks"
+  ],
+  "limits": [
+    "No background/lock-screen navigation, indoor floors, camera concurrency, route recording or verified step-free routing",
+    "GPS thresholds are engineering defaults requiring field calibration",
+    "Android Places pinned to 5.1.1 to retain fetchPlace; R8 workaround and desugaring added but Android build remains unverified",
+    "Unsigned iOS build is not installed or signed for the user; Android release signing remains development-only"
+  ],
+  "logs": {
+    "flutter_tests": "/private/tmp/pathguide-navigation-full.log",
+    "analysis": "/private/tmp/pathguide-navigation-analyze.log",
+    "ios": "/private/tmp/pathguide-navigation-ios-final.log",
+    "backend": "/private/tmp/pathguide-navigation-backend.log",
+    "android": "/private/tmp/pathguide-navigation-android.log"
+  }
+}

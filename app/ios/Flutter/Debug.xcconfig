@@ -1,2 +1,5 @@
 #include? "Pods/Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"
 #include "Generated.xcconfig"
+
+PATHGUIDE_GOOGLE_REVERSED_CLIENT_ID=pathguide-google-unconfigured
+#include? "Firebase.local.xcconfig"

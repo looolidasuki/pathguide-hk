@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' show Size;
 
-import '../l10n/app_strings.dart';
 import 'detection.dart';
 import 'vision_source.dart';
 
@@ -25,10 +24,10 @@ class MockVisionSource implements VisionSource {
     double threshold = 0.30,
     int rotationDegrees = 90,
     List<int>? classIds,
-  })  : _rawFrameSize = frameSize,
-        _rotationDegrees = _normalizeRotation(rotationDegrees),
-        _threshold = threshold.clamp(0.0, 1.0),
-        classIds = classIds ?? const <int>[7];
+  }) : _rawFrameSize = frameSize,
+       _rotationDegrees = _normalizeRotation(rotationDegrees),
+       _threshold = threshold.clamp(0.0, 1.0),
+       classIds = classIds ?? const <int>[7];
 
   /// 模拟的**原始**帧尺寸（旋转之前）。默认用横屏 1280x720，
   /// 与 Android 后置相机在竖屏下的真实输出一致。
@@ -56,7 +55,7 @@ class MockVisionSource implements VisionSource {
   }
 
   @override
-  String get displayName => AppStrings.current.sourceMock;
+  String get displayName => '模擬資料';
 
   /// 与 [PlatformVision] 同一语义：**旋转之后**的帧尺寸。
   ///
@@ -86,7 +85,7 @@ class MockVisionSource implements VisionSource {
     _timer = Timer.periodic(interval, (_) => _emit());
     return VisionSourceStatus(
       ok: true,
-      message: AppStrings.current.mockModeReady,
+      message: '模擬資料模式：${classIds.length} 個移動框',
     );
   }
 
@@ -105,7 +104,7 @@ class MockVisionSource implements VisionSource {
     // 三个按已知规律运动的框，用来肉眼校验坐标映射：
     //   1) 水平往返扫描，垂直位置固定在 0.35
     //   2) 从左上角扫到右下角，检验两轴同时变化
-    //   3) 贴着一个角做小幅度摆动，检验边界夹紧
+    //   3) 貼近左下角擺動，保留完整框及標籤的顯示空間
     final sweep = (math.sin(t) + 1) / 2; // [0,1]
     final detections = <Detection>[
       for (var i = 0; i < classIds.length; i++)
@@ -115,24 +114,26 @@ class MockVisionSource implements VisionSource {
           cx: i == 0
               ? 0.1 + 0.8 * sweep
               : i == 1
-                  ? 0.15 + 0.7 * sweep
-                  : 0.05 + 0.03 * sweep,
+              ? 0.15 + 0.7 * sweep
+              : 0.16 + 0.03 * sweep,
           cy: i == 0
               ? 0.35
               : i == 1
-                  ? 0.15 + 0.7 * sweep
-                  : 0.05 + 0.03 * sweep,
+              ? 0.15 + 0.7 * sweep
+              : 0.78 + 0.03 * sweep,
           w: 0.08 + 0.04 * i,
           h: 0.16 + 0.06 * i,
         ),
     ];
 
-    _controller.add(VisionFrame(
-      detections: detections.where((d) => d.score >= _threshold).toList(),
-      inferenceMs: 18 + 6 * math.sin(t * 0.7),
-      frameWidth: _rawFrameSize.width.round(),
-      frameHeight: _rawFrameSize.height.round(),
-    ));
+    _controller.add(
+      VisionFrame(
+        detections: detections.where((d) => d.score >= _threshold).toList(),
+        inferenceMs: 18 + 6 * math.sin(t * 0.7),
+        frameWidth: _rawFrameSize.width.round(),
+        frameHeight: _rawFrameSize.height.round(),
+      ),
+    );
   }
 
   @override

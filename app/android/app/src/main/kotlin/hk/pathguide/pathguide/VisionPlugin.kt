@@ -1,30 +1,15 @@
 package hk.pathguide.pathguide
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.ImageFormat
-import android.graphics.Matrix
-import android.graphics.Rect
-import android.graphics.YuvImage
 import android.util.Log
-import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
-import androidx.camera.core.resolutionselector.ResolutionSelector
-import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-// OCR（識字）。★ 用 `com.google.mlkit:`（綁定版）——模型包在 APK 裡，離線可用。
-// 見 build.gradle.kts 的說明：`play-services-` 那條會走 Play Services 按需下載。
-import com.google.mlkit.vision.common.InputImage
-import com.google.mlkit.vision.text.TextRecognition
-import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -37,13 +22,8 @@ import io.flutter.plugin.common.StandardMessageCodec
 import io.flutter.plugin.platform.PlatformView
 import io.flutter.plugin.platform.PlatformViewFactory
 import org.tensorflow.lite.Interpreter
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import kotlin.math.max
@@ -165,52 +145,10 @@ class VisionPlugin(
     @Volatile var lastDetectionCount: Int = 0
         private set
 
-    /**
-     * 最近一帧相机平面的紧凑拷贝，供定时采集写成 JPEG。
-     * 不能持有 [ImageProxy]——analyze 结束后会被 close。
-     */
-    @Volatile private var lastCapture: LastCaptureFrame? = null
-
     private var cameraExecutor: ExecutorService? = null
-
-    /**
-     * OCR 專用執行緒。**刻意與 [cameraExecutor] 分開。**
-     *
-     * ## 為什麼不能共用
-     *
-     * 相機的分析執行緒是**單執行緒**，而且 `ImageAnalysis` 的背壓策略是
-     * `STRATEGY_KEEP_ONLY_LATEST`：它只投遞最新一帧，前一帧還沒處理完就直接丟掉。
-     *
-     * 如果 OCR（真機預估 200–400 ms）跑在那條執行緒上：
-     * - OCR 期間完全沒有帧被分析 → 引導畫面**明顯卡住**
-     * - 而且那條執行緒被佔用時，`analyze()` 來不及消費帧，
-     *   後續帧會被 KEEP_ONLY_LATEST 丟棄 → **測出來的 FPS 掉幅是假的**
-     *
-     * 而「OCR 期間引導掉多少 FPS」正是這個 spike 唯一要回答的問題。
-     * 用會自己製造停頓的方式去量它，等於量到自己的測量工具。
-     *
-     * 分開之後，OCR 與偵測是**兩條執行緒在搶同一顆 CPU**——
-     * 那才是真機上真正會發生的競爭，也是唯一值得量測的數字。
-     *
-     * 生命週期比相機長：OCR 是按需、可獨立於預覽存在的動作。
-     */
-    private var ocrExecutor: ExecutorService? = null
-
-    private data class LastCaptureFrame(
-        val y: ByteArray,
-        val u: ByteArray,
-        val v: ByteArray,
-        val width: Int,
-        val height: Int,
-        val chromaWidth: Int,
-        val rotationDegrees: Int,
-    )
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         val messenger: BinaryMessenger = binding.binaryMessenger
-        // OCR 執行緒在此建立、在 onDetachedFromEngine 關閉。生命週期跟引擎一致，
-        // 而不是跟相機一致——見 ocrExecutor 的說明。
-        ocrExecutor = Executors.newSingleThreadExecutor()
         methodChannel = MethodChannel(messenger, METHOD_CHANNEL).apply {
             setMethodCallHandler(::onMethodCall)
         }
@@ -238,8 +176,6 @@ class VisionPlugin(
         frameChannel = null
         eventSink = null
         stopCamera()
-        ocrExecutor?.shutdown()
-        ocrExecutor = null
         detector?.close()
         detector = null
     }
@@ -337,23 +273,6 @@ class VisionPlugin(
                     "transposed" to (detector?.isTransposed ?: false),
                 ),
             )
-            "captureFrame" -> {
-                // JPEG 编码放后台，避免卡住平台通道回调线程。
-                runOffMainThread { result.success(saveLastCaptureJpeg()) }
-            }
-
-            // OCR：讀最近一幀的招牌／門牌／指示牌文字。**按需呼叫**，不常駐。
-            "readText" -> runOffMainThread { result.success(readLastCaptureText()) }
-
-            // 診斷用：對**指定圖片檔**跑 OCR，可指定長邊上限與辨識器語系。
-            //
-            // 為什麼需要它：真機上「讀到亂碼」「英文被逐字母唸」這兩件事
-            // 只有在**真實招牌**上才看得出來，而機會式排程每 1.5–12 秒才跑一次、
-            // 還受「場景未變」影響，根本沒法穩定重現。
-            // 這個入口讓同一張圖可以用不同解析度／辨識器各跑一遍做對照，
-            // 是「憑感覺調參數」與「有數字」之間的差別。
-            "ocrFile" -> runOffMainThread { result.success(ocrFileCall(call)) }
-
             else -> result.notImplemented()
         }
     }
@@ -600,22 +519,7 @@ class VisionPlugin(
     }
 
     fun startCameraIfPossible() {
-        // ★ 这里有**两个**前置条件，而且它们的就绪顺序不确定：
-        //   - `detector != null`：模型由 Dart 侧异步落盘后再加载
-        //   - `currentPreview != null`：预览平台视图由 widget 树建立
-        // 任何一方先到都只是「还不行」，**不当成错误**——真正的启动发生在
-        // 两者都就绪的那一次调用（三条路径都会调它：模型加载完、权限回调、
-        // 预览建立）。真机实测日志里可以看到它被调用 4 次，最后一次才成功启动。
-        //
-        // 这段诊断保留：它一眼就能区分「模型没就绪」「预览没就绪」「权限被拒」
-        // 三种都表现为「一片黑」的原因，而那是本项目花过很多轮才查清的一类故障。
-        val view = currentPreview
-        Log.i(
-            TAG,
-            "startCameraIfPossible: preview=${view != null} " +
-                "detector=${detector != null} perm=${hasCameraPermission()}",
-        )
-        if (view == null) return
+        val view = currentPreview ?: return
         if (detector == null) return
         // 每次**动态**检查权限。缓存这个结果会导致：用户在 Dart 侧授权之后，
         // 原生侧仍认为无权限，相机永远不启动，屏幕上只有一片黑、也没有异常。
@@ -625,6 +529,7 @@ class VisionPlugin(
         }
         val future = ProcessCameraProvider.getInstance(context)
         future.addListener({
+            if (currentPreview !== view || detector == null) return@addListener
             runCatching { bindCamera(future.get(), view) }
                 .onFailure { Log.e(TAG, "绑定相机会话失败", it) }
         }, ContextCompat.getMainExecutor(context))
@@ -643,43 +548,9 @@ class VisionPlugin(
         val previewUseCase = Preview.Builder().build().also {
             it.surfaceProvider = view.surfaceProvider
         }
-        // ★ 明確提高分析流解析度，因為 **OCR 吃的是這一條流的影格**。
-        //
-        // `lastCapture`（供 OCR 用）就是從 `analyze()` 裡存下來的，所以
-        // 「OCR 讀得多好」直接由**這裡**決定。不指定時 CameraX 預設給
-        // 640×480，實測 OCR 只有 480x640，於是：
-        //
-        //   - 字太小／太遠 → ML Kit 把雜訊拼成假字串
-        //     （真機實際讀到 `"i08eeoaia。.g"`、`"d0那Mele l)"`）
-        //   - 這些碎片被當成招牌唸出來，比不出聲更糟
-        //
-        // ## 為什麼不是「縮放解析度」
-        //
-        // 先前的變因量測顯示「把乾淨大圖縮到 320 vs 1280」對 OCR 幾乎沒差——
-        // 但那證明的是**縮放**不影響，不是**取像**不影響。
-        // 真正的差別在感光元件取到多少細節。這是兩件不同的事，
-        // 我先前混為一談，結論錯了。
-        //
-        // ## 成本
-        //
-        // 偵測器拿到更大的幀，逐像素前處理會變貴，所以 FPS 一定會掉。
-        // 真機實測（640×480 → 1280×720）之前是 4.86 FPS，
-        // 提高之後必須重新量，掉了多少要寫在回報裡，不能假設。
-        val analysisResolution = ResolutionSelector.Builder()
-            .setAspectRatioStrategy(
-                AspectRatioStrategy.RATIO_4_3_FALLBACK_AUTO_STRATEGY,
-            )
-            .setResolutionStrategy(
-                ResolutionStrategy(
-                    Size(1280, 960),
-                    ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER,
-                ),
-            )
-            .build()
         val executor = cameraExecutor
             ?: Executors.newSingleThreadExecutor().also { cameraExecutor = it }
         val analysis = ImageAnalysis.Builder()
-            .setResolutionSelector(analysisResolution)
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
             .build()
             .also { it.setAnalyzer(executor) { proxy -> analyze(proxy) } }
@@ -688,409 +559,24 @@ class VisionPlugin(
         provider.bindToLifecycle(
             owner, CameraSelector.DEFAULT_BACK_CAMERA, previewUseCase, analysis,
         )
+        TaskWakeLock.set(activity?.window, "vision", true)
         Log.i(TAG, "相机会话已启动（预览 + 分析）")
     }
 
     fun stopCamera() {
+        TaskWakeLock.set(activity?.window, "vision", false)
         runCatching {
             ProcessCameraProvider.getInstance(context).get().unbindAll()
         }.onFailure { Log.w(TAG, "解绑相机失败（通常可忽略）", it) }
         cameraExecutor?.shutdown()
         cameraExecutor = null
         currentPreview = null
-        lastCapture = null
         // 停止后重置诊断计数，避免「上一轮运行的帧数」被误读成当前状态。
         analyzedFrames = 0
         analyzeErrors = 0
         lastAnalyzeSkip = "相机已停止"
         lastFrameFormat = ""
         lastMaxScore = 0f
-    }
-
-    /**
-     * 把 [lastCapture] 写成应用私有目录 captures/ 下的 JPEG。
-     * 坐标系按传感器旋转纠正为正立，便于后期标注。
-     */
-    private fun saveLastCaptureJpeg(): Map<String, Any?> {
-        val snap = lastCapture
-            ?: return mapOf("ok" to false, "error" to "尚無相機幀")
-        return runCatching {
-            val nv21 = yuvPlanesToNv21(
-                snap.y, snap.u, snap.v, snap.width, snap.height, snap.chromaWidth,
-            )
-            val yuv = YuvImage(nv21, ImageFormat.NV21, snap.width, snap.height, null)
-            val rawJpeg = ByteArrayOutputStream().use { out ->
-                if (!yuv.compressToJpeg(Rect(0, 0, snap.width, snap.height), 85, out)) {
-                    error("JPEG 壓縮失敗")
-                }
-                out.toByteArray()
-            }
-            val (jpeg, outW, outH) = rotateJpegIfNeeded(
-                rawJpeg, snap.width, snap.height, snap.rotationDegrees,
-            )
-            val dir = File(context.filesDir, "captures").apply { mkdirs() }
-            val name = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US)
-                .format(Date()) + ".jpg"
-            val file = File(dir, name)
-            file.writeBytes(jpeg)
-            Log.i(TAG, "已採集 ${jpeg.size / 1024} KB -> ${file.absolutePath}")
-            mapOf(
-                "ok" to true,
-                "path" to file.absolutePath,
-                "width" to outW,
-                "height" to outH,
-                "bytes" to file.length(),
-            )
-        }.getOrElse { e ->
-            Log.e(TAG, "captureFrame 失敗", e)
-            mapOf(
-                "ok" to false,
-                "error" to "${e.javaClass.simpleName}: ${e.message}",
-            )
-        }
-    }
-
-    /**
-     * 把这个 method channel 调用丢到后台线程，回包再切回主线程。
-     *
-     * 为什么必须这样：JPEG 编码與 OCR 都是**百毫秒级**的同步工作。若在
-     * method channel 的回调线程上直接做完，那个线程正好也在处理逐帧
-     * EventChannel 的投递，会造成掉帧——看起来像「推理变慢了」，其實是
-     * 回包线程被占用。
-     *
-     * ## 用哪條執行緒，取決於工作是什麼
-     *
-     * - [ocrExecutor]：OCR 與採集。**這兩件都是數百毫秒的長工作**，
-     *   而且 OCR 要量的正是「與偵測搶 CPU」的代價，所以必須與相機分開。
-     * - [cameraExecutor]：只有在 OCR 執行緒還沒建立時（理論上不會發生）才退而求其次。
-     *
-     * ★ 兩者都不在時自建一個**臨時**執行緒，做完即關——但那是最後手段，
-     *   因為每次呼叫都建執行緒本身就是額外成本。
-     *
-     * ★ 注意：**不要**把這裡改成直接 `executor.execute` 而不保留 finally。
-     *   工作若拋出例外，`result` 就永遠不回包，Dart 側的 `await` 會**永久懸住**
-     *   （不是拋錯、不是逾時，就是永遠等不到）。所以 work() 內部自己 try/catch，
-     *   這裡再包一層 finally 保證執行緒回收。
-     */
-    private fun runOffMainThread(work: () -> Unit) {
-        val shared = ocrExecutor ?: cameraExecutor
-        val executor = shared ?: Executors.newSingleThreadExecutor()
-        executor.execute {
-            try {
-                work()
-            } finally {
-                if (shared == null) {
-                    executor.shutdown()
-                }
-            }
-        }
-    }
-
-    /**
-     * OCR：讀 [lastCapture] 那一幀上面的文字（招牌、門牌、指示牌）。
-     *
-     * ## 設計約束（來自 docs/superpowers/specs/2026-10-09-positioning-and-ocr-evaluation.md）
-     *
-     * - **按需啟動，不常駐**：辨識器每次呼叫才建立、用完就關。本機
-     *   （SD685，無 NNAPI/GPU delegate）跑單一 int8 模型已經是 5.2 fps、
-     *   約 187 ms/次，CPU 基本滿載；常駐第二個辨識器會互搶 CPU。
-     * - **只讀既有的那幀副本**，不另做一次 `ImageAnalysis.Analyzer` 取幀。
-     *   多一個 analyzer 會與偵測搶影格，而 CameraX 的背壓策略是
-     *   KEEP_ONLY_LATEST，搶影格等於直接降低偵測幀率。
-     *
-     * ## 為什麼走 JPEG 繞一圈
-     *
-     * 純 CPU 也能把 YUV 直接轉 ARGB，但那是一段**容易寫錯又不報錯**的色彩轉換
-     * 數學（色度取樣位置、奇偶行、行列步長），錯了只會讓 OCR 準確率默默變差。
-     * 這裡改用 repo 裡**既有的、已在真機驗證過**的 YUV→JPEG→Bitmap 路徑
-     * （[yuvPlanesToNv21] + [rotateJpegIfNeeded]，與採集同一套）。代價是多一次
-     * 編解碼，所以把各段耗時一併回報，讓瓶頸看得見而不是猜。
-     *
-     * ## 回包
-     *
-     * `{ok, text, elements: [{text, bounds, cornerPoints, confidence}],
-     *   decodeMs, ocrMs, totalMs, width, height}`；失敗時 `{ok: false, error}`。
-     *
-     * 回包**不含像素**：座標是相對於回報的 width/height，Dart 側要畫框再自己映射。
-     */
-    private fun readLastCaptureText(): Map<String, Any?> {
-        val snap = lastCapture
-            ?: return mapOf("ok" to false, "error" to "尚無相機幀")
-
-        val totalStart = System.nanoTime()
-        var decodeMs = 0.0
-        var bitmap: Bitmap? = null
-        var recognizer: com.google.mlkit.vision.text.TextRecognizer? = null
-
-        try {
-            // ---- 1. 既有 YUV 副本 -> 正立 Bitmap ----
-            val decodeStart = System.nanoTime()
-            val nv21 = yuvPlanesToNv21(
-                snap.y, snap.u, snap.v, snap.width, snap.height, snap.chromaWidth,
-            )
-            val yuv = YuvImage(nv21, ImageFormat.NV21, snap.width, snap.height, null)
-            val rawJpeg = ByteArrayOutputStream().use { out ->
-                if (!yuv.compressToJpeg(Rect(0, 0, snap.width, snap.height), 85, out)) {
-                    error("JPEG 壓縮失敗")
-                }
-                out.toByteArray()
-            }
-            // rotateJpegIfNeeded 對 0 度會原樣回傳，所以這裡一律再解碼一次，
-            // 免得 0 度與 90 度走兩條不同的路徑（那就多一條沒被驗證過的分支）。
-            val (jpeg, outW, outH) = rotateJpegIfNeeded(
-                rawJpeg, snap.width, snap.height, snap.rotationDegrees,
-            )
-            val bmp = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)
-                ?: error("JPEG 解碼為 Bitmap 失敗（${jpeg.size} bytes）")
-            bitmap = bmp
-            decodeMs = (System.nanoTime() - decodeStart) / 1_000_000.0
-
-            val image = InputImage.fromBitmap(bmp, 0)
-
-            // ---- 2. 用 CountDownLatch 把 ML Kit 的非同步 Task 接回同步流程 ----
-            // 必須等一下，因為回包要在這個 method channel 呼叫裡送回。
-            // 10 秒只是**保險絲**：真機上 OCR 是百毫秒級，若真的撞到 10 秒，
-            // 那本身就是必須讓使用者看見的結果（比無限期卡住好）。
-            val latch = java.util.concurrent.CountDownLatch(1)
-            var text: com.google.mlkit.vision.text.Text? = null
-            var failure: Exception? = null
-
-            val client = TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
-            recognizer = client
-            val ocrStart = System.nanoTime()
-            client.process(image)
-                .addOnSuccessListener { text = it }
-                .addOnFailureListener { failure = it as? Exception ?: Exception(it) }
-                .addOnCompleteListener { latch.countDown() }
-
-            if (!latch.await(10, java.util.concurrent.TimeUnit.SECONDS)) {
-                return mapOf("ok" to false, "error" to "OCR 逾時（>10s）", "decodeMs" to decodeMs)
-            }
-            val ocrMs = (System.nanoTime() - ocrStart) / 1_000_000.0
-            failure?.let { throw it }
-
-            val recognized = text
-                ?: return mapOf("ok" to false, "error" to "OCR 無回包", "decodeMs" to decodeMs)
-
-            // ---- 3. 只搬葉節點欄位，不搬 ML Kit 的活物件 ----
-            val elements = recognized.textBlocks.flatMap { block ->
-                block.lines.flatMap { line -> line.elements }
-            }.map { el ->
-                mapOf(
-                    "text" to el.text,
-                    // 像素座標，原點在**正立之後**的左上角，與回報的 width/height 同一座標系。
-                    "bounds" to mapOf(
-                        "left" to el.boundingBox?.left,
-                        "top" to el.boundingBox?.top,
-                        "right" to el.boundingBox?.right,
-                        "bottom" to el.boundingBox?.bottom,
-                    ),
-                    "cornerPoints" to el.cornerPoints?.map { listOf(it.x, it.y) },
-                    // ML Kit 的 `confidence` 只在辨識器 options 開啟時才有效，
-                    // 所以型別與數值都可能變；一律轉成 Double 過通道，Dart 側防禦式解析。
-                    "confidence" to el.confidence.toDouble(),
-                )
-            }
-
-            // ★ 逐行回報，而不是把整段壓成一行。
-            //
-            // 為什麼重要：Dart 側要用**行邊界**來斷句（每一行是一個獨立的
-            // 發聲單元，唸完自然停頓）。若這裡把行接成一大串，使用者聽到的
-            // 就是一段沒有間隔的聲音——真機回報的「沒有斷句沒有間隔」正是這樣來的。
-            //
-            // ML Kit 的 `recognized.text` 本來就以換行連接各 block 中的行，
-            // 所以這裡取的就是它；額外提供 `lines` 讓 Dart 側不必自己拆。
-            val lineTexts = recognized.textBlocks.flatMap { block ->
-                block.lines.map { it.text }
-            }
-
-            val totalMs = (System.nanoTime() - totalStart) / 1_000_000.0
-            Log.i(
-                TAG,
-                "OCR：${elements.size} 個元素 / ${recognized.text.length} 字，" +
-                    "解碼 ${"%.0f".format(decodeMs)} ms，辨識 ${"%.0f".format(ocrMs)} ms，" +
-                    "合計 ${"%.0f".format(totalMs)} ms（$outW x $outH）",
-            )
-
-            return mapOf(
-                "ok" to true,
-                "text" to recognized.text,
-                "lines" to lineTexts,
-                "elements" to elements,
-                "decodeMs" to decodeMs,
-                "ocrMs" to ocrMs,
-                "totalMs" to totalMs,
-                "width" to outW,
-                "height" to outH,
-            )
-        } catch (e: Exception) {
-            Log.e(TAG, "readText 失敗", e)
-            return mapOf(
-                "ok" to false,
-                "error" to "${e.javaClass.simpleName}: ${e.message}",
-                "decodeMs" to decodeMs,
-            )
-        } finally {
-            // 兩個都是原生資源，且是**每次呼叫新建**的，所以一定要關——
-            // 這個 spike 會被反覆呼叫，漏關就是穩定的記憶體成長。
-            runCatching { recognizer?.close() }
-                .onFailure { Log.w(TAG, "關閉 OCR 辨識器失敗", it) }
-            runCatching { bitmap?.recycle() }
-                .onFailure { Log.w(TAG, "回收 OCR bitmap 失敗", it) }
-        }
-    }
-
-    /**
-     * 建一個辨識器。
-     *
-     * ## 為什麼目前只有中文辨識器可選
-     *
-     * 真機觀察到**英文被逐字母唸出**。可能的來源有兩個，修法完全不同：
-     *  1. **圖太小**（現在是 640×480）→ 低解析度下拉丁字被切成單字元的 element，
-     *     提高取像解析度就能解；
-     *  2. **辨識器語系**→ 中文模型對拉丁字的切詞不如拉丁模型，要換
-     *     `com.google.mlkit:text-recognition`（另一個 artifact，會再增大 APK）。
-     *
-     * 先用本檔的 `ocrFile` 入口在**同一張圖**上比不同解析度，確定是哪一種。
-     * 若 (1) 就能解，就不必為了 (2) 多揹一個模型進 APK——這台手機的 APK
-     * 已經 219 MB，而每一次加模型都是實打實的體積。
-     */
-    private fun makeRecognizer(
-        script: String,
-    ): com.google.mlkit.vision.text.TextRecognizer {
-        if (script == "la") {
-            // 尚未引入拉丁模型。與其靜默 fallback（會讓對照實驗給出錯誤結論），
-            // 不如明確失敗——這正是本專案反覆強調的「不要靜默」。
-            throw IllegalArgumentException(
-                "script=la 未實作：需要先加 com.google.mlkit:text-recognition 依賴",
-            )
-        }
-        return TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
-    }
-
-    /**
-     * 診斷入口：對**指定圖片檔**跑 OCR，可指定長邊上限與辨識器語系。
-     *
-     * 入參 `{path, maxDim?, script?}`；回包與 `readText` 同格式，另加
-     * `sourceWidth`/`sourceHeight`/`width`/`height`，方便比較不同解析度的效果。
-     *
-     * 這不是產品路徑——產品用的是 [readLastCaptureText]（吃相機幀）。
-     * 留著它是為了「同一張圖、不同條件」的對照實驗，見
-     * `ocrFileCall` 的說明。
-     */
-    private fun ocrFileCall(call: MethodCall): Map<String, Any?> {
-        val path = call.argument<String>("path")
-            ?: return mapOf("ok" to false, "error" to "缺少 path")
-        val maxDim = call.argument<Int>("maxDim") ?: 0
-        val script = call.argument<String>("script") ?: "zh"
-
-        val file = File(path)
-        if (!file.exists()) return mapOf("ok" to false, "error" to "檔案不存在：$path")
-
-        var bitmap: Bitmap? = null
-        var scaled: Bitmap? = null
-        var recognizer: com.google.mlkit.vision.text.TextRecognizer? = null
-        val totalStart = System.nanoTime()
-        try {
-            val src = BitmapFactory.decodeFile(path)
-                ?: return mapOf("ok" to false, "error" to "解碼失敗：$path")
-            bitmap = src
-
-            val bmp = if (maxDim > 0 && max(src.width, src.height) > maxDim) {
-                val scale = maxDim.toFloat() / max(src.width, src.height)
-                val w = max(1, (src.width * scale).toInt())
-                val h = max(1, (src.height * scale).toInt())
-                Bitmap.createScaledBitmap(src, w, h, true).also { scaled = it }
-            } else {
-                src
-            }
-
-            val image = InputImage.fromBitmap(bmp, 0)
-            val latch = java.util.concurrent.CountDownLatch(1)
-            var text: com.google.mlkit.vision.text.Text? = null
-            var failure: Exception? = null
-
-            val client = makeRecognizer(script)
-            recognizer = client
-            val t0 = System.nanoTime()
-            client.process(image)
-                .addOnSuccessListener { text = it }
-                .addOnFailureListener { failure = it as? Exception ?: Exception(it) }
-                .addOnCompleteListener { latch.countDown() }
-            if (!latch.await(15, java.util.concurrent.TimeUnit.SECONDS)) {
-                return mapOf("ok" to false, "error" to "OCR 逾時")
-            }
-            failure?.let { throw it }
-            val ocrMs = (System.nanoTime() - t0) / 1_000_000.0
-            val rec = text ?: return mapOf("ok" to false, "error" to "OCR 無回包")
-
-            val elements = rec.textBlocks.flatMap { b -> b.lines.flatMap { l -> l.elements } }
-            return mapOf(
-                "ok" to true,
-                "text" to rec.text,
-                "elementTexts" to elements.map { it.text },
-                "elementCount" to elements.size,
-                "sourceWidth" to bitmap!!.width,
-                "sourceHeight" to bitmap!!.height,
-                "width" to bmp.width,
-                "height" to bmp.height,
-                "ocrMs" to ocrMs,
-                "totalMs" to (System.nanoTime() - totalStart) / 1_000_000.0,
-                "script" to script,
-            )
-        } catch (e: Exception) {
-            return mapOf("ok" to false, "error" to "${e.javaClass.simpleName}: ${e.message}")
-        } finally {
-            runCatching { recognizer?.close() }
-            runCatching { scaled?.recycle() }
-            runCatching { bitmap?.recycle() }
-        }
-    }
-
-    /** 紧凑 Y/U/V 平面 → NV21（Y + 交错 V/U）。 */
-    private fun yuvPlanesToNv21(
-        y: ByteArray,
-        u: ByteArray,
-        v: ByteArray,
-        width: Int,
-        height: Int,
-        chromaWidth: Int,
-    ): ByteArray {
-        val frameSize = width * height
-        val nv21 = ByteArray(frameSize + frameSize / 2)
-        System.arraycopy(y, 0, nv21, 0, min(y.size, frameSize))
-        val chromaHeight = height / 2
-        var dst = frameSize
-        for (row in 0 until chromaHeight) {
-            val rowBase = row * chromaWidth
-            for (col in 0 until chromaWidth) {
-                val i = rowBase + col
-                nv21[dst++] = if (i < v.size) v[i] else 0
-                nv21[dst++] = if (i < u.size) u[i] else 0
-            }
-        }
-        return nv21
-    }
-
-    private fun rotateJpegIfNeeded(
-        jpeg: ByteArray,
-        width: Int,
-        height: Int,
-        rotationDegrees: Int,
-    ): Triple<ByteArray, Int, Int> {
-        val deg = ((rotationDegrees % 360) + 360) % 360
-        if (deg == 0) return Triple(jpeg, width, height)
-        val src = BitmapFactory.decodeByteArray(jpeg, 0, jpeg.size)
-            ?: return Triple(jpeg, width, height)
-        val matrix = Matrix().apply { postRotate(deg.toFloat()) }
-        val rotated = Bitmap.createBitmap(src, 0, 0, src.width, src.height, matrix, true)
-        if (rotated !== src) src.recycle()
-        val out = ByteArrayOutputStream()
-        rotated.compress(Bitmap.CompressFormat.JPEG, 85, out)
-        val outW = rotated.width
-        val outH = rotated.height
-        rotated.recycle()
-        return Triple(out.toByteArray(), outW, outH)
     }
 
     /** 单帧分析：YUV -> 检测 -> EventChannel。
@@ -1109,6 +595,7 @@ class VisionPlugin(
             val det = detector
             if (det == null) { lastAnalyzeSkip = "模型未就绪"; return }
             if (currentPreview == null) { lastAnalyzeSkip = "预览未就绪"; return }
+            if (det.isBusy) { lastAnalyzeSkip = "上一帧仍在推理"; return }
 
             val w = image.width
             val h = image.height
@@ -1136,20 +623,6 @@ class VisionPlugin(
                 vPlane.buffer, vPlane.rowStride, cw, ch, vPlane.pixelStride,
                 "V(rs=${vPlane.rowStride} ps=${vPlane.pixelStride} lim=${vPlane.buffer.limit()})",
             )
-
-            // 在 ImageProxy.close 之前留下一帧紧凑拷贝，供定时采集落盘。
-            // 即使本帧因 isBusy 跳过推理，采集仍能拿到最新画面。
-            lastCapture = LastCaptureFrame(
-                y = yBytes,
-                u = uBytes,
-                v = vBytes,
-                width = w,
-                height = h,
-                chromaWidth = cw,
-                rotationDegrees = rotation,
-            )
-
-            if (det.isBusy) { lastAnalyzeSkip = "上一帧仍在推理"; return }
 
             val t0 = System.nanoTime()
             val detections = det.detectYuv(
@@ -1376,6 +849,7 @@ class YoloDetector private constructor(
     }
 
     val inputSize: Int
+    private val channelsFirstInput: Boolean
     val numClasses: Int
     private val numAnchors: Int
 
@@ -1502,8 +976,13 @@ class YoloDetector private constructor(
     init {
         val inShape = interpreter.getInputTensor(0).shape()
         require(inShape.size == 4) { "输入张量应为 4 维，实际 ${inShape.toList()}" }
-        require(inShape[3] == 3) { "输入通道应为 3，实际 ${inShape[3]}" }
-        inputSize = if (inShape[1] > 0) inShape[1] else expectedInput
+        require(inShape[0] == 1) { "输入 batch 必须为 1" }
+        channelsFirstInput = inShape[3] != 3 && inShape[1] == 3
+        require(inShape[3] == 3 || channelsFirstInput) { "输入必须为 NHWC 或 NCHW RGB" }
+        inputSize = if (channelsFirstInput) inShape[2] else inShape[1]
+        require(inputSize > 0 && inputSize == (if (channelsFirstInput) inShape[3] else inShape[2])) {
+            "输入必须为正方形，实际 ${inShape.toList()}"
+        }
 
         val outShape = interpreter.getOutputTensor(0).shape()
         require(outShape.size == 3) { "输出张量应为 3 维，实际 ${outShape.toList()}" }
@@ -1638,16 +1117,18 @@ class YoloDetector private constructor(
             // 现在把真实内容覆盖到 [padY, padY+newH) x [padX, padX+newW) 区域。
             // 用绝对下标定位（视图没有 position 语义上的字节偏移问题）。
             for (dy in 0 until newH) {
-                val rowBase = ((padY + dy) * inputSize + padX) * 3
+                val rowBase = (padY + dy) * inputSize + padX
                 for (dx in 0 until newW) {
-                    val idx = rowBase + dx * 3
+                    val pixel = rowBase + dx
+                    val idx = if (channelsFirstInput) pixel else pixel * 3
+                    val channelStep = if (channelsFirstInput) totalPixels else 1
                     val (r, g, b) = sampleRgb(
                         y, u, v, frameWidth, frameHeight, uvWidth,
                         rot, dx, dy, newW, newH,
                     )
                     inputFloats.put(idx, r)
-                    inputFloats.put(idx + 1, g)
-                    inputFloats.put(idx + 2, b)
+                    inputFloats.put(idx + channelStep, g)
+                    inputFloats.put(idx + 2 * channelStep, b)
                 }
             }
             inputFloats.rewind()

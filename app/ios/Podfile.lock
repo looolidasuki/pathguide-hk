@@ -1,0 +1,31 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_tts (0.0.1):
+    - Flutter
+  - TensorFlowLiteC (2.17.0):
+    - TensorFlowLiteC/Core (= 2.17.0)
+  - TensorFlowLiteC/Core (2.17.0)
+
+DEPENDENCIES:
+  - Flutter (from `Flutter`)
+  - flutter_tts (from `.symlinks/plugins/flutter_tts/ios`)
+  - TensorFlowLiteC (~> 2.17)
+
+SPEC REPOS:
+  trunk:
+    - TensorFlowLiteC
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: Flutter
+  flutter_tts:
+    :path: ".symlinks/plugins/flutter_tts/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 71a624a5bc0c04062bf19101d501e466baf2fb47
+  flutter_tts: 35ac3c7d42412733e795ea96ad2d7e05d0a75113
+  TensorFlowLiteC: eac6d689a8d391d1b202dc59e3d9165ba64aaf73
+
+PODFILE CHECKSUM: c0568bb8e37257a76d3139f9aed12e8dff2a0260
+
+COCOAPODS: 1.17.0

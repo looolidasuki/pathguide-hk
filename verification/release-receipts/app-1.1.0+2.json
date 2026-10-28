@@ -1,0 +1,33 @@
+{
+  "version": "1.1.0+2",
+  "appSourceCommit": "687d40188c117e7764cd71b063e834b23763682d",
+  "remoteBranchVerified": "feature/cross-platform-navigation",
+  "tags": {
+    "v1.1.0+2": {
+      "tagObject": "b05158ea3f90dc22cc0392e9aafa432bb2285af3",
+      "commit": "687d40188c117e7764cd71b063e834b23763682d",
+      "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.1.0%2B2",
+      "prerelease": true
+    },
+    "v1.0.0+1-baseline": {
+      "tagObject": "8a04b9ac513a3e8d7823db9c47ac2e5394d65562",
+      "commit": "f9dfb494ac3bc9a470337d15cde6a5c67018aac9",
+      "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.0.0%2B1-baseline",
+      "prerelease": true
+    }
+  },
+  "verification": [
+    "Normal Git push and git ls-remote: branch and peeled tags match",
+    "GitHub normal web UI: published pre-release headings, tags and commits verified"
+  ],
+  "deviceInstalled": true,
+  "signedIPAProvided": false,
+  "date": "2026-10-27",
+  "deviceLaunch": "passed",
+  "deviceModel": "iPhone 15 Pro Max",
+  "signedBuild": "passed",
+  "signatureVerification": "codesign --verify --deep --strict passed with normal system trust services",
+  "installedBundleVersion": "1.1.0+2",
+  "installedModelSha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+  "fieldAcceptance": "pending"
+}

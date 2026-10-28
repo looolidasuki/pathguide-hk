@@ -1,0 +1,1115 @@
+{
+  "proposalSchemaVersion": 1,
+  "status": "discussion_only",
+  "date": "2026-10-22",
+  "notProductionClassDictionary": true,
+  "latestOneDriveDictionaryReviewed": false,
+  "localReference": {
+    "path": "../../../firebaseCode-2/store/class_dictionary.json",
+    "sha256": "2016fea2524d5194882ab95efabfe870cab6d00e3b1df21f20ab6aa71ffda140",
+    "notice": "local historical copy; teammate says latest OneDrive has no official definitions yet"
+  },
+  "counts": {
+    "registeredCocoReference": 80,
+    "selectedCocoForModelA": 6,
+    "customCandidatesForModelA": 17,
+    "modelACandidates": 23,
+    "modelBCandidates": 12
+  },
+  "cocoDecisions": [
+    {
+      "key": "person",
+      "existingLocalDictionaryId": 0,
+      "decision": "model_a_candidate",
+      "reason": "沿用既有 COCO 定義，不新增 Official 同義類別"
+    },
+    {
+      "key": "bicycle",
+      "existingLocalDictionaryId": 1,
+      "decision": "model_a_candidate",
+      "reason": "沿用既有 COCO 定義，不新增 Official 同義類別"
+    },
+    {
+      "key": "car",
+      "existingLocalDictionaryId": 2,
+      "decision": "model_a_candidate",
+      "reason": "沿用既有 COCO 定義，不新增 Official 同義類別"
+    },
+    {
+      "key": "motorcycle",
+      "existingLocalDictionaryId": 3,
+      "decision": "model_a_candidate",
+      "reason": "沿用既有 COCO 定義，不新增 Official 同義類別"
+    },
+    {
+      "key": "airplane",
+      "existingLocalDictionaryId": 4,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "bus",
+      "existingLocalDictionaryId": 5,
+      "decision": "model_a_candidate",
+      "reason": "沿用既有 COCO 定義，不新增 Official 同義類別"
+    },
+    {
+      "key": "train",
+      "existingLocalDictionaryId": 6,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "truck",
+      "existingLocalDictionaryId": 7,
+      "decision": "model_a_candidate",
+      "reason": "沿用既有 COCO 定義，不新增 Official 同義類別"
+    },
+    {
+      "key": "boat",
+      "existingLocalDictionaryId": 8,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "traffic light",
+      "existingLocalDictionaryId": 9,
+      "decision": "separate_state_task",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "fire hydrant",
+      "existingLocalDictionaryId": 10,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "stop sign",
+      "existingLocalDictionaryId": 11,
+      "decision": "separate_state_task",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "parking meter",
+      "existingLocalDictionaryId": 12,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "bench",
+      "existingLocalDictionaryId": 13,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "bird",
+      "existingLocalDictionaryId": 14,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "cat",
+      "existingLocalDictionaryId": 15,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "dog",
+      "existingLocalDictionaryId": 16,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "horse",
+      "existingLocalDictionaryId": 17,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "sheep",
+      "existingLocalDictionaryId": 18,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "cow",
+      "existingLocalDictionaryId": 19,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "elephant",
+      "existingLocalDictionaryId": 20,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "bear",
+      "existingLocalDictionaryId": 21,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "zebra",
+      "existingLocalDictionaryId": 22,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "giraffe",
+      "existingLocalDictionaryId": 23,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "backpack",
+      "existingLocalDictionaryId": 24,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "umbrella",
+      "existingLocalDictionaryId": 25,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "handbag",
+      "existingLocalDictionaryId": 26,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "tie",
+      "existingLocalDictionaryId": 27,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "suitcase",
+      "existingLocalDictionaryId": 28,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "frisbee",
+      "existingLocalDictionaryId": 29,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "skis",
+      "existingLocalDictionaryId": 30,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "snowboard",
+      "existingLocalDictionaryId": 31,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "sports ball",
+      "existingLocalDictionaryId": 32,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "kite",
+      "existingLocalDictionaryId": 33,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "baseball bat",
+      "existingLocalDictionaryId": 34,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "baseball glove",
+      "existingLocalDictionaryId": 35,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "skateboard",
+      "existingLocalDictionaryId": 36,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "surfboard",
+      "existingLocalDictionaryId": 37,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "tennis racket",
+      "existingLocalDictionaryId": 38,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "bottle",
+      "existingLocalDictionaryId": 39,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "wine glass",
+      "existingLocalDictionaryId": 40,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "cup",
+      "existingLocalDictionaryId": 41,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "fork",
+      "existingLocalDictionaryId": 42,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "knife",
+      "existingLocalDictionaryId": 43,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "spoon",
+      "existingLocalDictionaryId": 44,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "bowl",
+      "existingLocalDictionaryId": 45,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "banana",
+      "existingLocalDictionaryId": 46,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "apple",
+      "existingLocalDictionaryId": 47,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "sandwich",
+      "existingLocalDictionaryId": 48,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "orange",
+      "existingLocalDictionaryId": 49,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "broccoli",
+      "existingLocalDictionaryId": 50,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "carrot",
+      "existingLocalDictionaryId": 51,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "hot dog",
+      "existingLocalDictionaryId": 52,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "pizza",
+      "existingLocalDictionaryId": 53,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "donut",
+      "existingLocalDictionaryId": 54,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "cake",
+      "existingLocalDictionaryId": 55,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "chair",
+      "existingLocalDictionaryId": 56,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "couch",
+      "existingLocalDictionaryId": 57,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "potted plant",
+      "existingLocalDictionaryId": 58,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "bed",
+      "existingLocalDictionaryId": 59,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "dining table",
+      "existingLocalDictionaryId": 60,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "toilet",
+      "existingLocalDictionaryId": 61,
+      "decision": "later_task_candidate",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "TV",
+      "existingLocalDictionaryId": 62,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "laptop",
+      "existingLocalDictionaryId": 63,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "mouse",
+      "existingLocalDictionaryId": 64,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "remote",
+      "existingLocalDictionaryId": 65,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "keyboard",
+      "existingLocalDictionaryId": 66,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "cell phone",
+      "existingLocalDictionaryId": 67,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "microwave",
+      "existingLocalDictionaryId": 68,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "oven",
+      "existingLocalDictionaryId": 69,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "toaster",
+      "existingLocalDictionaryId": 70,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "sink",
+      "existingLocalDictionaryId": 71,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "refrigerator",
+      "existingLocalDictionaryId": 72,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "book",
+      "existingLocalDictionaryId": 73,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "clock",
+      "existingLocalDictionaryId": 74,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "vase",
+      "existingLocalDictionaryId": 75,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "scissors",
+      "existingLocalDictionaryId": 76,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "teddy bear",
+      "existingLocalDictionaryId": 77,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "hair drier",
+      "existingLocalDictionaryId": 78,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    },
+    {
+      "key": "toothbrush",
+      "existingLocalDictionaryId": 79,
+      "decision": "outside_current_first_scope",
+      "reason": "保留字典登記，未納入目前模型輸出；不代表物件無用"
+    }
+  ],
+  "officialDefineCandidates": [
+    {
+      "key": "bin",
+      "displayNameZh": "垃圾桶",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 7,
+      "include": "不同大小、形狀、顏色及場景的垃圾桶",
+      "excludeAndMerge": "不含水桶、花盆或一般箱子；保留 rubbishBin／rubbish bin 作來源別名"
+    },
+    {
+      "key": "bollard",
+      "displayNameZh": "護柱",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 8,
+      "include": "用來限制通行的矮柱或護柱本體",
+      "excludeAndMerge": "與一般固定細柱擇一標註；不按顏色另開 class"
+    },
+    {
+      "key": "traffic_cone",
+      "displayNameZh": "交通錐",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 9,
+      "include": "獨立錐形交通錐",
+      "excludeAndMerge": "不再標臨時路障父類；連接桿另記難例"
+    },
+    {
+      "key": "caution_slippery",
+      "displayNameZh": "小心地滑告示",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 24,
+      "include": "可確認為地滑警示的獨立告示本體",
+      "excludeAndMerge": "不等於地面濕滑；wet_floor_sign 為來源別名，不再標一般指示牌"
+    },
+    {
+      "key": "stairs",
+      "displayNameZh": "樓梯",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 1,
+      "include": "整段連續梯級",
+      "excludeAndMerge": "合併 upstairs／downstairs；不逐級重標 step，方向只作覆核屬性"
+    },
+    {
+      "key": "escalator",
+      "displayNameZh": "扶手電梯",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 49,
+      "include": "同一設備的可見扶手、梯級及結構",
+      "excludeAndMerge": "室內外合併；不由靜態 class 判斷運行或准入方向"
+    },
+    {
+      "key": "temporary_barrier",
+      "displayNameZh": "臨時路障",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": null,
+      "include": "用途可確認的臨時阻隔設施，包括水馬與臨時硬式圍網",
+      "excludeAndMerge": "不含交通錐、護柱、固定圍欄；看不出是否臨時者先待覆核"
+    },
+    {
+      "key": "fence",
+      "displayNameZh": "固定圍欄",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 26,
+      "include": "固定圍欄與欄杆",
+      "excludeAndMerge": "天橋欄杆可合併；不靠材質判斷固定性，不與臨時路障重標"
+    },
+    {
+      "key": "push_cart",
+      "displayNameZh": "載貨手推車",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 13,
+      "include": "一般平台或籠式載貨手推車",
+      "excludeAndMerge": "嬰兒車、購物車、兩輪搬運車、唧車不無條件併入"
+    },
+    {
+      "key": "step",
+      "displayNameZh": "單級台階",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 14,
+      "include": "孤立、單級的高度變化",
+      "excludeAndMerge": "整段樓梯只標 stairs；路緣及斜道邊界另記困難案例"
+    },
+    {
+      "key": "elevator",
+      "displayNameZh": "升降機入口",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 3,
+      "include": "有門框、門及周邊設施證據的實體升降機入口",
+      "excludeAndMerge": "不是圖示；同一入口不再重標一般門，難以確認用途則待覆核"
+    },
+    {
+      "key": "ramp",
+      "displayNameZh": "斜道",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 4,
+      "include": "可見且可辨識的坡面區域",
+      "excludeAndMerge": "不因拍攝透視傾斜就標斜道；不保證無障礙可通行"
+    },
+    {
+      "key": "tactile_paving",
+      "displayNameZh": "盲道",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 15,
+      "include": "可見引導或警示觸覺鋪面",
+      "excludeAndMerge": "引導／警示、材質、顏色作屬性；不當成已驗證路線"
+    },
+    {
+      "key": "zebra_crossing",
+      "displayNameZh": "斑馬線",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 16,
+      "include": "可見過路斑馬線區域",
+      "excludeAndMerge": "不是 COCO 動物 zebra；不判斷燈號或可否過路"
+    },
+    {
+      "key": "door",
+      "displayNameZh": "一般門",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 18,
+      "include": "一般門或可辨識門洞",
+      "excludeAndMerge": "玻璃門合併並獨立測試透明外觀；不含可確認的升降機入口"
+    },
+    {
+      "key": "sign_pictogram",
+      "displayNameZh": "設施方向指示牌",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": 20,
+      "include": "包含設施圖示或導向文字的整塊實體牌面",
+      "excludeAndMerge": "不是所有廣告；不是 COCO stop sign；牌內圖示交 B，文字交 OCR"
+    },
+    {
+      "key": "fixed_pole",
+      "displayNameZh": "固定細柱",
+      "finalDictionaryId": null,
+      "legacyAppProjectId": null,
+      "include": "路燈柱、標誌桿等人工固定柱身",
+      "excludeAndMerge": "原框含燈頭或牌面時須重畫，不直接換標；不含護柱及一般樹木"
+    }
+  ],
+  "signIconV1Candidates": [
+    {
+      "key": "male_symbol",
+      "displayNameZh": "男士圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "設施牌內的男性符號；不是辨識真人性別"
+    },
+    {
+      "key": "female_symbol",
+      "displayNameZh": "女士圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "設施牌內的女性符號；不是辨識真人性別"
+    },
+    {
+      "key": "wheelchair_symbol",
+      "displayNameZh": "輪椅／無障礙圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "只辨識標記，不保證設施可用"
+    },
+    {
+      "key": "toilet_symbol",
+      "displayNameZh": "一般洗手間圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "不表示男或女；只有 WC／文字者交 OCR"
+    },
+    {
+      "key": "lift_symbol",
+      "displayNameZh": "升降機圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "牌內設備圖示，不是實體入口"
+    },
+    {
+      "key": "escalator_symbol",
+      "displayNameZh": "扶手電梯圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "不推論實際運行方向"
+    },
+    {
+      "key": "stairs_symbol",
+      "displayNameZh": "樓梯圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "不直接分上樓／落樓"
+    },
+    {
+      "key": "exit_symbol",
+      "displayNameZh": "出口圖示",
+      "finalDictionaryId": null,
+      "annotationRule": "出口人形等圖案；純文字 EXIT 交 OCR"
+    },
+    {
+      "key": "arrow_left",
+      "displayNameZh": "向左箭嘴",
+      "finalDictionaryId": null,
+      "annotationRule": "依轉正牌面的二維朝向"
+    },
+    {
+      "key": "arrow_right",
+      "displayNameZh": "向右箭嘴",
+      "finalDictionaryId": null,
+      "annotationRule": "依轉正牌面的二維朝向"
+    },
+    {
+      "key": "arrow_up",
+      "displayNameZh": "向上箭嘴",
+      "finalDictionaryId": null,
+      "annotationRule": "不直接等於上樓或直行，須結合牌面語境"
+    },
+    {
+      "key": "arrow_down",
+      "displayNameZh": "向下箭嘴",
+      "finalDictionaryId": null,
+      "annotationRule": "不直接等於落樓或向後，須結合牌面語境"
+    }
+  ],
+  "modelAProfile": [
+    {
+      "localIndex": 0,
+      "canonicalKey": "person",
+      "displayNameZh": "行人",
+      "registryRef": {
+        "namespace": "coco",
+        "key": "person",
+        "existingLocalDictionaryId": 0
+      },
+      "legacyAppProjectId": 6,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 1,
+      "canonicalKey": "bicycle",
+      "displayNameZh": "單車",
+      "registryRef": {
+        "namespace": "coco",
+        "key": "bicycle",
+        "existingLocalDictionaryId": 1
+      },
+      "legacyAppProjectId": 11,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 2,
+      "canonicalKey": "car",
+      "displayNameZh": "汽車",
+      "registryRef": {
+        "namespace": "coco",
+        "key": "car",
+        "existingLocalDictionaryId": 2
+      },
+      "legacyAppProjectId": null,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 3,
+      "canonicalKey": "motorcycle",
+      "displayNameZh": "電單車",
+      "registryRef": {
+        "namespace": "coco",
+        "key": "motorcycle",
+        "existingLocalDictionaryId": 3
+      },
+      "legacyAppProjectId": null,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 4,
+      "canonicalKey": "bus",
+      "displayNameZh": "巴士",
+      "registryRef": {
+        "namespace": "coco",
+        "key": "bus",
+        "existingLocalDictionaryId": 5
+      },
+      "legacyAppProjectId": null,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 5,
+      "canonicalKey": "truck",
+      "displayNameZh": "貨車",
+      "registryRef": {
+        "namespace": "coco",
+        "key": "truck",
+        "existingLocalDictionaryId": 7
+      },
+      "legacyAppProjectId": null,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 6,
+      "canonicalKey": "bin",
+      "displayNameZh": "垃圾桶",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "bin",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 7,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 7,
+      "canonicalKey": "bollard",
+      "displayNameZh": "護柱",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "bollard",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 8,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 8,
+      "canonicalKey": "traffic_cone",
+      "displayNameZh": "交通錐",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "traffic_cone",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 9,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 9,
+      "canonicalKey": "caution_slippery",
+      "displayNameZh": "小心地滑告示",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "caution_slippery",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 24,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 10,
+      "canonicalKey": "stairs",
+      "displayNameZh": "樓梯",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "stairs",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 1,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 11,
+      "canonicalKey": "escalator",
+      "displayNameZh": "扶手電梯",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "escalator",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 49,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 12,
+      "canonicalKey": "temporary_barrier",
+      "displayNameZh": "臨時路障",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "temporary_barrier",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": null,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 13,
+      "canonicalKey": "fence",
+      "displayNameZh": "固定圍欄",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "fence",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 26,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 14,
+      "canonicalKey": "push_cart",
+      "displayNameZh": "載貨手推車",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "push_cart",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 13,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 15,
+      "canonicalKey": "step",
+      "displayNameZh": "單級台階",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "step",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 14,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 16,
+      "canonicalKey": "elevator",
+      "displayNameZh": "升降機入口",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "elevator",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 3,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 17,
+      "canonicalKey": "ramp",
+      "displayNameZh": "斜道",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "ramp",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 4,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 18,
+      "canonicalKey": "tactile_paving",
+      "displayNameZh": "盲道",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "tactile_paving",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 15,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 19,
+      "canonicalKey": "zebra_crossing",
+      "displayNameZh": "斑馬線",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "zebra_crossing",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 16,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 20,
+      "canonicalKey": "door",
+      "displayNameZh": "一般門",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "door",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 18,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 21,
+      "canonicalKey": "sign_pictogram",
+      "displayNameZh": "設施方向指示牌",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "sign_pictogram",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": 20,
+      "status": "proposed_not_trained_in_this_profile"
+    },
+    {
+      "localIndex": 22,
+      "canonicalKey": "fixed_pole",
+      "displayNameZh": "固定細柱",
+      "registryRef": {
+        "namespace": "official-define",
+        "key": "fixed_pole",
+        "finalDictionaryId": null
+      },
+      "legacyAppProjectId": null,
+      "status": "proposed_not_trained_in_this_profile"
+    }
+  ],
+  "modelBProfile": [
+    {
+      "localIndex": 0,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "male_symbol"
+      },
+      "canonicalKey": "male_symbol",
+      "displayNameZh": "男士圖示"
+    },
+    {
+      "localIndex": 1,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "female_symbol"
+      },
+      "canonicalKey": "female_symbol",
+      "displayNameZh": "女士圖示"
+    },
+    {
+      "localIndex": 2,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "wheelchair_symbol"
+      },
+      "canonicalKey": "wheelchair_symbol",
+      "displayNameZh": "輪椅／無障礙圖示"
+    },
+    {
+      "localIndex": 3,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "toilet_symbol"
+      },
+      "canonicalKey": "toilet_symbol",
+      "displayNameZh": "一般洗手間圖示"
+    },
+    {
+      "localIndex": 4,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "lift_symbol"
+      },
+      "canonicalKey": "lift_symbol",
+      "displayNameZh": "升降機圖示"
+    },
+    {
+      "localIndex": 5,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "escalator_symbol"
+      },
+      "canonicalKey": "escalator_symbol",
+      "displayNameZh": "扶手電梯圖示"
+    },
+    {
+      "localIndex": 6,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "stairs_symbol"
+      },
+      "canonicalKey": "stairs_symbol",
+      "displayNameZh": "樓梯圖示"
+    },
+    {
+      "localIndex": 7,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "exit_symbol"
+      },
+      "canonicalKey": "exit_symbol",
+      "displayNameZh": "出口圖示"
+    },
+    {
+      "localIndex": 8,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "arrow_left"
+      },
+      "canonicalKey": "arrow_left",
+      "displayNameZh": "向左箭嘴"
+    },
+    {
+      "localIndex": 9,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "arrow_right"
+      },
+      "canonicalKey": "arrow_right",
+      "displayNameZh": "向右箭嘴"
+    },
+    {
+      "localIndex": 10,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "arrow_up"
+      },
+      "canonicalKey": "arrow_up",
+      "displayNameZh": "向上箭嘴"
+    },
+    {
+      "localIndex": 11,
+      "registryRef": {
+        "namespace": "sign-icon-v1",
+        "key": "arrow_down"
+      },
+      "canonicalKey": "arrow_down",
+      "displayNameZh": "向下箭嘴"
+    }
+  ],
+  "runtimeGroups": {
+    "road_vehicle": [
+      "car",
+      "motorcycle",
+      "bus",
+      "truck"
+    ]
+  },
+  "rules": [
+    "Do not use this file to overwrite the OneDrive dictionary.",
+    "Final stable dictionary IDs await review of latest source and team agreement.",
+    "Local model indices belong to each model profile, not global class IDs.",
+    "No automatic retention of all COCO outputs when training a custom model."
+  ]
+}

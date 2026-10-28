@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-23",
+  "feature": "phone_diagnostic_driven_menu_price_pairing",
+  "ocr_version": "2026-10-23.price-crops.1",
+  "parser_version": "2026-10-23.phone-pairing.1",
+  "status": "code_verified_pending_phone_acceptance",
+  "evidence": {
+    "source": "User-pasted iPhone OCR",
+    "reported_raw_lines": 220,
+    "reported_explicit_price_markers": 94,
+    "test_fixture": "selected verbatim rows; confidence unavailable and replaced by test placeholder"
+  },
+  "checks": {
+    "flutter_tests": {
+      "passed": 199,
+      "failed": 0
+    },
+    "flutter_analyze": {
+      "issues": 0
+    },
+    "ios_unsigned_build": "passed"
+  },
+  "fixes": [
+    "Remove contained duplicate text fragments while retaining conflicting prices",
+    "Join short Chinese suffixes to adjacent same-row dish text",
+    "Reject vertical OCR boxes with incompatible height",
+    "Infer recurring price columns and prevent cross-column pairing"
+  ],
+  "pending": [
+    "Install update on iPhone and repeat search/readout",
+    "Dish spelling and missing characters remain OCR limitations"
+  ],
+  "logs": {
+    "tests": "/private/tmp/pathguide-phone-pair-full.log",
+    "analysis": "/private/tmp/pathguide-phone-pair-analyze.log",
+    "ios": "/private/tmp/pathguide-phone-pair-ios.log"
+  }
+}

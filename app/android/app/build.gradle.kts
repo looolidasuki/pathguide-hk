@@ -1,7 +1,14 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
+}
+
+val pathguideLocalProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
 }
 
 android {
@@ -10,15 +17,17 @@ android {
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
+        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
     defaultConfig {
         applicationId = "hk.pathguide.pathguide"
+        manifestPlaceholders["pathguideMapsApiKey"] = System.getenv("PATHGUIDE_MAPS_API_KEY") ?: pathguideLocalProperties.getProperty("MAPS_API_KEY", "")
         // CameraX 1.6 需要 API 21+；LiteRT 2.2 需要 API 21+。
         // 直接用 flutter.minSdkVersion，若低于 21 再显式提高。
-        minSdk = maxOf(flutter.minSdkVersion, 21)
+        minSdk = maxOf(flutter.minSdkVersion, 24)
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -28,6 +37,7 @@ android {
         release {
             // TODO: 正式发布前换成自己的签名配置。
             signingConfig = signingConfigs.getByName("debug")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
@@ -47,6 +57,10 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+    implementation("com.google.android.gms:play-services-maps:19.2.0")
+    implementation("com.google.android.libraries.places:places:5.1.1")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     // CameraX：预览 + 图像分析共用同一个相机会话。
     // 版本已在 Google Maven 上确认为稳定版（1.6.2）。
     val cameraxVersion = "1.6.2"
@@ -61,42 +75,6 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-
-    // OCR（識字）：讀招牌、門牌、指示牌。
-    //
-    // ★ 這裡寫 `com.google.mlkit:`（綁定版座標），**不是**只寫
-    //   `com.google.android.gms:play-services-mlkit-text-recognition-chinese`。
-    //
-    // ★★ 但「綁定版 vs 未綁定版」的機制跟直覺不同，這裡據實記錄（2026-10-09
-    //    實際解開 APK 與 Gradle 快取查證，不是照文件抄的）：
-    //
-    //   1. `com.google.mlkit:text-recognition-chinese` 這個 AAR **本身幾乎是空的**
-    //      —— classes.jar 只有 2 個類別（一個 dynamite ModuleDescriptor 加一個
-    //      .properties）。它靠傳遞依賴把真正的東西拉進來。
-    //   2. 公開 API 其實住在 **play-services-** 那兩個 AAR 裡：
-    //        com.google.mlkit.vision.text.TextRecognition
-    //            -> play-services-mlkit-text-recognition-common-19.1.0
-    //        ...vision.text.chinese.ChineseTextRecognizerOptions
-    //            -> play-services-mlkit-text-recognition-chinese-16.0.1
-    //      **所以 `play-services-` 不是「不能用的另一條路」，它是這條路的一部分。**
-    //      （先前此處的註解寫「不能用 play-services- 那條，會走按需下載」，
-    //        那是**錯的**，已更正。）
-    //   3. 「離線可用」的真正來源是 **text-recognition-bundled-common**（17.5 MB AAR）：
-    //      它把模型與 native 一起打包。已在 APK 內確認：
-    //        lib/arm64-v8a/libmlkit_google_ocr_pipeline.so   (10.5 MB)
-    //        assets/mlkit-google-ocr-models/gocr/.../Hani_ctc/...  (Hani = 漢字)
-    //      **模型確實在 APK 裡，所以離線成立** —— 這點是驗證過的，不是推論。
-    //
-    // ★ 體積：本次加入後 debug APK 由 210.5 MB 增至 219.1 MB（+8.6 MB，壓縮後）。
-    //   未壓縮約 +28 MB，因為三個 ABI 各帶一份 native library。
-    //   若之後要壓，最有效的做法是限制只出 arm64-v8a（真機是 Redmi Note 11T Pro），
-    //   但那是全 App 的決定，不在這個 spike 範圍。
-    //
-    // ★ minSdk：此 API 要求 API 23 以上，本專案是 24，**不需要改**。
-    //
-    // ★ 版本：以 Gradle 解析為準。`16.0.1` 是查官方文件時的值，
-    //   文件會過時，不要把它當成永久正確。
-    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
 }
 
 flutter {

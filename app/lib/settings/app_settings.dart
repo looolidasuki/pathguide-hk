@@ -1,59 +1,104 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 播報速度。三個檔位對應 `flutter_tts` 的 speech rate。
-///
-/// 為什麼只有三檔而不是連續滑桿：滑桿對全盲使用者不可判斷（看不到刻度、
-/// 也聽不出 0.01 的差別），三檔可用「慢／正常／快」直接唸出來。
+import '../tts/announcer.dart' show kMinSpeakScore;
+
+enum AppLanguage { chinese, english }
+
+/// The three user-facing speech rates map to the values expected by
+/// `flutter_tts`. The labels deliberately describe relative speed rather than
+/// exposing implementation-specific decimal values.
 enum SpeechSpeed {
-  slow(0.35),
-  normal(0.45),
-  fast(0.55);
+  slow('0.8 倍速', 0.35),
+  normal('1 倍速', 0.45),
+  fast('1.2 倍速', 0.55);
 
-  const SpeechSpeed(this.ttsRate);
+  const SpeechSpeed(this.label, this.rate);
 
-  /// 傳給 `flutter_tts.setSpeechRate` 的值。
-  final double ttsRate;
+  final String label;
+  final double rate;
+
+  static SpeechSpeed fromStoredRate(double? value) {
+    return SpeechSpeed.values.firstWhere(
+      (speed) => (speed.rate - (value ?? normal.rate)).abs() < 0.001,
+      orElse: () => normal,
+    );
+  }
 }
 
-/// 使用者的本機設定。目前只有播報速度。
-///
-/// 刻意**不**在這裡放雲端設定：跨端同步是雲能力（Spec 1 §3），
-/// 混進來會讓「訪客也能完整使用」這句話變得難驗證。
+/// Small app-wide preference controller. Only preferences that are real and
+/// already supported by the product live here; future features never write
+/// placeholder values to storage.
 class AppSettings extends ChangeNotifier {
-  AppSettings(this._prefs);
+  AppSettings._({
+    required this._preferences,
+    SpeechSpeed? speed,
+    double? speakThreshold,
+    AppLanguage language = AppLanguage.chinese,
+  }) : _speechSpeed = speed ?? SpeechSpeed.normal,
+       // ignore: prefer_initializing_formals
+       _language = language,
+       _speakThreshold = speakThreshold ?? kMinSpeakScore;
 
-  /// 測試與無存儲環境用。
-  AppSettings.memory() : _prefs = null;
+  static const String speechRateKey = 'speech_rate';
+  static const String speakThresholdKey = 'speak_threshold';
+  static const String languageKey = 'app_language';
+  AppLanguage _language;
+  AppLanguage get language => _language;
+  Future<void> setLanguage(AppLanguage value) async {
+    if (_language == value) return;
+    _language = value;
+    notifyListeners();
+    await _preferences?.setString(languageKey, value.name);
+  }
 
-  static const String kSpeechSpeedKey = 'speech_speed';
+  final SharedPreferences? _preferences;
+  SpeechSpeed _speechSpeed;
+  double _speakThreshold;
 
-  final SharedPreferences? _prefs;
-  SpeechSpeed _speechSpeed = SpeechSpeed.normal;
+  double get speakThreshold => _speakThreshold;
+
+  Future<void> setSpeakThreshold(double value) async {
+    if (!value.isFinite) return;
+    final next = value.clamp(0.05, 0.95);
+    if (next == _speakThreshold) return;
+    _speakThreshold = next;
+    notifyListeners();
+    await _preferences?.setDouble(speakThresholdKey, next);
+  }
+
+  /// Test and preview fallback. Production uses [load], which persists values.
+  factory AppSettings.memory({
+    SpeechSpeed speed = SpeechSpeed.normal,
+    AppLanguage language = AppLanguage.chinese,
+  }) => AppSettings._(preferences: null, speed: speed, language: language);
+
+  static Future<AppSettings> load() async {
+    final preferences = await SharedPreferences.getInstance();
+    return AppSettings._(
+      preferences: preferences,
+      language: preferences.getString(languageKey) == 'english'
+          ? AppLanguage.english
+          : AppLanguage.chinese,
+      speed: SpeechSpeed.fromStoredRate(preferences.getDouble(speechRateKey)),
+      speakThreshold: _restoreSpeakThreshold(
+        preferences.getDouble(speakThresholdKey),
+      ),
+    );
+  }
+
+  static double _restoreSpeakThreshold(double? value) =>
+      value != null && value.isFinite
+      ? value.clamp(0.05, 0.95)
+      : kMinSpeakScore;
 
   SpeechSpeed get speechSpeed => _speechSpeed;
 
-  /// 目前的 TTS 語速，直接餵給 speaker。
-  double get ttsRate => _speechSpeed.ttsRate;
-
-  static Future<AppSettings> load() async {
-    final prefs = await SharedPreferences.getInstance();
-    final settings = AppSettings(prefs);
-    final raw = prefs.getString(kSpeechSpeedKey);
-    // 未知值（舊版本寫的、或手改的）一律回退預設，不讓載入失敗——
-    // 設定壞掉不該擋住一個導航輔具的啟動。
-    if (raw != null) {
-      for (final speed in SpeechSpeed.values) {
-        if (speed.name == raw) settings._speechSpeed = speed;
-      }
-    }
-    return settings;
-  }
-
-  Future<void> setSpeechSpeed(SpeechSpeed speed) async {
-    if (speed == _speechSpeed) return;
-    _speechSpeed = speed;
+  Future<void> setSpeechSpeed(SpeechSpeed next) async {
+    if (next == _speechSpeed) return;
+    _speechSpeed = next;
     notifyListeners();
-    await _prefs?.setString(kSpeechSpeedKey, speed.name);
+    // The change remains useful for this session if storage ever fails.
+    await _preferences?.setDouble(speechRateKey, next.rate);
   }
 }

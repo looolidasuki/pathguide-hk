@@ -1,0 +1,86 @@
+{
+  "date": "2026-10-28",
+  "appVersion": "1.4.1+6",
+  "tag": "v1.4.1+6",
+  "type": "prerelease",
+  "previousAppTag": "v1.4.0+5",
+  "change": {
+    "localContiguousPatch": [
+      5,
+      5
+    ],
+    "maxCandidates": 9,
+    "centerFirst": true,
+    "excludeOccludedLocalPatches": true,
+    "visibleSampleMarker": true,
+    "visibleRefusalReasons": true,
+    "visibleValidPointCounts": true,
+    "confidenceGatesUnchanged": true,
+    "relativeSampleChangeResetsStability": 0.12
+  },
+  "fieldEvidence": {
+    "userReportedAllObjectRangesUnknown": true,
+    "userReportedCrosshairCanShowRange": true,
+    "rawRGBDReceived": false,
+    "rulerGroundTruthReceived": false,
+    "causeConfirmedOnPhysicalData": false,
+    "fixFieldVerified": false,
+    "userImageIncludedInRepoOrTraining": false
+  },
+  "verification": {
+    "flutterTestsPassed": 318,
+    "newFlutterTests": 4,
+    "nativeNumericalChecksPassed": 33,
+    "flutterAnalyze": "No issues found",
+    "iosSignedReleaseBuild": "passed",
+    "systemSignatureVerification": "passed",
+    "bundleVersionChecked": "1.4.1+6",
+    "modelManifestMatchesSource": true,
+    "deviceInstalled": false,
+    "nativeXCTest": "Not rerun for this patch; patch geometry/depth logic checked by standalone Swift checks and signed compilation"
+  },
+  "syntheticRegression": "Curved surface rejects the old broad sparse grid but passes a contiguous local patch under the same confidence gates. This does not reproduce or validate the user scene.",
+  "model": {
+    "format": 1,
+    "version": "2026-10-27.mixed10.experimental.1",
+    "file": "detector.tflite",
+    "bytes": 10695172,
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "inputSize": 640,
+    "modelClassCount": 10,
+    "modelClassIds": [
+      6,
+      11,
+      7,
+      8,
+      9,
+      24,
+      1,
+      49,
+      26,
+      18
+    ],
+    "trainedAt": "2026-10-26",
+    "experimental": true,
+    "map50": 0.7825363278727946,
+    "validationGatePassed": false,
+    "userRequestedTrial": true,
+    "limitations": [
+      "Door precision 28.6%, recall 11.1% at conf0.30 on small foreign validation set.",
+      "No independent fence validation; not an HKDI field benchmark."
+    ]
+  },
+  "privacy": {
+    "imagesSaved": false,
+    "depthSaved": false,
+    "poseSaved": false,
+    "photoUpload": false,
+    "newCloudAPI": false,
+    "paidGPUEnabled": false
+  },
+  "pending": [
+    "Repeat original single-person and group scene on physical iPhone",
+    "Inspect dot and refusal code / valid points if unknown",
+    "Independent ruler ground truth and joint class/distance evaluation"
+  ]
+}

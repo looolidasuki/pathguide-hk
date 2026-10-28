@@ -18,20 +18,41 @@ import 'package:pathguide/vision/vision_source.dart';
 ///
 /// 本文件把「谁必须实现接口」和「接口必须提供什么」变成可执行的断言。
 void main() {
-  group('实现关系', () {
-    test('MockVisionSource 实现 VisionSource', () {
+  test(
+    'three-class demo keeps every box inside the frame for readable labels',
+    () async {
+      final source = MockVisionSource(classIds: const [6, 11, 7]);
+      try {
+        final first = source.frames.first;
+        await source.initialize();
+        final frame = await first;
+        expect(frame.detections, hasLength(3));
+        for (final detection in frame.detections) {
+          final rect = detection.normalizedRect;
+          expect(rect.left, greaterThanOrEqualTo(0));
+          expect(rect.top, greaterThanOrEqualTo(0));
+          expect(rect.right, lessThanOrEqualTo(1));
+          expect(rect.bottom, lessThanOrEqualTo(1));
+        }
+      } finally {
+        await source.dispose();
+      }
+    },
+  );
+  group('實現關系', () {
+    test('MockVisionSource 實現 VisionSource', () {
       final VisionSource s = MockVisionSource();
       expect(s, isA<VisionSource>());
     });
 
-    test('PlatformVision 也实现 VisionSource', () {
+    test('PlatformVision 也實現 VisionSource', () {
       // 这是本轮重构的核心目标：平台实现必须与假实现走同一个接口，
       // 否则 UI 无法只依赖抽象。
       final VisionSource s = PlatformVision();
       expect(s, isA<VisionSource>());
     });
 
-    test('两者可互换赋值给同一接口类型', () {
+    test('兩者可互换赋值给同一接口類型', () {
       // 覆盖「UI 只持有一个 VisionSource」这一用法。
       final List<VisionSource> sources = <VisionSource>[
         MockVisionSource(),
@@ -43,8 +64,8 @@ void main() {
     });
   });
 
-  group('接口必须提供的东西', () {
-    test('frameSize 是**旋转之后**的尺寸：0 度不换轴', () {
+  group('接口必須提供的东西', () {
+    test('frameSize 是**旋轉之後**的尺寸：0 度不换轴', () {
       final VisionSource s = MockVisionSource(
         frameSize: const Size(1280, 720),
         rotationDegrees: 0,
@@ -52,7 +73,7 @@ void main() {
       expect(s.frameSize, const Size(1280, 720));
     });
 
-    test('frameSize 是**旋转之后**的尺寸：90 度换轴', () {
+    test('frameSize 是**旋轉之後**的尺寸：90 度换轴', () {
       // 这一条是本轮重构的核心语义：frameSize 承诺已旋转到位，
       // 因此 UI 不再自行 rotatedFrameSize，几何量的唯一来源是来源本身。
       // 首次写这个测试时把它当成了「原始尺寸」，断言写反了——
@@ -64,7 +85,7 @@ void main() {
       expect(s.frameSize, const Size(720, 1280));
     });
 
-    test('frameSize 是**旋转之后**的尺寸：180 度不换轴', () {
+    test('frameSize 是**旋轉之後**的尺寸：180 度不换轴', () {
       final VisionSource s = MockVisionSource(
         frameSize: const Size(1280, 720),
         rotationDegrees: 180,
@@ -72,7 +93,7 @@ void main() {
       expect(s.frameSize, const Size(1280, 720));
     });
 
-    test('frameSize 是**旋转之后**的尺寸：270 度换轴', () {
+    test('frameSize 是**旋轉之後**的尺寸：270 度换轴', () {
       final VisionSource s = MockVisionSource(
         frameSize: const Size(1280, 720),
         rotationDegrees: 270,
@@ -87,13 +108,13 @@ void main() {
       expect(MockVisionSource(rotationDegrees: 450).rotationDegrees, 90);
     });
 
-    test('rotationDegrees 是 90 的整数倍且归一化到 [0,360)', () {
+    test('rotationDegrees 是 90 的整數倍且归一化到 [0,360)', () {
       final s = MockVisionSource();
       expect(s.rotationDegrees % 90, 0);
       expect(s.rotationDegrees, inInclusiveRange(0, 359));
     });
 
-    test('threshold 可读可写且被夹在 [0,1]', () {
+    test('threshold 可读可寫且被夹在 [0,1]', () {
       final s = MockVisionSource();
       s.threshold = 0.42;
       expect(s.threshold, closeTo(0.42, 1e-9));
@@ -103,20 +124,20 @@ void main() {
       expect(s.threshold, greaterThanOrEqualTo(0.0));
     });
 
-    test('diagnostics 在接口上，且不支持的实现返回 null 而不是抛异常', () {
+    test('diagnostics 在接口上，且不支持的實現返回 null 而不是抛异常', () {
       // 假数据源没有原生诊断，它必须返回 null；UI 据此隐藏诊断面板，
       // 而不是在切到假数据时仍去轮询一个不存在的原生设备（当前就是这样）。
       expect(MockVisionSource().diagnostics(), completion(isNull));
     });
 
-    test('显示名用于界面提示', () {
+    test('顯示名用於界面提示', () {
       expect(MockVisionSource().displayName, isNotEmpty);
       expect(PlatformVision().displayName, isNotEmpty);
     });
   });
 
-  group('坐标契约', () {
-    test('来源已把画面转正，映射时不得再旋转一次', () {
+  group('坐標契约', () {
+    test('來源已把画面轉正，映射时不得再旋轉一次', () {
       // 竖屏后置相机：原始帧 1280x720，顺时针 90 度才正立 -> frameSize 720x1280。
       final VisionSource s = MockVisionSource(
         frameSize: const Size(1280, 720),
@@ -162,7 +183,7 @@ void main() {
       expect(s.initialize(), completion(isA<VisionSourceStatus>()));
     });
 
-    test('阈值越界后仍能正常出帧', () async {
+    test('閾值越界後仍能正常出幀', () async {
       final s = MockVisionSource(interval: const Duration(milliseconds: 10));
       s.threshold = 0.99;
       final status = await s.initialize();
@@ -174,7 +195,7 @@ void main() {
       await s.dispose();
     });
 
-    test('dispose 后流关闭', () async {
+    test('dispose 後流關閉', () async {
       final s = MockVisionSource(interval: const Duration(milliseconds: 10));
       await s.initialize();
       await s.dispose();

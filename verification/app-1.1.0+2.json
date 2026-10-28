@@ -1,0 +1,68 @@
+{
+  "appVersion": "1.1.0+2",
+  "tag": "v1.1.0+2",
+  "releaseType": "prerelease",
+  "date": "2026-10-27",
+  "repository": "https://github.com/actiondarr/pathguide",
+  "branch": "feature/cross-platform-navigation",
+  "historicalSourceTag": "v1.0.0+1-baseline",
+  "historicalSourceCommit": "f9dfb494ac3bc9a470337d15cde6a5c67018aac9",
+  "features": [
+    "Persistent Traditional Chinese / English interface",
+    "Accepted English TTS language selection",
+    "Opt-in local recognition during outdoor navigation",
+    "One app speech output with navigation priority and no environment queue",
+    "Serialized camera ownership; pause/background/confirmation cancellation; 3-second result expiry",
+    "Adaptive bottom navigation height for English and accessibility text"
+  ],
+  "verification": {
+    "flutterTestsPassed": 247,
+    "flutterAnalyze": "No issues found",
+    "iosReleaseNoCodesign": "passed",
+    "englishSettingsRender": "manually inspected",
+    "deviceInstalled": false,
+    "fieldAccuracyValidated": false
+  },
+  "model": {
+    "format": 1,
+    "version": "2026-10-27.mixed10.experimental.1",
+    "file": "detector.tflite",
+    "bytes": 10695172,
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "inputSize": 640,
+    "modelClassCount": 10,
+    "modelClassIds": [
+      6,
+      11,
+      7,
+      8,
+      9,
+      24,
+      1,
+      49,
+      26,
+      18
+    ],
+    "trainedAt": "2026-10-26",
+    "experimental": true,
+    "map50": 0.7825363278727946,
+    "validationGatePassed": false,
+    "userRequestedTrial": true,
+    "limitations": [
+      "Door precision 28.6%, recall 11.1% at conf0.30 on small foreign validation set.",
+      "No independent fence validation; not an HKDI field benchmark."
+    ]
+  },
+  "pending": [
+    "New device acceptance for concurrent navigation and camera / VoiceOver timing",
+    "Manual graph and landmark replay",
+    "ARKit same-frame depth and geometric calibration",
+    "Spatial audio and FSD spatial rendering"
+  ],
+  "privacy": {
+    "navigationRecognitionPhotoStorage": false,
+    "navigationRecognitionUpload": false,
+    "newCloudAPI": false,
+    "paidGPUEnabled": false
+  }
+}

@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-28",
+  "appVersion": "1.3.0+4",
+  "tag": "v1.3.0+4",
+  "type": "prerelease",
+  "previousAppTag": "v1.2.0+3",
+  "feature": {
+    "name": "LiDAR centre surface range trial",
+    "source": "ARKit sceneDepth with confidenceMap",
+    "runtimeCapabilityCheck": true,
+    "sameARFrame": true,
+    "patch": [
+      5,
+      5
+    ],
+    "metric": "radial camera-to-surface range",
+    "notObjectExtent": true,
+    "independentFromGraphAndDetector": true
+  },
+  "verification": {
+    "flutterTestsPassed": 294,
+    "newFlutterTests": 20,
+    "nativeDepthSamplingChecksPassed": 12,
+    "flutterAnalyze": "No issues found",
+    "iosSignedReleaseBuild": "passed",
+    "systemSignatureVerification": "passed",
+    "builtBundleVersionChecked": "1.3.0+4",
+    "modelManifestMatchesSource": true,
+    "modelShaVerified": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "deviceInstalled": false,
+    "rulerAccuracyValidated": false,
+    "realCameraHandoffValidated": false,
+    "realSiteLocalizationValidated": false
+  },
+  "reproduction": {
+    "flutter": "cd app && flutter test --no-pub",
+    "analysis": "cd app && flutter analyze --no-pub",
+    "nativeNumerics": "xcrun swiftc -module-cache-path /private/tmp/pathguide-depth-swift-cache app/ios/Runner/DepthSampling.swift app/tool/depth_sampling_check.swift -o /private/tmp/pathguide-depth-check && /private/tmp/pathguide-depth-check"
+  },
+  "engineeringThresholdsNotFieldCalibrated": {
+    "planeZM": [
+      0.2,
+      4.0
+    ],
+    "radialRangeMaxM": 4.0,
+    "confidenceLevel": "high only",
+    "validFractionMin": 0.7,
+    "inlierFractionMin": 0.8,
+    "nativeSampleIntervalMinMs": 120,
+    "motionTranslationMaxM": 0.025,
+    "motionRotationMaxRad": 0.04,
+    "freshAgeMaxMs": 350,
+    "stableFrames": 3,
+    "stableWindowMaxMs": 700,
+    "stableSpanMinMs": 200,
+    "silenceExpiryMs": 800
+  },
+  "model": {
+    "format": 1,
+    "version": "2026-10-27.mixed10.experimental.1",
+    "file": "detector.tflite",
+    "bytes": 10695172,
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "inputSize": 640,
+    "modelClassCount": 10,
+    "modelClassIds": [
+      6,
+      11,
+      7,
+      8,
+      9,
+      24,
+      1,
+      49,
+      26,
+      18
+    ],
+    "trainedAt": "2026-10-26",
+    "experimental": true,
+    "map50": 0.7825363278727946,
+    "validationGatePassed": false,
+    "userRequestedTrial": true,
+    "limitations": [
+      "Door precision 28.6%, recall 11.1% at conf0.30 on small foreign validation set.",
+      "No independent fence validation; not an HKDI field benchmark."
+    ]
+  },
+  "privacy": {
+    "localOnly": true,
+    "imagesSaved": false,
+    "depthSaved": false,
+    "poseSaved": false,
+    "photoUpload": false,
+    "newCloudAPI": false,
+    "paidGPUEnabled": false
+  },
+  "pending": [
+    "Independent ruler checks on iPhone across ranges/materials/lighting",
+    "Physical camera handoff / VoiceOver / permissions acceptance",
+    "Reference/query images and real graph localization",
+    "Depth-to-detection fusion",
+    "Spatial audio and FSD spatial rendering"
+  ]
+}

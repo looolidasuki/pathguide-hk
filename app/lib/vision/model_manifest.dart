@@ -72,16 +72,16 @@ class ModelManifest {
 
   /// 转成映射对象。清单已校验过，所以这里一定成功。
   ModelClassMapping toMapping() => ModelClassMapping(
-        modelClassCount: modelClassCount,
-        ids: modelClassIds.isEmpty
-            ? const <int>[]
-            : List<int>.unmodifiable(modelClassIds),
-      );
+    modelClassCount: modelClassCount,
+    ids: modelClassIds.isEmpty
+        ? const <int>[]
+        : List<int>.unmodifiable(modelClassIds),
+  );
 
   /// 给界面/日志用的一句话。
   String describe() {
     final names = modelClassIds
-        .map((id) => labelOf(id)?.nameEn ?? 'id$id')
+        .map((id) => labelOf(id)?.nameZh ?? 'id$id')
         .join('、');
     return '模型清單 $version：$modelClassCount 類（$names），'
         '輸入 $inputSize'
@@ -126,8 +126,9 @@ ManifestParseResult parseModelManifest(String text) {
   final format = asInt(raw['format']);
   if (format != 1) {
     return ManifestParseResult.fail(
-        '模型清單 format=$format，本版 App 只認 format=1。'
-        '（格式變了必須報錯，不能忽略未知欄位繼續跑）');
+      '模型清單 format=$format，本版 App 只認 format=1。'
+      '（格式變了必須報錯，不能忽略未知字段繼續跑）',
+    );
   }
 
   final version = raw['version'];
@@ -144,12 +145,14 @@ ManifestParseResult parseModelManifest(String text) {
   }
   final count = asInt(raw['modelClassCount']);
   if (count == null || count <= 0) {
-    return ManifestParseResult.fail('模型清單 modelClassCount 非法：${raw['modelClassCount']}');
+    return ManifestParseResult.fail(
+      '模型清單 modelClassCount 非法：${raw['modelClassCount']}',
+    );
   }
 
   final idsRaw = raw['modelClassIds'];
   if (idsRaw is! List) {
-    return ManifestParseResult.fail('模型清單缺 modelClassIds 陣列');
+    return ManifestParseResult.fail('模型清單缺 modelClassIds 數組');
   }
   final ids = <int>[];
   for (final v in idsRaw) {
@@ -164,18 +167,21 @@ ManifestParseResult parseModelManifest(String text) {
   if (ids.isEmpty) {
     if (count != kNumClasses) {
       return ManifestParseResult.fail(
-          'modelClassIds 為空表示「輸出即真實 id」，但模型是 $count 類、'
-          '類別表是 $kNumClasses 類：二者不等，空表不成立');
+        'modelClassIds 為空表示「輸出即真實 id」，但模型是 $count 類、'
+        '類別表是 $kNumClasses 類：二者不等，空表不成立',
+      );
     }
   } else {
     if (ids.length != count) {
       return ManifestParseResult.fail(
-          'modelClassIds 有 ${ids.length} 項，而 modelClassCount=$count：長度必須一致');
+        'modelClassIds 有 ${ids.length} 項，而 modelClassCount=$count：長度必須一致',
+      );
     }
     for (final id in ids) {
       if (labelOf(id) == null) {
         return ManifestParseResult.fail(
-            'modelClassIds 裏有超出類別表的 id：$id（類別表 $kNumClasses 類）');
+          'modelClassIds 裏有超出類別表的 id：$id（類別表 $kNumClasses 類）',
+        );
       }
     }
     if (ids.toSet().length != ids.length) {
@@ -192,16 +198,18 @@ ManifestParseResult parseModelManifest(String text) {
 
   double? asDouble(Object? v) => v is num ? v.toDouble() : null;
 
-  return ManifestParseResult.ok(ModelManifest(
-    format: format!,
-    version: version,
-    file: file,
-    modelClassCount: count,
-    modelClassIds: List<int>.unmodifiable(ids),
-    inputSize: inputSize,
-    bytes: asInt(raw['bytes']),
-    sha256: sha as String?,
-    trainedAt: raw['trainedAt'] is String ? raw['trainedAt'] as String : null,
-    map50: asDouble(raw['map50']),
-  ));
+  return ManifestParseResult.ok(
+    ModelManifest(
+      format: format!,
+      version: version,
+      file: file,
+      modelClassCount: count,
+      modelClassIds: List<int>.unmodifiable(ids),
+      inputSize: inputSize,
+      bytes: asInt(raw['bytes']),
+      sha256: sha as String?,
+      trainedAt: raw['trainedAt'] is String ? raw['trainedAt'] as String : null,
+      map50: asDouble(raw['map50']),
+    ),
+  );
 }

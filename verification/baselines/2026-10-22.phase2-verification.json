@@ -1,0 +1,19 @@
+{
+  "date": "2026-10-22",
+  "flutterTestsPassed": 127,
+  "baselineTestsPassed": 107,
+  "staticAnalysis": "passed",
+  "iosBuild": "debug no codesign passed",
+  "xcode": "27.1",
+  "phoneAcceptance": "pending",
+  "blindUserTesting": "pending",
+  "originalDocumentsDeleted": false,
+  "modelSha256Verified": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+  "notes": [
+    "Native platform channels are mocked in widget tests.",
+    "Visual previews use mock detections.",
+    "Recognition starts on entry with automatic announcements; manual pause survives interruptions.",
+    "Secondary controls are grouped under More actions; Pause remains visible.",
+    "No Firebase deployment or data collection."
+  ]
+}

@@ -1,0 +1,361 @@
+Resolving dependencies...
+Downloading packages...
+  _flutterfire_internals 1.3.77 (1.3.79 available)
+  cloud_firestore 6.10.0 (7.1.0 available)
+  cloud_firestore_platform_interface 8.0.7 (8.1.0 available)
+  cloud_firestore_web 5.7.3 (5.8.0 available)
+  cloud_functions 6.5.0 (7.0.1 available)
+  cloud_functions_platform_interface 6.0.7 (6.1.1 available)
+  cloud_functions_web 5.1.13 (5.1.15 available)
+  code_assets 1.2.1 (2.1.0 available)
+  crypto 3.0.7 (3.0.8 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  firebase_app_check 0.4.8 (0.5.1 available)
+  firebase_app_check_platform_interface 0.4.2+1 (0.5.1+3 available)
+  firebase_app_check_web 0.2.6+1 (0.3.1+3 available)
+  firebase_auth 6.7.0 (7.0.1 available)
+  firebase_auth_platform_interface 9.1.0 (9.1.2 available)
+  firebase_auth_web 6.3.0 (6.3.2 available)
+  firebase_core 4.15.0 (5.1.0 available)
+  firebase_core_web 3.12.0 (4.1.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  jni 1.1.0 (1.1.1 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  shared_preferences_android 2.4.28 (2.5.4 available)
+  shared_preferences_foundation 2.5.7 (2.6.1 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.4 available)
+  vm_service 15.3.0 (15.4.0 available)
+  web 1.1.1 (1.1.2 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+32 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading P:/.tmp/merge-probe/app/test/account_controller_test.dart
+00:00 +0: P:/.tmp/merge-probe/app/test/account_controller_test.dart: phone normalization preserves E164 and rejects dial URI injection
+00:00 +1: P:/.tmp/merge-probe/app/test/account_controller_test.dart: guest stays signed out and sign-in requires agreement
+00:00 +2: P:/.tmp/merge-probe/app/test/account_controller_test.dart: cancelled Google sign-in creates no profile
+00:00 +3: P:/.tmp/merge-probe/app/test/account_controller_test.dart: account initialization retries with the same UID
+00:00 +4: P:/.tmp/merge-probe/app/test/account_controller_test.dart: contact can be skipped, saved, changed and removed
+00:00 +5: P:/.tmp/merge-probe/app/test/account_controller_test.dart: sign-out clears contact and account information
+00:00 +6: P:/.tmp/merge-probe/app/test/account_controller_test.dart: old account delayed save cannot populate new account or cache
+00:00 +7: P:/.tmp/merge-probe/app/test/account_controller_test.dart: restored same account can call secure cached contact when offline
+00:00 +8: P:/.tmp/merge-probe/app/test/account_controller_test.dart: offline contact stays callable while profile refresh is pending
+00:00 +9: P:/.tmp/merge-probe/app/test/account_controller_test.dart: dialer failure is explicit
+00:00 +10: P:/.tmp/merge-probe/app/test/account_controller_test.dart: cancelled reauthentication does not delete contact
+00:00 +11: P:/.tmp/merge-probe/app/test/account_controller_test.dart: interrupted identity deletion leaves guard and is retryable
+00:00 +12: P:/.tmp/merge-probe/app/test/account_controller_test.dart: secure cache is owner scoped, validates data, and clears on logout
+00:00 +13: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +14: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +15: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +16: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +17: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +18: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +19: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +20: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +21: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +22: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +23: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +24: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +25: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +26: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +27: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +28: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +29: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +30: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +31: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +32: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +33: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +34: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +35: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +36: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +37: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +38: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +39: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +40: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +41: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +42: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +43: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +44: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +45: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +46: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +47: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +48: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +49: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +50: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +51: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +52: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +53: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +54: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +55: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +56: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +57: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +58: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +59: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +60: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +61: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +62: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +63: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +64: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +65: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +66: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +67: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +68: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +69: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +70: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +71: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +72: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +73: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +74: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +75: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +76: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +77: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +78: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +79: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +80: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +81: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +82: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +83: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +84: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +85: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +86: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +87: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +88: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +89: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +90: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +91: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +92: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +93: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +94: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +95: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +96: P:/.tmp/merge-probe/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +97: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +98: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +99: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +100: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +101: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +102: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +103: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +104: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +105: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +106: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +107: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +108: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +109: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +110: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +111: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +112: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +113: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +114: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +115: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +116: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +117: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +118: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +119: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +120: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +121: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +122: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +123: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +124: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +125: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +126: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +127: P:/.tmp/merge-probe/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +128: P:/.tmp/merge-probe/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:02 +129: P:/.tmp/merge-probe/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:02 +130: P:/.tmp/merge-probe/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:02 +131: P:/.tmp/merge-probe/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:02 +132: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +133: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +134: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +135: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +136: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +137: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +138: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +139: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +140: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +141: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +142: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +143: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +144: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +145: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +146: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +147: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +148: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +149: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +150: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +151: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +152: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +153: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +154: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +155: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +156: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +157: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +158: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +159: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +160: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +161: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +162: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +163: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +164: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +165: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +166: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +167: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +168: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +169: P:/.tmp/merge-probe/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +170: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +171: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +172: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +173: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +174: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +175: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +176: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +177: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +178: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +179: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +180: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +181: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +182: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +183: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +184: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +185: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +186: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +187: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:03 +188: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +189: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +190: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +191: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +192: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +193: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +194: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +195: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +196: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +197: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +198: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +199: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +200: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +201: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +202: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +203: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +204: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +205: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +206: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +207: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +208: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +209: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +210: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +211: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +212: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +213: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +214: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +215: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +216: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +217: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +218: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +219: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +220: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +221: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +222: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +223: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +224: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +225: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +226: P:/.tmp/merge-probe/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +227: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +228: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +229: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +230: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +231: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +232: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +233: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +234: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:04 +235: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +236: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +237: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +238: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +239: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +240: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +241: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +242: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +243: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +244: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +245: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +246: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +247: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +248: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +249: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +250: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +251: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +252: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +253: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +254: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +255: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +256: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +257: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:05 +258: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +259: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +260: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +261: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +262: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +263: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +264: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +265: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +266: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +267: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +268: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +269: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +270: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +271: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +272: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +273: P:/.tmp/merge-probe/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +274: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:06 +275: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:06 +276: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:06 +277: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:06 +278: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:06 +279: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:06 +280: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +281: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +281: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.273 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:07 +282: P:/.tmp/merge-probe/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +283: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:07 +284: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:07 +285: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:07 +286: P:/.tmp/merge-probe/app/test/navigation_test.dart: five voice searches each automatically announce exactly once
+00:08 +287: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: camera presentation hides Flutter without cancelling acquisition
+00:08 +288: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: technical diagnostics stay collapsed until requested
+00:08 +289: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: technical diagnostics stay collapsed until requested
+00:08 +290: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: technical diagnostics stay collapsed until requested
+00:08 +291: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: user tea menu voice query automatically reads variant prices
+00:08 +292: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: slow speech stop does not block mock startup
+00:08 +293: P:/.tmp/merge-probe/app/test/menu_ui_test.dart: raw OCR dialog copies local diagnostics including geometry
+00:08 +294: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: iPhone boots into the native camera and keeps mock mode available
+00:08 +295: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: iPhone boots into the native camera and keeps mock mode available
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.273 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.273 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:09 +296: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: threshold and label controls affect the real overlay
+00:09 +297: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:09 +298: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: speech switch stops speech and disables future announcements
+00:10 +299: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: background stops recognition and foreground automatically resumes
+00:10 +300: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: speech failure cannot prevent the simulated scene from starting
+00:11 +301: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: non-Cantonese fallback remains visible after source initialization
+00:11 +302: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: slow speech initialization does not block demo or restart it in background
+00:11 +303: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: Android still initializes the native camera path
+00:11 +304: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: small iPhone with larger text keeps controls usable without overflow
+00:12 +305: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: small iPhone with larger text keeps native settings scrollable
+00:12 +306: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: task home is accessible and never starts camera
+00:13 +307: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: automatic entry stays compact and replay is optional
+00:14 +308: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: screen reader reads requested results without duplicate TTS
+00:14 +309: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: screen reader automatically announces objects without TTS
+00:15 +310: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: enabling screen reader keeps automatic announcements enabled
+00:15 +311: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: settings modal suspends automatic environment speech
+00:15 +312: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: camera permission failure exposes explicit retry
+00:16 +313: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: pausing during native startup discards the delayed result
+00:16 +314: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: manual pause remains paused after interruption
+00:17 +315: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: permission dialog returns to the same pending startup
+00:17 +316: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: recognition controls have labels and minimum touch targets
+00:17 +317: P:/.tmp/merge-probe/app/test/ios_demo_test.dart: two times text retains fixed task controls and scrollable teaching
+00:18 +318: All tests passed!

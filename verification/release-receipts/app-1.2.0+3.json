@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-28",
+  "version": "1.2.0+3",
+  "appSourceCommit": "95d7cdae1a97adf255a73e19cbc58994bc3c36f0",
+  "remoteBranch": "feature/cross-platform-navigation",
+  "tag": "v1.2.0+3",
+  "tagObject": "fd767e64a8ba33639509eecba33d35d4e59f0553",
+  "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.2.0%2B3",
+  "prerelease": true,
+  "remoteCommitAndTagVerified": true,
+  "releaseHeadingTagAndCommitVerified": true,
+  "flutterTestsPassed": 274,
+  "analyze": "No issues found",
+  "signedReleaseBuild": "passed",
+  "systemSignatureVerification": "passed",
+  "bundleVersion": "1.2.0+3",
+  "modelSha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+  "deviceModel": "iPhone 15 Pro Max",
+  "deviceInstalled": true,
+  "deviceLaunched": true,
+  "installationBlocker": null,
+  "realSiteLocalizationValidated": false,
+  "previousAppTag": "v1.1.0+2",
+  "installationHistory": [
+    "Initial installation blocked because device had not been unlocked recently",
+    "User confirmed device unlocked; CoreDevice installation and process launch succeeded"
+  ]
+}

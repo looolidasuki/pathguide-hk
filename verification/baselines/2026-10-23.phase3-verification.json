@@ -1,0 +1,80 @@
+{
+  "date": "2026-10-23",
+  "phase": 3,
+  "status": "development_verified_pending_firebase_configuration_and_device_acceptance",
+  "checks": {
+    "flutter_tests": {
+      "passed": 145,
+      "failed": 0,
+      "command": "flutter test --no-pub --no-version-check"
+    },
+    "flutter_analyze": {
+      "status": "passed",
+      "issues": 0
+    },
+    "ios_debug_build": {
+      "status": "passed",
+      "codesigned": false,
+      "bundle_id": "hk.pathguide.pathguide"
+    },
+    "firestore_emulator_tests": {
+      "passed": 9,
+      "failed": 0,
+      "project": "demo-pathguide-phase3",
+      "production_deployment": false
+    },
+    "firebase_config_generator_tests": {
+      "passed": 1,
+      "failed": 0
+    },
+    "account_ui_preview_tests": {
+      "passed": 4,
+      "included_in_full_suite": true,
+      "locale": "zh-HK",
+      "large_text_scale": 2.0
+    },
+    "word_render_review": {
+      "documents": 3,
+      "pages": 6,
+      "status": "all_pages_visually_reviewed_passed"
+    },
+    "git_diff_whitespace": {
+      "status": "passed"
+    },
+    "word_accessibility_audit": {
+      "documents": 3,
+      "high": 0,
+      "medium": 0,
+      "low": 0
+    }
+  },
+  "tested_scope": [
+    "guest recognition remains available",
+    "Google cancellation and initialization retry through fake adapters",
+    "UID isolation and delayed response protection",
+    "contact CRUD and owner-scoped secure cache",
+    "cached contact dialing while profile refresh is pending",
+    "reauthentication and retryable deletion",
+    "Firestore owner, provider, schema and deletion-guard rules"
+  ],
+  "not_verified": [
+    "real Firebase Google OAuth and callback",
+    "production Firestore rules deployment",
+    "real-device Keychain persistence and account switching",
+    "real system dialing",
+    "VoiceOver and Screen Curtain on iPhone",
+    "release signing, installation and unplugged relaunch",
+    "visually impaired user acceptance"
+  ],
+  "model_asset_repair": {
+    "purpose": "supply existing model selector with its missing nine-class fallback asset",
+    "asset": "app/assets/models/detector-hk9.tflite",
+    "sha256": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "primary_model_changed_by_this_repair": false
+  },
+  "scope_exclusions": [
+    "photo capture and uploads",
+    "personal model training and downloads",
+    "automatic emergency messaging or calls"
+  ]
+}

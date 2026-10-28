@@ -1,0 +1,360 @@
+{
+  "origin": "Selected verbatim rows from user-pasted iPhone diagnostics on 2026-10-23",
+  "source_ocr_version": "2026-10-23.price-crops.1",
+  "source_reported_line_count": 220,
+  "selected_rows_only": true,
+  "confidence_note": "Diagnostics omitted confidence; 1 is a test placeholder for geometry, not a measured OCR confidence",
+  "lines": [
+    {
+      "text": "中式飯類",
+      "page": 1,
+      "left": 0.099,
+      "top": 0.293,
+      "width": 0.156,
+      "height": 0.03,
+      "confidence": 1
+    },
+    {
+      "text": "西式飯類",
+      "page": 1,
+      "left": 0.415,
+      "top": 0.298,
+      "width": 0.141,
+      "height": 0.028,
+      "confidence": 1
+    },
+    {
+      "text": "各式炒粉麵",
+      "page": 1,
+      "left": 0.705,
+      "top": 0.301,
+      "width": 0.151,
+      "height": 0.028,
+      "confidence": 1
+    },
+    {
+      "text": "$56",
+      "page": 1,
+      "left": 0.272,
+      "top": 0.366,
+      "width": 0.042,
+      "height": 0.015,
+      "confidence": 1
+    },
+    {
+      "text": "$56",
+      "page": 1,
+      "left": 0.271,
+      "top": 0.387,
+      "width": 0.045,
+      "height": 0.018,
+      "confidence": 1
+    },
+    {
+      "text": "$56",
+      "page": 1,
+      "left": 0.273,
+      "top": 0.408,
+      "width": 0.043,
+      "height": 0.016,
+      "confidence": 1
+    },
+    {
+      "text": "$54",
+      "page": 1,
+      "left": 0.281,
+      "top": 0.513,
+      "width": 0.041,
+      "height": 0.014,
+      "confidence": 1
+    },
+    {
+      "text": "$54",
+      "page": 1,
+      "left": 0.295,
+      "top": 0.786,
+      "width": 0.039,
+      "height": 0.013,
+      "confidence": 1
+    },
+    {
+      "text": "$54",
+      "page": 1,
+      "left": 0.299,
+      "top": 0.834,
+      "width": 0.036,
+      "height": 0.013,
+      "confidence": 1
+    },
+    {
+      "text": "$54",
+      "page": 1,
+      "left": 0.3,
+      "top": 0.852,
+      "width": 0.035,
+      "height": 0.012,
+      "confidence": 1
+    },
+    {
+      "text": "茄芝主娟老芝",
+      "page": 1,
+      "left": 0.352,
+      "top": 0.36,
+      "width": 0.029,
+      "height": 0.171,
+      "confidence": 1
+    },
+    {
+      "text": "飯",
+      "page": 1,
+      "left": 0.473,
+      "top": 0.371,
+      "width": 0.023,
+      "height": 0.022,
+      "confidence": 1
+    },
+    {
+      "text": "意粉",
+      "page": 1,
+      "left": 0.519,
+      "top": 0.372,
+      "width": 0.048,
+      "height": 0.023,
+      "confidence": 1
+    },
+    {
+      "text": "扒鮮 盟",
+      "page": 1,
+      "left": 0.449,
+      "top": 0.369,
+      "width": 0.025,
+      "height": 0.107,
+      "confidence": 1
+    },
+    {
+      "text": "意意意魚",
+      "page": 1,
+      "left": 0.519,
+      "top": 0.364,
+      "width": 0.026,
+      "height": 0.112,
+      "confidence": 1
+    },
+    {
+      "text": "$60",
+      "page": 1,
+      "left": 0.573,
+      "top": 0.373,
+      "width": 0.045,
+      "height": 0.017,
+      "confidence": 1
+    },
+    {
+      "text": "$60",
+      "page": 1,
+      "left": 0.574,
+      "top": 0.403,
+      "width": 0.041,
+      "height": 0.015,
+      "confidence": 1
+    },
+    {
+      "text": "$60",
+      "page": 1,
+      "left": 0.572,
+      "top": 0.43,
+      "width": 0.043,
+      "height": 0.017,
+      "confidence": 1
+    },
+    {
+      "text": "$60",
+      "page": 1,
+      "left": 0.568,
+      "top": 0.513,
+      "width": 0.041,
+      "height": 0.016,
+      "confidence": 1
+    },
+    {
+      "text": "$54",
+      "page": 1,
+      "left": 0.554,
+      "top": 0.844,
+      "width": 0.037,
+      "height": 0.013,
+      "confidence": 1
+    },
+    {
+      "text": "$54",
+      "page": 1,
+      "left": 0.554,
+      "top": 0.865,
+      "width": 0.037,
+      "height": 0.013,
+      "confidence": 1
+    },
+    {
+      "text": "$58",
+      "page": 1,
+      "left": 0.856,
+      "top": 0.371,
+      "width": 0.036,
+      "height": 0.014,
+      "confidence": 1
+    },
+    {
+      "text": "＄58",
+      "page": 1,
+      "left": 0.849,
+      "top": 0.393,
+      "width": 0.041,
+      "height": 0.015,
+      "confidence": 1
+    },
+    {
+      "text": "$58",
+      "page": 1,
+      "left": 0.852,
+      "top": 0.414,
+      "width": 0.035,
+      "height": 0.014,
+      "confidence": 1
+    },
+    {
+      "text": "＄58",
+      "page": 1,
+      "left": 0.846,
+      "top": 0.436,
+      "width": 0.039,
+      "height": 0.014,
+      "confidence": 1
+    },
+    {
+      "text": "$58",
+      "page": 1,
+      "left": 0.845,
+      "top": 0.457,
+      "width": 0.036,
+      "height": 0.014,
+      "confidence": 1
+    },
+    {
+      "text": "$56",
+      "page": 1,
+      "left": 0.83,
+      "top": 0.596,
+      "width": 0.032,
+      "height": 0.013,
+      "confidence": 1
+    },
+    {
+      "text": "干炒豬扒烏冬",
+      "page": 1,
+      "left": 0.647,
+      "top": 0.367,
+      "width": 0.198,
+      "height": 0.022,
+      "confidence": 1
+    },
+    {
+      "text": "日式海鮮炒烏冬$58",
+      "page": 1,
+      "left": 0.65,
+      "top": 0.391,
+      "width": 0.246,
+      "height": 0.022,
+      "confidence": 1
+    },
+    {
+      "text": "星",
+      "page": 1,
+      "left": 0.642,
+      "top": 0.412,
+      "width": 0.033,
+      "height": 0.022,
+      "confidence": 1
+    },
+    {
+      "text": "星洲炒烏冬",
+      "page": 1,
+      "left": 0.645,
+      "top": 0.412,
+      "width": 0.195,
+      "height": 0.021,
+      "confidence": 1
+    },
+    {
+      "text": "干炒三絲烏冬",
+      "page": 1,
+      "left": 0.645,
+      "top": 0.433,
+      "width": 0.192,
+      "height": 0.02,
+      "confidence": 1
+    },
+    {
+      "text": "肉絲燴伊麵",
+      "page": 1,
+      "left": 0.644,
+      "top": 0.454,
+      "width": 0.192,
+      "height": 0.021,
+      "confidence": 1
+    },
+    {
+      "text": "豉油皇牛肉炒麵",
+      "page": 1,
+      "left": 0.634,
+      "top": 0.594,
+      "width": 0.185,
+      "height": 0.022,
+      "confidence": 1
+    },
+    {
+      "text": "生炒排骨",
+      "page": 1,
+      "left": 0.07,
+      "top": 0.511,
+      "width": 0.153,
+      "height": 0.022,
+      "confidence": 1
+    },
+    {
+      "text": "飯",
+      "page": 1,
+      "left": 0.238,
+      "top": 0.512,
+      "width": 0.028,
+      "height": 0.02,
+      "confidence": 1
+    },
+    {
+      "text": "豬扒葡雙蛋飯（豉油汁）",
+      "page": 1,
+      "left": 0.368,
+      "top": 0.842,
+      "width": 0.182,
+      "height": 0.023,
+      "confidence": 1
+    },
+    {
+      "text": "炸雞脾飯（茄汁",
+      "page": 1,
+      "left": 0.368,
+      "top": 0.865,
+      "width": 0.178,
+      "height": 0.021,
+      "confidence": 1
+    },
+    {
+      "text": "粒",
+      "page": 1,
+      "left": 0.16,
+      "top": 0.836,
+      "width": 0.029,
+      "height": 0.019,
+      "confidence": 1
+    }
+  ]
+}

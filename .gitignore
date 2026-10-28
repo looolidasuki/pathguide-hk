@@ -1,4 +1,4 @@
-# Python
+﻿# Python
 __pycache__/
 *.py[cod]
 .venv/
@@ -171,3 +171,39 @@ calibration_image_sample_data_*.npy*
 
 # SDD 工作區（skill 產物：ledger / 任務簡報 / 審查包），不入庫
 /.superpowers/
+
+# ---- 來自上游 1.4.1+6 的忽略規則 ----
+.DS_Store
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.mobileprovision
+*.keystore
+*.jks
+dataset_pipeline/output/
+dataset_pipeline/runs/
+dataset_pipeline/snapshots/
+dataset_pipeline/external/
+
+# Firebase client configuration is supplied per development project.
+app/config/firebase.local.json
+app/ios/Flutter/Firebase.local.xcconfig
+**/GoogleService-Info.plist
+**/google-services.json
+**/*firebase-key*.json
+**/*service-account*.json
+backend/node_modules/
+backend/*-debug.log
+backend/.firebase/
+
+backend/functions/node_modules/
+
+# Per-platform navigation/Firebase client settings.
+app/config/*.local.json
+
+# Generated review evidence stays outside the three canonical documents.
+dataset_pipeline/review_artifacts/

@@ -7,13 +7,17 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Pathguide</string>
+	<string>領路通</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
+	<key>CFBundleLocalizations</key>
+	<array>
+		<string>zh-Hant-HK</string>
+	</array>
 	<key>CFBundleName</key>
 	<string>pathguide</string>
 	<key>CFBundlePackageType</key>
@@ -24,10 +28,20 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<key>CFBundleURLTypes</key>
+	<array><dict><key>CFBundleTypeRole</key><string>Editor</string>
+	<key>CFBundleURLSchemes</key><array><string>$(PATHGUIDE_GOOGLE_REVERSED_CLIENT_ID)</string></array>
+	</dict></array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>領路通使用相機即時識別附近的導航設施與障礙物。</string>
+	<string>領路通需要使用相機作即時物件辨識、拍攝菜單文字及本機 LiDAR 表面測距。</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>在前景使用目前位置計算步行路線及導航；不儲存行走軌跡。</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>按下語音搜尋後，使用咪高峰聽取你想找的菜式或目的地；不會持續錄音。</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>把你講的菜式或目的地轉成搜尋文字。優先使用裝置端辨識；需要 Apple 線上語音服務時會先詢問。</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -58,8 +72,6 @@
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

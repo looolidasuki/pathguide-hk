@@ -1,14 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.INTERNET" />
     <!-- 相机是核心功能：没有它整个 Demo 无法工作 -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <!-- 实时推理对 GPU/NNAPI 委托不是必需，但声明后可用硬件加速 -->
     <uses-feature android:name="android.hardware.camera.any" android:required="true" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <application
-        android:label="@string/app_name"
+        android:label="領路通"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
+        <meta-data android:name="com.google.android.geo.API_KEY" android:value="${pathguideMapsApiKey}" />
         <!-- 竖屏锁定：Demo 的坐标映射按竖屏标定，旋转屏幕会让映射需要重算。
              需要横屏时请连同 displayRotation 一起处理。 -->
         <activity
@@ -30,34 +37,13 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
-        <!--
-          快速設定磁貼：讓 App 能從通知欄啟動，不必回主頁。
-          對全盲使用者這是最快的一條路（雙指下拉即可碰到），
-          桌面圖示是保底但很慢（要線性滑過一頁又一頁）。
-
-          三個屬性缺一不可，任何一個寫錯都是「磁貼根本不出現」而且不報錯：
-            - permission：系統用它確認這是合法磁貼服務
-            - exported="true"：磁貼由 SystemUI（別的程式）綁定
-            - QS_TILE 的 intent-filter：系統靠它列出可用磁貼
-          icon 與 label 都走資源，label 與 app_name 一樣分語言（見 res/values-*/strings.xml）。
-        -->
-        <service
-            android:name=".PathGuideTileService"
-            android:exported="true"
-            android:icon="@drawable/ic_qs_tile"
-            android:label="@string/tile_label"
-            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
-            <intent-filter>
-                <action android:name="android.service.quicksettings.action.QS_TILE"/>
-            </intent-filter>
-        </service>
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
 
     <queries>
+        <intent><action android:name="android.speech.RecognitionService" /></intent>
         <intent>
             <action android:name="android.intent.action.PROCESS_TEXT"/>
             <data android:mimeType="text/plain"/>

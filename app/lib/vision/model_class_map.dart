@@ -28,10 +28,7 @@ import 'labels.dart';
 /// 最不容易漏），Dart 之后的代码（画框、播报、查表）一行都不用改，
 /// 收到的 id 就已经是真实 id。
 class ModelClassMapping {
-  const ModelClassMapping({
-    required this.modelClassCount,
-    required this.ids,
-  });
+  const ModelClassMapping({required this.modelClassCount, required this.ids});
 
   /// 模型输出的类别数。
   final int modelClassCount;
@@ -57,7 +54,7 @@ class ModelClassMapping {
   /// 给界面用的一句话说明。
   String describe() {
     if (identity) return '多類模型：$modelClassCount 類，直接對應類別表';
-    final names = ids.map((id) => labelOf(id)?.nameEn ?? 'id$id').join('、');
+    final names = ids.map((id) => labelOf(id)?.nameZh ?? 'id$id').join('、');
     return '模型 $modelClassCount 類（$names），映射到項目類別表；'
         '其餘 $unsupportedClassCount 個類別不會出框（未採集數據，非故障）';
   }

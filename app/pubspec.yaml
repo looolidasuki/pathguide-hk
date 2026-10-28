@@ -16,11 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-# 版本記錄（versionName+versionCode）：
-#   1.0.0+1  初次裝機版（3 類模型、單一 demo 畫面）
-#   2.0.0+2  18 類模型 + 引導／讀字雙模式 + OCR 讀字 + 移除採集入口
-#            （模組層面：auth / l10n / capture / diag / text 均已成形）
-version: 2.0.0+2
+version: 1.4.1+6
 
 environment:
   sdk: ^3.13.4
@@ -40,13 +36,29 @@ dependencies:
   # 仅 UI 图标用。
   cupertino_icons: ^1.0.8
 
-  # TTS：跟随手机系统语言，缺省英语。
+  # 粤语播报。
   flutter_tts: ^4.2.5
-  shared_preferences: ^2.5.6
+
+  # 本機保存使用者的播報速度；不要求任何額外權限。
+  shared_preferences: ^2.5.3
+  firebase_core: ^4.0.0
+  firebase_auth: ^6.0.0
+  cloud_firestore: ^6.0.0
+  google_sign_in: ^7.2.0
+  flutter_secure_storage: ^11.2.0
+  url_launcher: ^6.3.3
+  cloud_functions: ^6.0.0
+  firebase_app_check: ^0.4.0
+  connectivity_plus: ^7.0.0
+  path_provider: ^2.1.5
+  cryptography: ^2.7.0
+  crypto: ^3.0.6
 
 # ---------------------------------------------------------------------------
 # 刻意**不**引入的依赖，以及原因（改动前务必读一遍）
 #
+# path_provider 已因 Firebase／安全儲存間接引入，第四階段為私人加密待傳明確使用。
+# 目前 macOS 工作路徑沒有空格；下方保留早期 Windows 路徑相容提醒。
 # permission_handler / path_provider / camera —— 都会（直接或传递）拉入
 #   `objective_c`，它的 `hook/build.dart` 在 Windows 上调用子进程时不给路径
 #   加引号，于是**项目路径里只要有空格**（本仓库正是如此）构建就失败：
@@ -92,14 +104,16 @@ flutter:
   # 加载模型失败（界面会显示「模型未加载」），而不是崩溃。
   #
   # 模型由 scripts/export_tflite.py 生成并自动复制到这里。
-  # 当前内容是 **int8 版（2.87 MB，416 输入）**，实测与 float32 精度几乎一致
-  # （离线 IoU 0.966 vs 0.963）而延迟更低（真机 268 ms vs 324 ms）。
+  # 十類試用與原版九類 YOLO11n Float32、640 輸入；以各自清單為準。
+  # 舊三類模型的效能數字不適用於目前模型，手機表現須另作量度。
   assets:
     - assets/models/detector.tflite
     # 模型清单：与模型**一起**下发，里面写着「本地索引 -> 真实类别 id」。
     # 必须一并声明，否则 App 起不来（状态栏会显示「模型清单有问题」）。
     # TFLite 里没有「这个模型是用哪些 class-id 训的」元数据，这份信息只能靠清单带。
     - assets/models/detector.json
+    - assets/models/detector-hk9.tflite
+    - assets/models/detector-hk9.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
