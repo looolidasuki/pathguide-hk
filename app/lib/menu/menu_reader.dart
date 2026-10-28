@@ -67,9 +67,15 @@ class NativeMenuReader implements MenuReader {
   void Function(String)? _onPartial;
   void Function(MenuSpeechPhase)? _onPhase;
   @override
-  bool get supported => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  // Android 自 2026-10-23 起有對應實作（MenuPlugin.kt，ML Kit 中文辨識）。
+  // 注意：Android 版目前是**單頁**、走系統相機／相簿，且 ML Kit 不提供逐行置信度
+  // （細節與已知差異見 MenuPlugin.kt 的類別註解與 verification JSON）。
+  bool get supported =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.android);
   Future<T?> _invoke<T>(String method, Map<String, Object> data) async {
-    if (!supported) throw const MenuFailure('菜單閱讀目前先支援 iPhone。');
+    if (!supported) throw const MenuFailure('菜單閱讀目前支援 iPhone 與 Android。');
     try {
       return await _channel.invokeMethod<T>(method, data);
     } on PlatformException catch (e) {

@@ -1,0 +1,364 @@
+Resolving dependencies...
+Downloading packages...
+  _flutterfire_internals 1.3.77 (1.3.79 available)
+  cloud_firestore 6.10.0 (7.1.0 available)
+  cloud_firestore_platform_interface 8.0.7 (8.1.0 available)
+  cloud_firestore_web 5.7.3 (5.8.0 available)
+  cloud_functions 6.5.0 (7.0.1 available)
+  cloud_functions_platform_interface 6.0.7 (6.1.1 available)
+  cloud_functions_web 5.1.13 (5.1.15 available)
+  code_assets 1.2.1 (2.1.0 available)
+  crypto 3.0.7 (3.0.8 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  firebase_app_check 0.4.8 (0.5.1 available)
+  firebase_app_check_platform_interface 0.4.2+1 (0.5.1+3 available)
+  firebase_app_check_web 0.2.6+1 (0.3.1+3 available)
+  firebase_auth 6.7.0 (7.0.1 available)
+  firebase_auth_platform_interface 9.1.0 (9.1.2 available)
+  firebase_auth_web 6.3.0 (6.3.2 available)
+  firebase_core 4.15.0 (5.1.0 available)
+  firebase_core_web 3.12.0 (4.1.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  jni 1.1.0 (1.1.1 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.2 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  shared_preferences_android 2.4.28 (2.5.4 available)
+  shared_preferences_foundation 2.5.7 (2.6.1 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.4 available)
+  vm_service 15.3.0 (15.4.0 available)
+  web 1.1.1 (1.1.2 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+32 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading P:/app/test/account_controller_test.dart
+00:00 +0: P:/app/test/account_controller_test.dart: phone normalization preserves E164 and rejects dial URI injection
+00:00 +1: P:/app/test/account_controller_test.dart: guest stays signed out and sign-in requires agreement
+00:00 +2: P:/app/test/account_controller_test.dart: cancelled Google sign-in creates no profile
+00:00 +3: P:/app/test/account_controller_test.dart: account initialization retries with the same UID
+00:00 +4: P:/app/test/account_controller_test.dart: contact can be skipped, saved, changed and removed
+00:00 +5: P:/app/test/account_controller_test.dart: sign-out clears contact and account information
+00:00 +6: P:/app/test/account_controller_test.dart: old account delayed save cannot populate new account or cache
+00:00 +7: P:/app/test/account_controller_test.dart: restored same account can call secure cached contact when offline
+00:00 +8: P:/app/test/account_controller_test.dart: offline contact stays callable while profile refresh is pending
+00:00 +9: P:/app/test/account_controller_test.dart: dialer failure is explicit
+00:00 +10: P:/app/test/account_controller_test.dart: cancelled reauthentication does not delete contact
+00:00 +11: P:/app/test/account_controller_test.dart: interrupted identity deletion leaves guard and is retryable
+00:00 +12: P:/app/test/account_controller_test.dart: secure cache is owner scoped, validates data, and clears on logout
+00:00 +13: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +14: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +15: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +16: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +17: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +18: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +19: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +20: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +21: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +22: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +23: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +24: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +25: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +26: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +27: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +28: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +29: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +30: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +31: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +32: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +33: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +34: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +35: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +36: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +37: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +38: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +39: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +40: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +41: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +42: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +43: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +44: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +45: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +46: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +47: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +48: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +49: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +50: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +51: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +52: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +53: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +54: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +55: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +56: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +57: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +58: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +59: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +60: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +61: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +62: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +63: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +64: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +65: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +66: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +67: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +68: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +69: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +70: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +71: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +72: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +73: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +74: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +75: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +76: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +77: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +78: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +79: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +80: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +81: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +82: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +83: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +84: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +85: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +86: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +87: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +88: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +89: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +90: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +91: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +92: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +93: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +94: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +95: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +96: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +97: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +98: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +99: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +100: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +101: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +102: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +103: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +104: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +105: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +106: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +107: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +108: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +109: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +110: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +111: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +112: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +113: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +114: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +115: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +116: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +117: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +118: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +119: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +120: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +121: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +122: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +123: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +124: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:02 +125: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:03 +126: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:03 +127: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:03 +128: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:03 +129: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:03 +130: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:03 +131: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts chinese
+00:03 +132: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +133: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +134: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +135: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +136: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +137: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +138: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +139: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +140: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +141: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +142: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +143: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +144: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +145: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +146: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +147: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +148: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +149: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +150: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +151: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +152: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +153: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +154: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +155: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +156: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +157: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +158: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +159: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +160: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:03 +161: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:04 +162: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +163: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +164: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +165: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +166: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +167: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +168: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +169: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +170: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +171: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +172: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +173: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +174: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +175: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +176: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +177: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +178: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +179: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +180: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +181: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +182: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +183: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +184: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +185: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +186: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +187: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +188: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +189: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +190: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +191: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +192: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +193: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +194: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +195: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:05 +196: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +197: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +198: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +199: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +200: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +201: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +202: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +203: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +204: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +205: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +206: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +207: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +208: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +209: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +210: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +211: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +212: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +213: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +214: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +215: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +216: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +217: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +218: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +219: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +220: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +221: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +222: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +223: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +224: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +225: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +226: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +227: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +228: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +229: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +230: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +231: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +232: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +233: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +234: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +235: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +236: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +237: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +238: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +239: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +240: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +241: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +242: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +243: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +244: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +245: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +246: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +247: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +248: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +249: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +250: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +251: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +252: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +253: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +254: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +255: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +256: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +257: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +258: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +259: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +260: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +261: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +262: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +263: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +264: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +265: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +266: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +267: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +268: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +269: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +270: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +271: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +272: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +273: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +274: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +275: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +276: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +277: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +278: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +279: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +280: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +281: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +282: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +283: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +284: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +284: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.273 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:08 +285: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +286: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:08 +287: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:08 +288: P:/app/test/menu_ui_test.dart: VoiceOver uses announcement only, without competing result live region
+00:08 +289: P:/app/test/navigation_test.dart: five voice searches each automatically announce exactly once
+00:08 +290: P:/app/test/ios_demo_test.dart: technical diagnostics stay collapsed until requested
+00:08 +291: P:/app/test/ios_demo_test.dart: technical diagnostics stay collapsed until requested
+00:09 +292: P:/app/test/navigation_test.dart: reader output excludes simultaneous TTS and map provider mismatch is visible
+00:09 +293: P:/app/test/menu_ui_test.dart: camera failure is audible and capture can be retried
+00:09 +294: P:/app/test/ios_demo_test.dart: slow speech stop does not block mock startup
+00:09 +295: P:/app/test/menu_ui_test.dart: user tea menu voice query automatically reads variant prices
+00:09 +296: P:/app/test/ios_demo_test.dart: iPhone boots into the native camera and keeps mock mode available
+00:09 +297: P:/app/test/ios_demo_test.dart: iPhone boots into the native camera and keeps mock mode available
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.273 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.273 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:09 +298: P:/app/test/menu_ui_test.dart: phone OCR geometry automatically reads the queried dish price
+00:09 +299: P:/app/test/ios_demo_test.dart: threshold and label controls affect the real overlay
+00:10 +300: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:10 +301: P:/app/test/ios_demo_test.dart: speech switch stops speech and disables future announcements
+00:11 +302: P:/app/test/ios_demo_test.dart: background stops recognition and foreground automatically resumes
+00:11 +303: P:/app/test/ios_demo_test.dart: speech failure cannot prevent the simulated scene from starting
+00:11 +304: P:/app/test/ios_demo_test.dart: non-Cantonese fallback remains visible after source initialization
+00:12 +305: P:/app/test/ios_demo_test.dart: slow speech initialization does not block demo or restart it in background
+00:12 +306: P:/app/test/ios_demo_test.dart: Android still initializes the native camera path
+00:12 +307: P:/app/test/ios_demo_test.dart: small iPhone with larger text keeps controls usable without overflow
+00:13 +308: P:/app/test/ios_demo_test.dart: small iPhone with larger text keeps native settings scrollable
+00:13 +309: P:/app/test/ios_demo_test.dart: task home is accessible and never starts camera
+00:13 +310: P:/app/test/ios_demo_test.dart: automatic entry stays compact and replay is optional
+00:14 +311: P:/app/test/ios_demo_test.dart: screen reader reads requested results without duplicate TTS
+00:15 +312: P:/app/test/ios_demo_test.dart: screen reader automatically announces objects without TTS
+00:15 +313: P:/app/test/ios_demo_test.dart: enabling screen reader keeps automatic announcements enabled
+00:16 +314: P:/app/test/ios_demo_test.dart: settings modal suspends automatic environment speech
+00:16 +315: P:/app/test/ios_demo_test.dart: camera permission failure exposes explicit retry
+00:17 +316: P:/app/test/ios_demo_test.dart: pausing during native startup discards the delayed result
+00:17 +317: P:/app/test/ios_demo_test.dart: manual pause remains paused after interruption
+00:18 +318: P:/app/test/ios_demo_test.dart: permission dialog returns to the same pending startup
+00:18 +319: P:/app/test/ios_demo_test.dart: recognition controls have labels and minimum touch targets
+00:18 +320: P:/app/test/ios_demo_test.dart: two times text retains fixed task controls and scrollable teaching
+00:19 +321: All tests passed!

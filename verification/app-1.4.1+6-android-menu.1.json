@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-23",
+  "appVersion": "1.4.1+6",
+  "tag": "v1.4.1+6-android-menu.1",
+  "type": "android-feature",
+  "change": {
+    "androidMenuOcr": "added",
+    "androidMenuSpeech": "added",
+    "ocrEngine": "ML Kit text-recognition-chinese 16.0.1 (bundled, offline)",
+    "platformGate": "menu_reader.dart supported now includes TargetPlatform.android",
+    "imageSources": "camera/scanner -> system camera intent; library -> ACTION_GET_CONTENT",
+    "files": [
+      "app/android/app/src/main/kotlin/hk/pathguide/pathguide/MenuPlugin.kt",
+      "app/android/app/src/main/kotlin/hk/pathguide/pathguide/MainActivity.kt",
+      "app/android/app/src/main/AndroidManifest.xml",
+      "app/android/app/src/main/res/xml/file_paths.xml",
+      "app/android/app/build.gradle.kts",
+      "app/lib/menu/menu_reader.dart",
+      "app/test/menu_platform_test.dart"
+    ]
+  },
+  "verification": {
+    "flutterTestsPassed": 321,
+    "newFlutterTests": 3,
+    "flutterAnalyze": "No issues found",
+    "pythonTestsPassed": 437,
+    "pythonTestsSkipped": 1,
+    "androidDebugApkBuilt": true,
+    "kotlinCompiled": true,
+    "deviceInstalled": false,
+    "androidManualTestRun": false,
+    "iosBuildRun": false
+  },
+  "androidParityAfterThisChange": {
+    "menuOcr": "implemented, NOT device-verified",
+    "menuSpeechQuery": "implemented via SpeechRecognizer (separate instance from SpeechInputPlugin), NOT device-verified",
+    "depthMeasurement": "still unsupported on Android (ARKit on iOS; needs ARCore)",
+    "navigation": "proxy implemented earlier, not device-verified",
+    "quickSettingsTile": "restored earlier, not device-verified"
+  },
+  "knownLimitations": [
+    "Android menu OCR is single-page; iOS supports multi-page capture (pages/truncated). Android reports pages=1, truncated=false.",
+    "ML Kit exposes no per-line confidence. Line confidence is the average of element confidences; if the engine returns 0 for all elements it falls back to 1.0, otherwise menu_document's uncertain threshold (<0.5) would flag every line.",
+    "Android uses the system camera/gallery instead of the iOS in-app scanner, so there is no continuous multi-shot flow.",
+    "No Android device was attached (adb devices empty); nothing in this change has been exercised on hardware.",
+    "The speech query uses Android SpeechRecognizer; offline Cantonese availability depends on the device's on-device speech pack."
+  ]
+}

@@ -54,7 +54,7 @@ S5的圖示訓練可與S2、S4並行準備；私人訓練必須先有S0品質基
 | S2 照片收集與管理員覆核 | 同意、回報、抽樣、待傳及覆核狀態 | iPhone擷取／加密佇列已有程式；照片開關關閉，雲端未接通 | 本人同幀照片可到覆核佇列；拒絕、撤回、斷網及切帳號正確 | Backend部署／App Check與Dataset覆核流程 |
 | S3 私人訓練與模型更新 | 我的模型、學習進度、更新同意及回退 | 尚未接通；付費GPU預算未定 | 收集到更新可完整演練；不合格不更新，閒置切換可回退 | 先接模擬worker及registry，再按預算開真實GPU |
 | S4 室內近距離感知與引導 | ARKit、深度融合、鳥瞰、眼前短路徑及語音 | 1.4.0+5已有同幀辨識框內表面測距試驗；地面／三維追蹤／指引未開始，聯合真機驗收待補 | 未知區不畫通路，失效撤回；固定場景與效能測試通過 | 先同幀影像／深度，再幾何、追蹤、畫面及路徑 |
-| S5 圖示／文字與設施理解 | 主動拍牌、B圖示、OCR及箭嘴關係 | 菜單OCR已有；B正式run曾到22輪後中斷，未完成／未入App | 合格B可手機查牌，配對不明拒答，不把箭嘴當樓層方向 | Dataset恢復／評估B；首版不依賴A自動找牌 |
+| S5 圖示／文字與設施理解 | 主動拍牌、B圖示、OCR及箭嘴關係 | 菜單OCR：iOS已有、**Android於2026-10-23補上實作（ML Kit中文辨識＋系統相機／相簿，未真機驗收）**；B正式run曾到22輪後中斷，未完成／未入App | 合格B可手機查牌，配對不明拒答，不把箭嘴當樓層方向 | Dataset恢復／評估B；首版不依賴A自動找牌 |
 | S6 HKDI整合驗收與試用發佈 | 同一任務的資源／語音協調、實地測試及版本說明 | 完整室內＋學習閉環未驗收 | 陪同實測、退化／回退／耗電與版本備份均有紀錄 | 匯合S1–S5；未通過功能保持試驗標示或關閉 |
 | S7 多場地、多樓層與平台擴充 | 指定課室、樓層、Android、方向研究及其他場景 | 單層手動graph樣例回放已有；真實指定地點／跨樓層仍未開始 | 每項新增任務有場地資料、相容性及獨立驗收 | 先完成限定場景，再逐項擴，不一次承諾任意室內 |
 
@@ -304,3 +304,5 @@ flutter test
 同輪1.4.1+6最終核對：318項Flutter、33項原生數值檢查、analyze、簽署建置、系統簽章及包內版本／原模型SHA通過。先保存GitHub分支／tag／prerelease，再交付；最新裝機狀態由verification/release-receipts/app-1.4.1+6.json記錄，未將合成回歸當真機問題已解決。
 
 2026-10-23合併檢查點（tag v1.4.1+6-merge）：本倉庫採用上游 1.4.1+6 為 App 基線（app／backend／verification 全量移植，docs 改為三份權威文件）。Android 端補回先前遺漏的無障礙啟動路徑：快速設定磁貼（PathGuideTileService）與四語系 `app_name`／`tile_label`（values、zh-rCN、zh-rHK、zh-rTW），manifest 的 `android:label` 由硬編碼改為 `@string/app_name`。門禁：318項Flutter、analyze 0問題、437項Python（1項按理由skip）、Android debug APK 構建成功、30項Android啟動契約測試通過。未做：本檢查點沒有Android真機、沒有iOS建置，`deviceInstalled` 仍為 false；上游十類實驗權重（gate=false）狀態不變。Android 與 iOS 的功能差距記於同提交的 verification JSON（菜單OCR與深度在Android仍不支援）。
+
+2026-10-23安卓菜單（tag v1.4.1+6-android-menu.1）：新增 Android 原生菜單實作 `MenuPlugin.kt`（通道 `hk.pathguide/menu`，契約與 iOS 一致：`readMenu` 回 `lines/pages/truncated/warnings/ocrVersion`、`listenMenuQuery` 回 `outcome/text`，並回呼 `recognizing`／`speechPhase`／`speechPartial`）。OCR 用 ML Kit `text-recognition-chinese:16.0.1`（模型隨 AAR 打包，離線）；拍照與相簿走系統 Intent，暫存檔經 FileProvider 寫入 cacheDir、讀完即刪；語音查詢用獨立 `SpeechRecognizer`（不與導航的 `SpeechInputPlugin` 共用，避免互搶 result）。`menu_reader.dart` 的 `supported` 已納入 Android，並新增 3 項平台契約測試。門禁：321項Flutter、analyze 0問題、Android debug APK 構建（Kotlin 編譯通過）、437項Python。**未做**：無Android真機，未驗證 OCR 命中、語音、權限與系統相機回傳；單頁（iOS 可連拍多頁）；ML Kit 無逐行置信度，取元素平均、全 0 時回 1.0 並在程式註解寫明。

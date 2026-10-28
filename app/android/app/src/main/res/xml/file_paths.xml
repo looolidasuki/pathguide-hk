@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider 的路徑白名單。
+     ★ 只放 cacheDir 底下的 menu_ 暫存檔：菜單拍照的相片由系統相機寫入這裡，
+       交給 ML Kit 讀完就刪。不開放外部儲存，避免留下使用者相片。 -->
+<paths>
+    <cache-path name="menu_capture" path="." />
+</paths>

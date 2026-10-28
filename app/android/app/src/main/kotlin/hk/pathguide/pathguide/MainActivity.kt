@@ -1,10 +1,17 @@
 package hk.pathguide.pathguide
 
+import android.content.Intent
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 
 class MainActivity : FlutterActivity() {
+
+    /**
+     * 菜單插件需要 Activity 才能開系統相機／相簿，並接收回來的結果，
+     * 所以在這裡持有實例，由 [onActivityResult] 轉發。
+     */
+    private val menuPlugin by lazy { MenuPlugin(this) }
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -14,6 +21,14 @@ class MainActivity : FlutterActivity() {
         flutterEngine.plugins.add(VisionPlugin(context = this))
         flutterEngine.plugins.add(NavigationPlugin())
         flutterEngine.plugins.add(SpeechInputPlugin())
+        flutterEngine.plugins.add(menuPlugin)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        // 先問菜單插件（它只認自己的 requestCode），其餘照舊交回 Flutter。
+        if (!menuPlugin.onActivityResult(requestCode, resultCode, data)) {
+            super.onActivityResult(requestCode, resultCode, data)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {

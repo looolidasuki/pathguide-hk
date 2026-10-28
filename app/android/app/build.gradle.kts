@@ -1,4 +1,4 @@
-import java.util.Properties
+﻿import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -72,6 +72,11 @@ dependencies {
     // LiteRT（TensorFlow Lite 的后继）：保留 org.tensorflow.lite.Interpreter 类名，
     // 自带 jni/arm64-v8a/liblitert_jni.so，与目标真机（Redmi Note 11T Pro）架构匹配。
     implementation("com.google.ai.edge.litert:litert:2.2.0")
+
+    // 菜單 OCR（Android）：ML Kit 中文文字辨識，模型隨 AAR 打包，離線可用。
+    // 為什麼是 `text-recognition-chinese` 而不是通用拉丁版：餐牌絕大多數是中文，
+    // 而中文辨識器同時支援拉丁字元；純拉丁版讀不到中文。
+    implementation("com.google.mlkit:text-recognition-chinese:16.0.1")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
