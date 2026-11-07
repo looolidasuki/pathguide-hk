@@ -37,7 +37,8 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- 快速設定磁貼：全盲使用者唯一「兩秒內可達、不必回主頁」的啟動路徑。 -->
+        <!-- 快速設定磁貼：全盲使用者唯一「兩秒內可達、不必回主頁」的啟動路徑。
+             下面三個屬性任何一個寫錯，磁貼都會靜默消失且系統不報錯。 -->
         <service
             android:name=".PathGuideTileService"
             android:exported="true"
