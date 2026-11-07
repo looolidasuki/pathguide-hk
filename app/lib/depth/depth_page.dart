@@ -4,6 +4,7 @@ import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 
 import '../settings/app_settings.dart';
 import '../l10n/app_language.dart';
@@ -12,6 +13,7 @@ import '../tts/announcer.dart';
 import '../tts/flutter_tts_speaker.dart';
 import 'depth_session.dart';
 import 'depth_objects.dart';
+import 'depth_feedback.dart';
 
 class DepthPage extends StatefulWidget {
   const DepthPage({
@@ -46,6 +48,7 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
         speechRate: widget.settings.speechSpeed.rate,
       );
   bool _foreground = true, _reading = false;
+  bool _settingsOpened = false;
   int _speechGeneration = 0;
   String? _speechError;
   String? _speechKey;
@@ -61,7 +64,7 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
 
   void _changed() {
     if (!mounted) return;
-    if (_reading && (!_canRead || _speechKey != _readKey)) {
+    if (_reading && _speechKey != _readKey) {
       unawaited(_stopSpeech());
     }
     setState(() {});
@@ -86,45 +89,41 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
     }
   }
 
-  String get _status => switch (_session.status) {
-    'idle' => _t('未開始測距', 'Measurement not started'),
-    'starting' || 'waiting' => _t('正在準備深度資料', 'Preparing depth data'),
-    'ready' => _t('中央表面估算距離', 'Estimated range to centre surface'),
-    'objectsReady' => _t('目前物件（試驗）', 'Current objects (trial)'),
-    'noObjects' => _t(
-      '未辨識到物件，不代表前方暢通',
-      'No objects detected; this does not establish clear space',
-    ),
-    'model' => _t(
-      '物件辨識暫不可用，可關閉物件模式再試準星測距',
-      'Object recognition unavailable. Turn off object mode to try crosshair range.',
-    ),
-    'stabilizing' ||
-    'moving' => _t('請保持手機及準星穩定', 'Hold the phone and crosshair steady'),
-    'tracking' => _t('追蹤未穩定，距離未知', 'Tracking unstable; range unknown'),
-    'permission' => _t(
-      '未獲相機權限，請到系統設定允許',
-      'Camera access unavailable. Allow it in system settings.',
-    ),
-    'unsupported' => _t(
-      '此裝置不支援 LiDAR 場景深度',
-      'This device does not support LiDAR scene depth',
-    ),
-    'paused' => _t('已暫停，按開始重新量度', 'Paused. Press Start to measure again.'),
-    'interrupted' => _t('相機中斷，請重新開始', 'Camera interrupted. Start again.'),
-    'stale' => _t('資料過期，距離未知', 'Data expired; range unknown'),
-    'failed' => _t('未能測距，請重新開始', 'Measurement unavailable. Start again.'),
-    _ => _t('表面資料不足，距離未知', 'Insufficient surface data; range unknown'),
-  };
+  Future<void> _openSettings() async {
+    await _stopSpeech();
+    if (!mounted || !_foreground) return;
+    _settingsOpened = true;
+    try {
+      final opened = await const MethodChannel('hk.pathguide/depth')
+          .invokeMethod<bool>('openSettings');
+      if (opened == true) return;
+    } catch (_) {}
+    _settingsOpened = false;
+    if (mounted) {
+      setState(
+        () => _speechError = _t(
+          '未能開啟設定。可在系統設定找到領路通，或返回。',
+          'Settings could not be opened. Find PathGuide in system settings, or go back.',
+        ),
+      );
+    }
+  }
+
+  String get _status => depthStatusText(_session.status, english: _english);
   String get _distance => _session.rangeM == null
       ? _t('距離未知', 'Range unknown')
       : '${_t('約 ', 'About ')}${_session.rangeM!.toStringAsFixed(1)} ${_t('米', 'm')}';
 
-  bool get _canRead =>
+  bool get _hasResult =>
       _objects ? _session.objects.isNotEmpty : _session.rangeM != null;
-  String get _readKey => _objects
+  String get _readKey => !_hasResult
+      ? _status
+      : _objects
       ? (_session.objects
-                .map((e) => '${e.trackId}/${e.classId}/${e.rangeM != null}')
+                .map(
+                  (e) =>
+                      '${e.trackId}/${e.classId}/${e.rangeM != null}/${e.reason}',
+                )
                 .toList()
               ..sort())
             .join(',')
@@ -136,13 +135,15 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
       : x > .65
       ? _t('畫面右方', 'Right of image')
       : _t('畫面中央', 'Centre of image');
-  String get _summary => _objects
+  String get _summary => !_hasResult
+      ? _status
+      : _objects
       ? _session.objects
             .take(3)
             .map(
               (object) =>
                   '${_location(object.box.center.dx)}，${_name(object.classId)}，'
-                  '${object.rangeM == null ? _t('距離未知', 'Range unknown') : '${_t('框內表面約 ', 'Surface inside box about ')}${object.rangeM!.toStringAsFixed(1)} ${_t('米', 'm')}'}',
+                  '${object.rangeM == null ? '${_t('距離未知', 'Range unknown')}。${depthObjectGuidance(object.reason, english: _english)}' : '${_t('框內表面約 ', 'Surface inside box about ')}${object.rangeM!.toStringAsFixed(1)} ${_t('米', 'm')}'}',
             )
             .join('。')
       : '${_t('準星所指表面，', 'Surface at the crosshair. ')}$_distance';
@@ -151,10 +152,7 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
     final stopping = _stopSpeech();
     final generation = _speechGeneration;
     await stopping;
-    if (!mounted ||
-        !_foreground ||
-        !_canRead ||
-        generation != _speechGeneration) {
+    if (!mounted || !_foreground || generation != _speechGeneration) {
       return;
     }
     setState(() {
@@ -171,10 +169,7 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
         await speaker.initialize();
         if (speaker.resolvedLanguage == null) throw StateError('no voice');
       }
-      if (!mounted ||
-          !_foreground ||
-          generation != _speechGeneration ||
-          !_canRead) {
+      if (!mounted || !_foreground || generation != _speechGeneration) {
         return;
       }
       // Read the latest value only after asynchronous voice initialization.
@@ -209,6 +204,10 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
     _foreground = state == AppLifecycleState.resumed;
     if (!_foreground) {
       unawaited(_stopSpeech());
+      if (_session.running) unawaited(_session.stop());
+    } else if (_settingsOpened) {
+      _settingsOpened = false;
+      // Returning from Settings enables an explicit retry, never the camera.
       unawaited(_session.stop());
     }
     if (mounted) setState(() {});
@@ -238,7 +237,7 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
                   child: TextButton.icon(
                     onPressed: widget.onBack,
                     icon: const Icon(Icons.arrow_back),
-                    label: Text(_t('返回導航', 'Back to navigation')),
+                    label: Text(_t('返回測試列表', 'Back to testing')),
                   ),
                 ),
                 Text(
@@ -387,7 +386,17 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(_status, key: const ValueKey('depth-status')),
+                Semantics(
+                  liveRegion: true,
+                  child: Text(_status, key: const ValueKey('depth-status')),
+                ),
+                if (_session.status == 'permission')
+                  TextButton.icon(
+                    key: const ValueKey('depth-settings'),
+                    onPressed: _foreground ? _openSettings : null,
+                    icon: const Icon(Icons.settings_outlined),
+                    label: Text(_t('開啟系統設定', 'Open system settings')),
+                  ),
                 if (!_objects)
                   Text(
                     _distance,
@@ -410,16 +419,12 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
                                   ? _t('距離未知', 'Range unknown')
                                   : '${_t('框內表面約 ', 'Surface inside box about ')}${_session.objects[i].rangeM!.toStringAsFixed(1)} ${_t('米', 'm')}',
                             ),
-                            Text(
-                              depthReasonText(
-                                _session.objects[i].reason,
-                                english: _english,
-                              ),
-                            ),
-                            if (_session.objects[i].validDepth != null)
+                            if (_session.objects[i].rangeM == null)
                               Text(
-                                '${_t('量程內高信心點：', 'High-confidence points in range: ')}'
-                                '${_session.objects[i].validDepth}/${_session.objects[i].depthTotal}',
+                                depthObjectGuidance(
+                                  _session.objects[i].reason,
+                                  english: _english,
+                                ),
                               ),
                           ],
                         ),
@@ -431,11 +436,33 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
                       'Range estimates a reliable surface inside a box, not the nearest object edge, clear space or collision risk. Reading covers up to three current objects.',
                     ),
                   ),
-                  Text(
-                    _t(
-                      '框內圓點標示實際取樣位置；點數不是正確率。',
-                      'The dot marks the actual sample location. Point counts are not accuracy.',
-                    ),
+                  ExpansionTile(
+                    key: const ValueKey('depth-diagnostics'),
+                    title: Text(_t('測距診斷（進階）', 'Range diagnostics (advanced)')),
+                    children: [
+                      Text(
+                        _t(
+                          '框內圓點標示實際取樣位置；點數不是正確率。',
+                          'The dot marks the actual sample location. Point counts are not accuracy.',
+                        ),
+                      ),
+                      for (var i = 0; i < _session.objects.length; i++)
+                        ListTile(
+                          title: Text(
+                            '${i + 1}. ${_name(_session.objects[i].classId)}',
+                          ),
+                          subtitle: Text(
+                            [
+                              depthReasonText(
+                                _session.objects[i].reason,
+                                english: _english,
+                              ),
+                              if (_session.objects[i].validDepth != null)
+                                '${_t('量程內高信心點：', 'High-confidence points in range: ')}${_session.objects[i].validDepth}/${_session.objects[i].depthTotal}',
+                            ].join('\n'),
+                          ),
+                        ),
+                    ],
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -466,7 +493,13 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
             children: [
               FilledButton(
                 key: const ValueKey('depth-toggle'),
-                onPressed: _foreground ? _toggle : null,
+                onPressed:
+                    _foreground &&
+                        _session.status != 'unsupported' &&
+                        _session.status != 'permission' &&
+                        !(_session.status == 'model' && _objects)
+                    ? _toggle
+                    : null,
                 style: FilledButton.styleFrom(minimumSize: const Size(48, 52)),
                 child: Text(
                   _session.running
@@ -482,7 +515,7 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
                         unawaited(_stopSpeech());
                         setState(() {});
                       }
-                    : _foreground && _canRead
+                    : _foreground
                     ? _read
                     : null,
                 style: OutlinedButton.styleFrom(
@@ -491,6 +524,8 @@ class _DepthPageState extends State<DepthPage> with WidgetsBindingObserver {
                 child: Text(
                   _reading
                       ? _t('停止朗讀', 'Stop reading')
+                      : !_hasResult
+                      ? _t('重讀目前狀態', 'Read current status')
                       : _objects
                       ? _t('朗讀目前物件', 'Read current objects')
                       : _t('朗讀目前距離', 'Read current range'),

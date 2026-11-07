@@ -1,0 +1,692 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-05",
+  "status": "Codex_P2-A_core_passed_P2-B_next",
+  "assignment": {
+    "user": "DSH負責實作及修正，Codex只負責計劃／審核",
+    "supersedes": "earlier Sol implementation ownership for native camera/speech/crypto; historical contributions unchanged",
+    "DSH": [
+      "all new app/native/backend implementation within approved packages",
+      "own tests and corrections",
+      "documentation change proposals"
+    ],
+    "Codex": [
+      "scope/contracts and evidence-based acceptance",
+      "mechanical apply/format/build/test, diff/security/lifecycle review",
+      "update three existing docs from verified evidence",
+      "no hand-written functional fixes or tests to replace DSH output"
+    ],
+    "human": [
+      "truth labels/actual floor/path conditions",
+      "device/visually impaired/field acceptance",
+      "release/install approval where required"
+    ]
+  },
+  "common": {
+    "input_version": "actual dirty source hashes, not HEAD-only export",
+    "do_not_repeat": [
+      "P0/P1 accepted results and415 Flutter tests",
+      "A10 rejected candidates, unchanged model SHA/gate false",
+      "12346 source records/coverage/SHA checked",
+      "B11 independent interrupted handoff, no resume",
+      "Backend locally verified, not deployed"
+    ],
+    "forbidden": [
+      "reset/clean/stash/overwrite unrelated dirty work",
+      "credentials/private photos/other Desktop DSH sessions",
+      "training/GPU/download/labels/split/model replacement",
+      "cloud deployment/public services/App install/release/push",
+      "new dependency/OS minimum without review",
+      "claim human_approved or real device acceptance from unit tests"
+    ],
+    "isolation": "one DSH candidate writer in independent export with dirty dependencies; never primary tree; no credentials/config.local copied",
+    "review": "summary+diff+checks at delivery/blocker; no frequent log polling; errors returned to DSH, no Codex functional patches",
+    "terminal_states": [
+      "queued_budget_pending",
+      "running",
+      "delivered_unreviewed",
+      "changes_requested",
+      "accepted_engineering",
+      "blocked",
+      "failed",
+      "timed_out",
+      "interrupted_unknown"
+    ],
+    "limit_policy": "2 requests/.10 USD/1200 model seconds per package; no third. Two no-progress attempts stop. New downstream inputs pinned to accepted predecessor SHA."
+  },
+  "P2_budget_proposal": {
+    "packages": [
+      "P2-A",
+      "P2-B",
+      "P2-C",
+      "P2-D"
+    ],
+    "usd_total": 0.4,
+    "requests_total": 8,
+    "per_package_usd": 0.1,
+    "per_package_requests": 2,
+    "per_package_model_seconds": 1200,
+    "authorized": false,
+    "later_P3_P5_not_authorized": true
+  },
+  "packages": [
+    {
+      "id": "P2-A",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Implement pure-Foundation camera ownership coordinator and deterministic lifecycle checks, ready for adapters in B.",
+      "dependencies": [],
+      "allowed_files": [
+        "app/ios/Runner/CameraCoordinator.swift",
+        "scripts/verify_camera_coordinator.swift",
+        "app/ios/Runner.xcodeproj/project.pbxproj"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "xcrun swiftc -parse-as-library app/ios/Runner/CameraCoordinator.swift scripts/verify_camera_coordinator.swift -o <evidence>/camera-checks",
+        "<evidence>/camera-checks",
+        "plutil -lint app/ios/Runner.xcodeproj/project.pbxproj",
+        "git diff --check"
+      ],
+      "completion_conditions": [
+        "vision/depth/menu/route owners, opaque request/lease identity, exactly-once completions",
+        "serial arbitration: never grant next owner before old physical-stop acknowledgment",
+        "supersede/cancel/timeout/background/late completion cannot release or revive a newer lease",
+        "injected clock/timer and fake stop adapters; checks use no camera, Flutter, model or network",
+        "Xcode source membership valid; by itself NOT a completed camera feature"
+      ],
+      "stop_conditions": [
+        "unresolved ownership semantics -> return questions, no guessed safety behavior",
+        "two attempts without new evidence -> review and stop"
+      ],
+      "limits": {
+        "model_requests": 3,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": true,
+        "separate_package": true,
+        "explicit_exception": "user allowed one extra correction, P2 total0.40USD/8 requests unchanged"
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/3",
+        "id": 6207971655,
+        "number": 3,
+        "title": "[P2-A] Implement pure-Foundation camera ownership coordinator and deterministic lifecycle checks, ready for adapters in B."
+      }
+    },
+    {
+      "id": "P2-B",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Adopt coordinator in existing Vision/Depth/Menu camera stacks; remove competing pairwise starts without changing task behavior.",
+      "dependencies": [
+        "P2-A"
+      ],
+      "allowed_files": [
+        "app/ios/Runner/VisionPlugin.swift",
+        "app/ios/Runner/DepthPlugin.swift",
+        "app/ios/Runner/MenuPlugin.swift",
+        "app/ios/RunnerTests/RunnerTests.swift"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "native RunnerTests in isolated project with fake camera authorization/session drivers",
+        "unsigned iOS build in isolated snapshot, no install",
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check"
+      ],
+      "completion_conditions": [
+        "all old camera start/stop paths obtain/release exact leases, including pending authorization and picker dismissal",
+        "old start queued before handoff cannot execute after release completion; native queues drained/barrier proved",
+        "release acknowledgment means stop complete, not only stop requested; stale owner cannot stop newer owner",
+        "existing recognition/menu/stationary-depth contracts and model preprocessing unchanged"
+      ],
+      "stop_conditions": [
+        "requires model/threshold/labels changes -> stop",
+        "native queue race not covered by test -> return blocker"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": true,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/4",
+        "id": 6207973137,
+        "number": 4,
+        "title": "[P2-B] Adopt coordinator in existing Vision/Depth/Menu camera stacks; remove competing pairwise starts without changing task behavior."
+      }
+    },
+    {
+      "id": "P2-C",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Add model-independent bounded route camera source and native capability/status channel.",
+      "dependencies": [
+        "P2-B"
+      ],
+      "allowed_files": [
+        "app/ios/Runner/RouteCameraPlugin.swift",
+        "app/ios/Runner/AppDelegate.swift",
+        "app/ios/Runner.xcodeproj/project.pbxproj",
+        "app/ios/RunnerTests/RunnerTests.swift"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "RunnerTests for no-interpreter capture, authorization, stop/background and stale frame cancellation",
+        "unsigned iOS build, no install"
+      ],
+      "completion_conditions": [
+        "route camera does not initialize/rely on TFLite or sceneDepth",
+        "single coordinator lease covers preview/latest frame/on-demand keyframe; never creates concurrent camera owner",
+        "bounded one pending keyframe; video buffers discarded when superseded; no video recording or disk writes",
+        "headers bind route request/session/generation/sequence, native capture clock/epoch, orientation and source/profile",
+        "JPEG only on explicit request, size/dimension cap and SHA; invalid/expired/unknown-clock results reported honestly",
+        "capabilities separate camera, ordinary AR tracking and LiDAR; first route path can use AVFoundation without AR"
+      ],
+      "stop_conditions": [
+        "unsupported clock mapping -> expose unavailable, no fabricated wall-clock subtraction",
+        "no new entitlement/OS minimum/dependency without review"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": true,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/5",
+        "id": 6207974999,
+        "number": 5,
+        "title": "[P2-C] Add model-independent bounded route camera source and native capability/status channel."
+      }
+    },
+    {
+      "id": "P2-D",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Implement Dart source/controller, accessible live-camera entry and stop/retry states using real native channel.",
+      "dependencies": [
+        "P2-C"
+      ],
+      "allowed_files": [
+        "app/lib/route_memory/route_observation_source.dart",
+        "app/lib/route_memory/route_capture_controller.dart",
+        "app/lib/route_memory/route_capture_page.dart",
+        "app/lib/route_memory/route_memory_mock_page.dart",
+        "app/test/route_observation_source_test.dart",
+        "app/test/route_capture_controller_test.dart",
+        "app/test/route_capture_page_test.dart"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check",
+        "native contract/registration reviewed against Dart methods/events",
+        "320x568/2x/keyboard/lifecycle render checks"
+      ],
+      "completion_conditions": [
+        "explicit start, live preview/status, bounded manual keyframe then stop, denial/retry and unsupported platform UI",
+        "model absent/failing does not block camera; no actual route persistence until P3, no false saved/located state",
+        "pause/back/background/dispose invalidate pending commands/frames; foreground never auto-resumes",
+        "P2 camera function only accepted after A-D combined tests/build; real device permission/camera check separately marked unrun"
+      ],
+      "stop_conditions": [
+        "native/Dart header mismatch -> reject, do not bypass parser",
+        "cannot demonstrate registered source -> not feature-complete"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": true,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/6",
+        "id": 6207976790,
+        "number": 6,
+        "title": "[P2-D] Implement Dart source/controller, accessible live-camera entry and stop/retry states using real native channel."
+      }
+    },
+    {
+      "id": "P3-A",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Add captured-route media schema/store while preserving P1 synthetic v1 and deletion/rollback semantics.",
+      "dependencies": [
+        "P2-D"
+      ],
+      "allowed_files": [
+        "app/lib/route_memory/route_package.dart",
+        "app/lib/route_memory/encrypted_route_store.dart",
+        "app/lib/route_memory/device_route_library.dart",
+        "app/ios/Runner/RouteCameraPlugin.swift",
+        "app/test/encrypted_route_store_test.dart"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "store manifest/media-reference/quota/atomic commit/delete-race/reopen tests",
+        "native backup-exclusion/file-protection checks",
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check"
+      ],
+      "completion_conditions": [
+        "new captured schema with encrypted bounded keyframes/features and SHA refs; synthetic routes never relabeled captured",
+        "ordinary replay writes no frame archive; explicit record/update only; cap image bytes/views/node/route/library incl drafts/history/temp",
+        "quota failure stops adding media, retains stable version; explicit cleanup, no silent cloud spillover",
+        "App-local ownership/key purpose, backup policy and route deletion encompass all media/feature versions"
+      ],
+      "stop_conditions": [
+        "media cap not defined -> no capture persistence",
+        "migration would overwrite stable v1 -> stop"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": false,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/7",
+        "id": 6207978765,
+        "number": 7,
+        "title": "[P3-A] Add captured-route media schema/store while preserving P1 synthetic v1 and deletion/rollback semantics."
+      }
+    },
+    {
+      "id": "P3-B",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Implement Vision features/OCR candidates and elevator/stair floor-exit relocalization.",
+      "dependencies": [
+        "P3-A"
+      ],
+      "allowed_files": [
+        "app/ios/Runner/RouteCameraPlugin.swift",
+        "app/ios/Runner/RouteLandmarkAnalyzer.swift",
+        "app/ios/Runner.xcodeproj/project.pbxproj",
+        "app/lib/route_memory/route_localizer.dart",
+        "app/lib/route_memory/cross_floor_contract.dart",
+        "app/ios/RunnerTests/RunnerTests.swift",
+        "app/test/route_localizer_test.dart"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "native synthetic image feature/revision/OCR capability checks",
+        "floor/sequence/direction/ambiguous/wrong-stop deterministic tests",
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check"
+      ],
+      "completion_conditions": [
+        "building+floor+node stable identity; multiview observations do not duplicate physical nodes",
+        "expected floor/candidate/actual separate; lift skip floors and stair landings never become automatic floor truth",
+        "fresh exit landmark+floor+direction evidence/explicit confirmation required; intermediate 3F recovery allowed",
+        "OCR language/revision checked on runtime iOS15/16+, manual fallback; optional AR/altimeter never sole truth",
+        "feature/preprocess revision mismatch rejects comparison; thresholds predeclared, similarities not correctness probabilities"
+      ],
+      "stop_conditions": [
+        "real photo collection/training required -> request separate scope, do not harvest private photos",
+        "reverse path unsupported -> remain unavailable"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": false,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/8",
+        "id": 6207980969,
+        "number": 8,
+        "title": "[P3-B] Implement Vision features/OCR candidates and elevator/stair floor-exit relocalization."
+      }
+    },
+    {
+      "id": "P3-C",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Implement first-record and recorded-route replay UX end to end across floors.",
+      "dependencies": [
+        "P3-B"
+      ],
+      "allowed_files": [
+        "app/lib/route_memory/route_capture_controller.dart",
+        "app/lib/route_memory/route_capture_page.dart",
+        "app/lib/route_memory/route_library_controller.dart",
+        "app/lib/route_memory/route_library_page.dart",
+        "app/lib/ui/task_home_page.dart",
+        "app/lib/l10n/english.dart",
+        "app/test/route_record_replay_test.dart"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check",
+        "empty library -> G/lift/3F/room draft -> save -> reopen -> replay scenario with injected native source"
+      ],
+      "completion_conditions": [
+        "first route may be physically unfamiliar; no preexisting features/YOLO model required to begin recording",
+        "actual directed connections and confirmations; unknown segment remains draft, not fully navigable",
+        "pause/relocalize/mismatch/reverse/arrival/delete states remain accessible and honest",
+        "no route/map -> explain missing navigation basis, rather than fabricate an indoor destination path"
+      ],
+      "stop_conditions": [
+        "needs manual ground truth -> unrun human checklist, never AI approval"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": false,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/9",
+        "id": 6207983091,
+        "number": 9,
+        "title": "[P3-C] Implement first-record and recorded-route replay UX end to end across floors."
+      }
+    },
+    {
+      "id": "P4-A",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Connect same-frame object perception and optional valid depth to route journey.",
+      "dependencies": [
+        "P3-C"
+      ],
+      "allowed_files": [
+        "app/ios/Runner/RouteCameraPlugin.swift",
+        "app/ios/Runner/VisionPlugin.swift",
+        "app/lib/route_memory/walking_perception.dart",
+        "app/test/walking_perception_test.dart",
+        "app/ios/RunnerTests/RunnerTests.swift"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "same-frame/session/version/order/expiry and dropped-frame tests",
+        "no-depth/null-distance and sensing failure tests",
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check"
+      ],
+      "completion_conditions": [
+        "latest frame branch does not wait on keyframe OCR; no per-frame LLM",
+        "same model SHA/mapping unchanged; labels/side descriptions only supported evidence, no detection never means safe",
+        "optional depth bound to matching image/pose/time; stationary depth gates not simply disabled for walking",
+        "model quality false keeps corresponding real walking hazard mode gated; functional prototype is not release approval"
+      ],
+      "stop_conditions": [
+        "requires training/weights/class/split changes -> stop",
+        "unsupported collision/depth inference -> unknown"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": false,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/10",
+        "id": 6207985113,
+        "number": 10,
+        "title": "[P4-A] Connect same-frame object perception and optional valid depth to route journey."
+      }
+    },
+    {
+      "id": "P4-B",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Implement real guidance output adapter and speech arbitration for route/obstacle events.",
+      "dependencies": [
+        "P4-A"
+      ],
+      "allowed_files": [
+        "app/lib/tts/speech_coordinator.dart",
+        "app/lib/route_memory/guidance_arbiter.dart",
+        "app/lib/route_memory/route_capture_controller.dart",
+        "app/lib/route_memory/route_capture_page.dart",
+        "app/test/guidance_arbiter_test.dart"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "urgent/route/environment priority, cancellation/expiry/dedup and microphone interruption checks",
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check"
+      ],
+      "completion_conditions": [
+        "urgent valid event or sensing failure withdraws continue cues; clear recomputes present state without replaying old queue",
+        "one output path per event, VoiceOver or TTS; do not claim exact system screen-reader completion control",
+        "explicit mic only; stop speech before listening, urgent event cancels mic then speaks",
+        "background/leave/delete/relocalization cancel output generations and stale completions"
+      ],
+      "stop_conditions": [
+        "requires unverified VoiceOver queue API -> report limitation, do not simulate success"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": false,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/11",
+        "id": 6207987132,
+        "number": 11,
+        "title": "[P4-B] Implement real guidance output adapter and speech arbitration for route/obstacle events."
+      }
+    },
+    {
+      "id": "P5",
+      "implementer": "DSH",
+      "reviewer": "Codex",
+      "goal": "Implement indoor/outdoor journey integration and prepare human task acceptance.",
+      "dependencies": [
+        "P4-B"
+      ],
+      "allowed_files": [
+        "app/lib/navigation/navigation_page.dart",
+        "app/lib/ui/app_shell.dart",
+        "app/lib/route_memory/route_capture_controller.dart",
+        "app/test/journey_integration_test.dart"
+      ],
+      "forbidden_common_ref": "common.forbidden",
+      "existing_results_ref": "common.do_not_repeat",
+      "acceptance_commands": [
+        "cd app && flutter test --no-pub",
+        "cd app && flutter analyze --no-pub",
+        "git diff --check",
+        "same journey outdoor entrance -> G -> elevator/stairs -> 3F -> room, interruptions and offline degradation"
+      ],
+      "completion_conditions": [
+        "DSH owns integration changes and repairs; Codex reviews evidence and scope",
+        "device capability/non-LiDAR/LiDAR, headphones/calls/VoiceOver, floor/path truth and visually impaired acceptance separately recorded",
+        "human_approved only actual human review; no automatic install or field recording"
+      ],
+      "stop_conditions": [
+        "missing real devices/people/quality evidence -> record unrun; never mark release-ready"
+      ],
+      "limits": {
+        "model_requests": 2,
+        "usd": 0.1,
+        "model_wall_seconds": 1200,
+        "authorized": false,
+        "separate_package": true
+      },
+      "delivery": [
+        "allowlisted unified diff with actual base/input SHA",
+        "implementation summary and unresolved design assumptions",
+        "test sources, proposed commands, expected behavior; executed results only if actually run",
+        "artifact paths and SHA, unrun device checks, no human_approved claim"
+      ],
+      "issue": {
+        "html_url": "https://github.com/actiondarr/pathguide/issues/12",
+        "id": 6207989060,
+        "number": 12,
+        "title": "[P5] Implement indoor/outdoor journey integration and prepare human task acceptance."
+      }
+    }
+  ],
+  "transport": {
+    "bundle": "/Users/darr/Desktop/DSH Desktop.app",
+    "bridge": "/Users/darr/Desktop/development/pathguide-dsh-bridge/scoped_control.py",
+    "verified": "isolated headless stdin/NDJSON, fixed text diff, task/session/status/result/idempotency/timeout",
+    "worker_tools": false,
+    "worker_executes_tests": false,
+    "reviewer_execution": "actual tests/builds run mechanically on reviewed candidate, with DSH authorship retained",
+    "unknown": [
+      "Desktop interactive session takeover",
+      "API gateway external control",
+      "tool-enabled autonomous workspace execution"
+    ]
+  },
+  "source_of_truth": "docs/FRONTEND-DESIGN.zh-HK.md#dsh-functional-execution-plan",
+  "phase_completion": "P2 A-D one combined function; P3/P4/P5 cannot be called complete solely because contracts compile",
+  "release": "P6 remains AGENTS verify/commit/immutable tag/Release/push+remote check before install; not authorized here",
+  "issue_tracker": {
+    "repo": "actiondarr/pathguide",
+    "parent": {
+      "html_url": "https://github.com/actiondarr/pathguide/issues/2",
+      "id": 6207970649,
+      "number": 2,
+      "title": "[Navigation] DSH實作 P2–P5 跨樓層步行導航，主控審核"
+    },
+    "authority": "docs/agents/issue-tracker.md",
+    "work_spec_source": "GitHub Issues",
+    "product_context": "existing four product/review documents"
+  },
+  "scope_notes": {
+    "core": "P2-P5 implements camera, explicit recording and recorded-route cross-floor journey; not the whole completed product vision",
+    "external_product_update": "APP-FEATURES and three reviews now distinguish unfamiliar incremental exploration from recording/retrace; exploration details still aligning elsewhere",
+    "first_package_impact": "none; shared camera ownership semantics remain unchanged",
+    "preservation": "do not overwrite concurrent requirements edits; freeze immutable input copies, revalidate code/rules before live dispatch and allowlist before integration"
+  },
+  "confirmed_product_requirements_20261105": {
+    "accepted": "all UI/VoiceOver recommendations and action/result feedback",
+    "implementation": "DSH",
+    "review": "Codex",
+    "scope": [
+      "remove redundant task tab navigation",
+      "separate ordinary More from advanced/testing",
+      "one feedback output per event",
+      "defer ordinary descriptions while exploring controls",
+      "standard VoiceOver flow before optional shortcuts",
+      "unknown indoor clues: stop/scan then retry/pause/help"
+    ],
+    "budget_status": "P2 explicitly approved: aggregate0.40USD/8 requests, per-package0.10USD/2 requests/1200modelseconds; no later phase budget"
+  },
+  "P2_authorization": {
+    "date_hk": "2026-11-05",
+    "status": "approved",
+    "scope": [
+      "P2-A",
+      "P2-B",
+      "P2-C",
+      "P2-D"
+    ],
+    "total_usd": 0.4,
+    "total_model_requests": 8,
+    "per_package": {
+      "usd": 0.1,
+      "requests": 2,
+      "model_seconds": 1200
+    },
+    "source": "user reply: 批准 P2 上限 US$0.40（建議）",
+    "implementation": "DSH",
+    "reviewer": "Codex",
+    "release_install_training": false
+  },
+  "P2_progress": {
+    "model_requests": 3,
+    "accepted_packages": [],
+    "downstream_dispatch_allowed": false,
+    "reason": "P2-A third explicitly approved correction rejected; no fourth call",
+    "remaining_aggregate_requests": 5,
+    "peak_price_estimate_usd": 0.03327
+  },
+  "ownership_override": {
+    "date_hk": "2026-11-05",
+    "source": "user: 還是交給你開發",
+    "implementer": "Codex",
+    "reviewer": "Codex",
+    "supersedes": "DSH-only coding rule",
+    "DSH_dispatch_enabled": false
+  }
+}

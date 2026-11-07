@@ -1,4 +1,3 @@
-
 import 'package:flutter/services.dart';
 
 import 'dart:io';
@@ -79,7 +78,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(settings.language, AppLanguage.english);
       expect(find.text('Settings'), findsWidgets);
-      expect(find.text('Manage speech and live recognition.'), findsOneWidget);
+      expect(
+        find.text(
+          'Adjust language and speech speed. View your account, help and privacy.',
+        ),
+        findsOneWidget,
+      );
       expect(find.byKey(const ValueKey('settings-page')), findsOneWidget);
       const folder = String.fromEnvironment('INTEGRATION_CAPTURE_DIR');
       if (folder.isNotEmpty) {

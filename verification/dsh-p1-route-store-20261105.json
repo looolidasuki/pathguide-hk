@@ -1,0 +1,277 @@
+{
+  "schema_version": 1,
+  "work_package": "P1-local-route-library-20261104",
+  "started": "2026-11-04",
+  "completed": "2026-11-05",
+  "status": "P1_local_function_verified_synthetic_documents_unreleased",
+  "base_head": "7de2f4fd83c7096abe83b4eb6552846629f107ea",
+  "authorization": {
+    "reply": "維持兩次／US$0.10／20分鐘",
+    "scope": "P1 finite UI/tests; storage/integration by Sol",
+    "requests": 2,
+    "cost_usd": 0.1,
+    "wall_seconds": 1200
+  },
+  "user_steering": {
+    "functions_before_system_optimization": true,
+    "no_default_replay_photo_or_video_accumulation": true,
+    "cloud_backup_or_sync_separate_consent": true
+  },
+  "runtime": {
+    "app_bundle": "/Users/darr/Desktop/DSH Desktop.app",
+    "desktop": "0.13.0",
+    "harness": "0.2.1-rc.3",
+    "app_asar_sha256": "af6b42c66706c8886541c92a1edd9905811c6eee2d27f5edbabb55848d32e2ab",
+    "bridge": "/Users/darr/Desktop/development/pathguide-dsh-bridge/scoped_control.py",
+    "task_prefix_note": "Legacy dsh-n0 UUID prefix; frozen contract binds these tasks to P1, not historical N0"
+  },
+  "DSH": [
+    {
+      "task_id": "dsh-n0-f179c27c-096e-42f9-8bc3-b993c14163a8",
+      "session_id": "session-40e1fc99-be89-4dc3-b21f-2e145d9d50e4",
+      "status": "completed",
+      "slot": 1,
+      "elapsed_seconds": 16.562,
+      "usage": [
+        {
+          "inputTokens": 3880,
+          "outputTokens": 3825,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "totalTokens": 7705
+        }
+      ],
+      "raw_delivery_accepted": false,
+      "acceptance": "final reviewed source accepted after Sol repairs"
+    },
+    {
+      "task_id": "dsh-n0-366895ce-1dbe-441b-91da-875936bef124",
+      "session_id": "session-326b5d07-d700-4833-8d26-fbc9a2055db8",
+      "status": "completed",
+      "slot": 2,
+      "elapsed_seconds": 13.567,
+      "usage": [
+        {
+          "inputTokens": 6981,
+          "outputTokens": 3038,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "totalTokens": 10019
+        }
+      ],
+      "raw_delivery_accepted": false,
+      "acceptance": "final reviewed source accepted after Sol repairs"
+    }
+  ],
+  "cost": {
+    "requests": 2,
+    "input_tokens": 10861,
+    "output_tokens": 6863,
+    "peak_estimate_usd": 0.0114939,
+    "pre_forward_peak_upper_usd": 0.0458964,
+    "budget_usd": 0.1,
+    "wall_seconds": 1200,
+    "both_model_calls_finished_before_package_deadline": true,
+    "pricing": {
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "verified": "2026-11-04",
+      "peak_input_miss_per_million": 0.3,
+      "peak_output_per_million": 1.2
+    },
+    "invoice_verified": false,
+    "preflight_requests": 0,
+    "duplicate_requests": 0,
+    "automatic_retry": false,
+    "no_third_request": true
+  },
+  "control": {
+    "submit_task_and_session_verified": true,
+    "query_and_result_verified": true,
+    "duplicate_returns_same_task": true,
+    "Desktop_existing_sessions_touched": false,
+    "API_gateway_or_Desktop_session_control_verified": false,
+    "cancel_run": "not needed, both owned tasks completed"
+  },
+  "implementation": {
+    "namespace": "AppSupport/route_memory_v1",
+    "key_name": "pathguide.route_memory.library.aes.v1",
+    "scope": "device-local guest library, separate from UID/photo queues",
+    "encryption": "AES-256-GCM with purpose/route/version AAD",
+    "version_integrity": "ciphertext SHA + encrypted plaintext manifest SHA",
+    "persistence": "same-directory flushed temp then rename, immutable versions and encrypted catalog pointers",
+    "conflict": "expected catalog revision CAS",
+    "cancellation": "per-store owner epoch and shared route deletion epoch",
+    "deletion": "durable catalog tombstone before physical cleanup; never scan orphan files into routes",
+    "recovery": "explicit verified version rollback; corrupt catalog never auto-reverted",
+    "limits": {
+      "document_bytes": 262144,
+      "library_bytes": 33554432,
+      "versions_per_route": 8,
+      "temporaries_counted": true
+    },
+    "cleanup": "explicit; retain active + one verified published fallback + current draft, remove other history/unreferenced files",
+    "schema": "RouteDocument v1, source synthetic only; nullable floors allowed in draft; no camera/blob payloads"
+  },
+  "review": {
+    "attempt1": [
+      "fenced and incorrect hunk length normalized in isolated export",
+      "widget.context compile error repaired to State.context",
+      "duplicate paused notice removed",
+      "vertical footer overflow at genuine 2x + 280 keyboard inset fixed to horizontal fixed controls",
+      "scrollable confirmation dialogs and unfocus"
+    ],
+    "attempt2": [
+      "wrong package:app imports",
+      "undefined en in cancellation test",
+      "fake backend returned version3 while asserting1/2; repaired to meaningful ID/revision progression",
+      "outer MediaQuery did not prove effective text scale; switched to test platform scaler and asserted actual2x",
+      "await on void TestTextInput.hide (also present in supervisor prompt guidance) corrected",
+      "parent disposal order corrected",
+      "offscreen field tap warning fixed and actual keyboard focus asserted"
+    ],
+    "Sol_owned": [
+      "per-owner cancellation prevents a closing screen invalidating a different owner",
+      "main-isolate path actor and POSIX process lock limitation explicit",
+      "lazy opening completion after leave/background cannot load or save",
+      "basic quota/history functions completed; additional system tuning deferred"
+    ]
+  },
+  "verification": {
+    "cwd": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/app",
+    "commands": [
+      {
+        "command": "flutter test --no-pub --reporter expanded",
+        "exit_code": 0,
+        "passed": 415,
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/primary-full.log"
+      },
+      {
+        "command": "flutter analyze --no-pub",
+        "exit_code": 0,
+        "summary": "No issues found",
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/primary-analyze.log"
+      },
+      {
+        "command": "flutter test --no-pub --dart-define=CAPTURE_DIR=<verification/ui> <raw>/preview_route_library_test.dart --reporter expanded",
+        "exit_code": 0,
+        "passed": 1,
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/preview-final.log"
+      },
+      {
+        "command": "dart format --output=none --set-exit-if-changed <11 changed/new Dart files>",
+        "exit_code": 0,
+        "changed": 0
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0
+      }
+    ],
+    "P1_tests": {
+      "storage_and_device_adapter": 21,
+      "controller": 6,
+      "UI": 6,
+      "screen": 2,
+      "total": 35
+    },
+    "viewport": [
+      320,
+      568
+    ],
+    "text_scale": 2,
+    "keyboard_inset": 280,
+    "rendered_UI_languages": [
+      "chinese",
+      "english"
+    ],
+    "visual_review": "Both PNGs inspected; sample active/draft/history readable; fixed Back/Pause reachable",
+    "native_keychain_or_phone_test": false,
+    "release_build_or_install": false
+  },
+  "preservation": {
+    "baseline_files": 1272,
+    "changed_existing_files": [
+      "app/lib/route_memory/route_memory_mock_page.dart",
+      "configs/planning/navigation-route-memory-20261103.json",
+      "docs/BACKEND-DESIGN.zh-HK.md",
+      "docs/DATASET-REVIEW.zh-HK.md",
+      "docs/FRONTEND-DESIGN.zh-HK.md"
+    ],
+    "new_files": [
+      "app/lib/route_memory/device_route_library.dart",
+      "app/lib/route_memory/encrypted_route_store.dart",
+      "app/lib/route_memory/route_library_controller.dart",
+      "app/lib/route_memory/route_library_page.dart",
+      "app/lib/route_memory/route_library_screen.dart",
+      "app/lib/route_memory/route_package.dart",
+      "app/test/encrypted_route_store_test.dart",
+      "app/test/route_library_controller_test.dart",
+      "app/test/route_library_page_test.dart",
+      "app/test/route_library_screen_test.dart",
+      "configs/planning/dsh-p1-route-store-20261105.json",
+      "verification/ui/route-library-p1-chinese-2x.png",
+      "verification/ui/route-library-p1-english-2x.png",
+      "verification/dsh-p1-route-store-20261105.json"
+    ],
+    "unrelated_baseline_files_unchanged": true,
+    "staged_files": [],
+    "backend_dataset_models_B11_unchanged": true,
+    "commit_tag_release_deploy_install": false
+  },
+  "limitations": [
+    "Only synthetic route structure persists; actual recording, photographs/features and navigation not connected",
+    "Filesystem tests use isolated temporary directories and injected vault; native Keychain/device backup/restore not validated",
+    "OS backup exclusion is not implemented/verified; no App cloud upload or sync endpoint",
+    "Fault injection verifies process-step recovery, not actual phone power-loss durability",
+    "Storage owner restricted to main isolate; independent isolate writers unsupported",
+    "Current JSON quotas are not measured camera media budgets; P2-P3 must bind all keyframe/feature/history/temp totals",
+    "Real walking/VoiceOver/speech/field and visually impaired task acceptance unrun; model quality gate remains false"
+  ],
+  "human_approved": false,
+  "next": "P2 native single-camera functional integration, then P3 first recording/cross-floor and P4 obstacles/speech; system optimization later; new DSH budget required",
+  "source_sha256": {
+    "app/lib/route_memory/route_package.dart": "46ae7e0290977fcf7b7b90b9aec0ccca32e1de52fc6e6735d91d4ffacefaaad4",
+    "app/lib/route_memory/encrypted_route_store.dart": "fa903609c510500cdf900a22c6879bc797decf6ecc38d818e3780e797492f647",
+    "app/lib/route_memory/route_library_controller.dart": "1b2f26b966e5f5568a3a77650df41a8027bd6374376e9e6516cb0b3c9c9052b2",
+    "app/lib/route_memory/device_route_library.dart": "f174c36f22b8cac4191000acf9dd87a3b8c5256aead11e3a8284b36ffb8c5ca3",
+    "app/lib/route_memory/route_library_screen.dart": "66779ba011bac0326ae163affa71ecf947d9adb00e9b4bdbbd5ef187edbe0c9e",
+    "app/lib/route_memory/route_library_page.dart": "69bc77fa7700c60642a0ea9ce0bfe9c2c1d0fde0901e94abdc36a72aa9b7f68f",
+    "app/test/encrypted_route_store_test.dart": "6d82d5bbe48e57724afc241b43befb0fcb7e88e2fa29bce3d48d2223a11bb4dc",
+    "app/test/route_library_controller_test.dart": "d1303b1e7ee646e80e95f1b8e5b8fb308a10ea2abdb1b37b3e2a949ef3b66fa4",
+    "app/test/route_library_screen_test.dart": "69f98de0335600487f187f2a74c469fe58f41d9918ea37a60edfc3580c976a15",
+    "app/test/route_library_page_test.dart": "29aaa46b553c9628bfe607eff94cdf2e91978a7e32dc7ace230632ec39c7df98",
+    "app/lib/route_memory/route_memory_mock_page.dart": "96d586fcfa8e0fe7ca3d232219fc078ef51f656bba9f94fe5f47bd2824ecd21c",
+    "docs/FRONTEND-DESIGN.zh-HK.md": "aaf7d7c820f5fe29e778353deccdaf21657384c539bd008430414f0b7ea9602f",
+    "docs/BACKEND-DESIGN.zh-HK.md": "7480df7e7e9bd01e40cbfa4d9e627118ed874e39e13976a0cfe1d9cf9bd1a0ac",
+    "docs/DATASET-REVIEW.zh-HK.md": "8688682059da7bd2c26ee4e5545be02ca082f27bdfe428275f4a2f8c71b3a886",
+    "configs/planning/navigation-route-memory-20261103.json": "c57b3bc1b65384ea14437b7f6752b964969561bdef38394f9c68e697306d2434",
+    "configs/planning/dsh-p1-route-store-20261105.json": "7b777f622b64a4c92ad2cc66328b72fd30e617eab99f4bc333b25b26beb3dab7"
+  },
+  "artifact_sha256": {
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/primary-full.log": "cc7e712e0b6229695dfada9c256b535a7e166759b0f010521565b301c63c2f76",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/primary-analyze.log": "cf853c105f44e5f4f6241b8a0ec2383ae22e41208cba9bbab2c3c0df0ba11b00",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/preview-final.log": "3f9dc3647f8de2e9f26c712663347bfce266a673bed1889a8bfe5b52f0569085",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/core-test.log": "aba544746da64d8812ae9dc1c668109f9cba34027468951477800ed72be3ca77",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/isolated-ui-final.log": "bc74846fe8e1363b8415d5c1816e423fb23449c57846338d3b600fa5d35cacd8",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/isolated-ui-v2.log": "363061ad579a4095994b5342c03b8e409b256d92eeb4fbeb0a44eef8f5814dc8",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/attempt-1/analyze.log": "a3e42812edf8b675620ebb076fad4aa9ce948d05e08b59b703e3c726a65a333c",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/attempt-1/answer.diff": "01886733a6526c285fc0da3e31939cef6631ad9109f65753e198cbd625dbd76a",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/attempt-2/answer.diff": "290bee76d62cfb1cef046f7b2317c7653d99d65fa5dba184f84a16304d8b49f2",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/contract.json": "f90af8557d7c66afa32742c6f3d07d1d772d783bdef2a83734025df33af3b4f9",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/dispatch.json": "f45c2211d7b8b82a5ac1a84ccbe1742d94b08799bc2e4f5b198fc8479e4dc2cb",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/authorization.json": "0790c986f938bb921bf512cc8c680e0abbbc43539fbbeedc1375a4a6f37e58a8",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/before.json": "79507fcedc649712abbe1347026976de59d7a5ba7eac9b257a4415894cf308bb",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/request-1.txt": "da682bea642653de968db81b2ab75fe8c10f62e05af93f589e70b46bef80739a",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/request-2.txt": "253667dfc289df48ae15aebcee4130f0548a3b91248af28928c72763c5972750",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/duplicate-submit-result.json": "289a3d2d0d80b1be9d35f3d937957ead9d30b6350a425e0fcee318ac8dce08e4",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/final-source.diff": "8112c84bb4c7824b3fcb5f10cde91608391076153d10f05d547a70b918abdd5e",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/sol-repair-of-dsh.diff": "d93426117599f84a5a6774b23b5428ab0dbe1ebb94539165f46de3649b3e7ab3",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/diff-check.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "screenshots": {
+    "verification/ui/route-library-p1-chinese-2x.png": "2bc23250362808ebc60f34c8494cda66de3f03844ad0f2492d17e3fb3d1d2565",
+    "verification/ui/route-library-p1-english-2x.png": "6c7c12b5c63214bad2d5261cb1fb78119c5cea63ba87a3f1d936ead121b35d00"
+  },
+  "raw_artifacts": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store",
+  "candidate": "configs/planning/dsh-p1-route-store-20261105.json"
+}

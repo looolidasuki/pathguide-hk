@@ -2,6 +2,7 @@ import '../l10n/app_language.dart';
 
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -11,6 +12,20 @@ import '../tts/announcer.dart' show Speaker;
 import '../tts/flutter_tts_speaker.dart';
 import 'menu_controller.dart';
 import 'menu_reader.dart';
+
+/// 線上語音是哪一家（**廠商名**，讓句子自然接上「的線上語音服務」）。
+///
+/// 隱私說明必須點對名字：iOS 走 Apple 的語音服務，Android 走 Google 的。
+///
+/// 抽成頂層函數是為了**可測**：widget 測試若臨時改 `defaultTargetPlatform`，
+/// 必須在測試體內復位（flutter_test 會在體尾檢查），很容易漏；
+/// 純函數版本可以三個分支都直接斷言。
+@visibleForTesting
+String onlineVoiceVendorFor(TargetPlatform platform) => switch (platform) {
+  TargetPlatform.iOS => 'Apple',
+  TargetPlatform.android => 'Google',
+  _ => '系統',
+};
 
 class MenuPage extends StatefulWidget {
   const MenuPage({
@@ -81,7 +96,11 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     ++_speechGeneration;
     _speaking = false;
     _outputBusy = false;
-    await _speaker.stop();
+    try {
+      await _speaker.stop();
+    } catch (_) {
+      // A speech service failure must not block cancelling or taking a photo.
+    }
     if (mounted) setState(() {});
   }
 
@@ -139,6 +158,7 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     final generation = ++_voiceGeneration;
     _pendingReadout = null;
     await _stop();
+    if (!mounted || !_foreground || generation != _voiceGeneration) return;
     _query.clear();
     _visibleLimit = 30;
     FocusManager.instance.primaryFocus?.unfocus();
@@ -156,7 +176,7 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     final voiceGeneration = ++_voiceGeneration;
     _pendingReadout = null;
     await _stop();
-    if (!mounted || voiceGeneration != _voiceGeneration) return;
+    if (!mounted || !_foreground || voiceGeneration != _voiceGeneration) return;
     FocusManager.instance.primaryFocus?.unfocus();
     try {
       final query = await _menu.listen(allowNetwork: allowNetwork);
@@ -173,9 +193,9 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
         context: context,
         builder: (ctx) => AlertDialog(
           scrollable: true,
-          title: const AppText('使用 Apple 線上語音搜尋？'),
-          content: const AppText(
-            '這部手機未提供離線粵語辨識。選擇繼續後，這次錄音可能由 Apple 的線上語音服務處理，需要網絡。菜單照片不會傳送到該服務。你亦可取消，直接輸入菜式。',
+          title: AppText('使用 ${_onlineVoiceVendor()} 線上語音搜尋？'),
+          content: AppText(
+            '這部手機未提供離線粵語辨識。選擇繼續後，這次錄音可能由 ${_onlineVoiceVendor()} 的線上語音服務處理，需要網絡。菜單照片不會傳送到該服務。你亦可取消，直接輸入菜式。',
           ),
           actions: [
             TextButton(
@@ -193,6 +213,14 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     }
   }
 
+  static String _onlineVoiceVendor() => onlineVoiceVendorFor(defaultTargetPlatform);
+
+  /// 這個平台不支援菜單閱讀時，要說出**為什麼**與**在哪些平台可用**。
+  static String _unsupportedReason() => switch (defaultTargetPlatform) {
+    TargetPlatform.iOS => '菜單閱讀在 iPhone 需要 iOS 16 或以上。',
+    TargetPlatform.android => '這部 Android 裝置未提供可用的文字辨識服務。',
+    _ => '菜單閱讀目前支援 iPhone 與 Android。',
+  };
   void _search() {
     ++_voiceGeneration;
     _pendingReadout = null;
@@ -241,7 +269,7 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
             const AppText('先拍攝菜單，再講「我想食牛腩飯」。App 會搜尋已辨識文字，讀出可確認的標示價錢。'),
             const SizedBox(height: 12),
             if (!_menu.reader.supported)
-              const AppText('本輪菜單閱讀先支援 iPhone，繁體中文辨識需要 iOS 16 或以上。'),
+              AppText(_unsupportedReason()),
             Semantics(
               // Result speech has one explicit output path; do not announce it twice.
               liveRegion: false,

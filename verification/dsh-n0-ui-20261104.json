@@ -1,0 +1,244 @@
+{
+  "schema_version": 1,
+  "recorded_at_hong_kong": "2026-11-04T20:14:13.055510+08:00",
+  "status": "completed_unreleased_after_supervisor_review_and_repair",
+  "work_package": "N0-UI1",
+  "base_commit": "7de2f4fd83c7096abe83b4eb6552846629f107ea",
+  "authorization": {
+    "user_text": "而家開始做",
+    "package_limits": {
+      "usd": 0.1,
+      "requests": 2,
+      "model_dispatch_seconds": 1200
+    },
+    "later_user_question_about_limits": "Question only; no increase inferred",
+    "ignored_optional_skill": "User said ignore dsh-codex-handoff; not used"
+  },
+  "scope": "Offline memory-only route mock, controller contracts, accessible UI, shell entry, tests, bridge dispatch safeguards, three technical docs. No real localization or publication.",
+  "entry": "Home -> 熟路錄製與重行（模擬） / Record and retrace a route (mock)",
+  "behavior": [
+    "record3 synthetic fixed landmarks with directed recorded links; pause/resume; name/save/select",
+    "two independent start and direction confirmations",
+    "mock retrace / unknown / ambiguity / wrong direction; no stale direction retained",
+    "manual reconfirm restarts from mock origin; no arbitrary real recovery",
+    "explicit arrival and deletion confirmation; late results/dialog callbacks cannot resurrect route",
+    "leave preserves memory routes; App termination loses them; no disk persistence or UID dependencies",
+    "repeat status uses live region, no TTS or hardware initialization"
+  ],
+  "sol_owned": [
+    "route/observation/controller contracts and generation/sequence/version/time checks",
+    "bridge scoped runner",
+    "shell/home entry and one translation",
+    "review-driven UI/test repairs and final integration",
+    "core/integration tests and existing technical docs"
+  ],
+  "dsh": {
+    "bundle": "/Users/darr/Desktop/DSH Desktop.app",
+    "desktop_version": "0.13.0",
+    "harness_version": "0.2.1-rc.3",
+    "transport": "isolated headless CLI stdin/NDJSON; text only;tools denied",
+    "attempts": [
+      {
+        "slot": 1,
+        "task_id": "dsh-n0-cab4f3cb-d442-4b84-9438-a45e796d8c16",
+        "session_id": "session-4c9851a4-eb4e-4f52-80fd-1b1f9b3455bc",
+        "status": "failed",
+        "elapsed_seconds": 39.657,
+        "usage": [
+          {
+            "inputTokens": 3981,
+            "outputTokens": 12288,
+            "cacheReadTokens": 0,
+            "cacheWriteTokens": 0,
+            "totalTokens": 16269
+          }
+        ],
+        "accepted_as_submitted": false
+      },
+      {
+        "slot": 2,
+        "task_id": "dsh-n0-88c32396-415a-4083-9a45-6ba22f97d0f5",
+        "session_id": "session-147bab1d-4a41-4602-a08b-33d8aadec862",
+        "status": "completed",
+        "elapsed_seconds": 18.295,
+        "usage": [
+          {
+            "inputTokens": 7261,
+            "outputTokens": 4542,
+            "cacheReadTokens": 0,
+            "cacheWriteTokens": 0,
+            "totalTokens": 11803
+          }
+        ],
+        "accepted_as_submitted": false
+      }
+    ],
+    "attempt1_rejection": [
+      "max-tokens terminal exit1; complete-looking source retained as unreviewed only",
+      "invented controller import; save enablement/readback/test coverage defects; invalid new-file hunk counts"
+    ],
+    "attempt2_rejection": [
+      "process completed but returned fenced diff with incorrect context and duplicate switch cases; git apply --recount --check failed; patch not applied"
+    ],
+    "integration": "Recovered4 new source files from attempt1 under an allowlist; Sol repaired targeted UI and tests using reviewed evidence. Attempt2 suggestions reviewed but raw patch rejected. Original artifacts preserved; not a claim of autonomous DSH file editing/testing.",
+    "no_third_request": true,
+    "duplicate_submit_verified": true
+  },
+  "cost": {
+    "model_requests": 2,
+    "input_tokens": 11242,
+    "output_tokens": 16830,
+    "peak_price_estimate_usd": 0.0235686,
+    "pre_send_peak_bounds_usd": 0.0462771,
+    "budget_usd": 0.1,
+    "actual_invoice_verified": false,
+    "sol_or_desktop_subscription_cost_included": false,
+    "pricing_verified_date": "2026-11-04",
+    "pricing_source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "model_elapsed_seconds": 57.952,
+    "model_requests_finished_before_dispatch_deadline": true,
+    "local_QA_can_finish_after_model_deadline": true
+  },
+  "verification": {
+    "new_N0_tests": 20,
+    "full_flutter_tests": 353,
+    "full_flutter_exit_code": 0,
+    "analyze_exit_code": 0,
+    "commands_and_logs": [
+      {
+        "name": "primary-full",
+        "command": [
+          "/Users/darr/Desktop/development/flutter/bin/flutter",
+          "test",
+          "--no-pub",
+          "--reporter",
+          "expanded"
+        ],
+        "cwd": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/app",
+        "exit_code": 0,
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/primary-full.log"
+      },
+      {
+        "name": "primary-analyze",
+        "command": [
+          "/Users/darr/Desktop/development/flutter/bin/flutter",
+          "analyze",
+          "--no-pub"
+        ],
+        "cwd": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/app",
+        "exit_code": 0,
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/primary-analyze.log"
+      }
+    ],
+    "preview": {
+      "exit_code": 0,
+      "actual_app_shell": true,
+      "viewport": "320x568",
+      "text_scale": 2,
+      "languages": [
+        "chinese",
+        "english"
+      ],
+      "visually_reviewed": true,
+      "notes": "N0 badge contrast and fixed labels adjusted; existing narrow English bottom navigation wraps at2x. Scrollable content/Back/End verified; no real VoiceOver validation."
+    },
+    "bridge": {
+      "python_checks": 15,
+      "exit_code": 0,
+      "package_gate_mock_checks": "passed",
+      "real_requests_in_bridge_tests": 0
+    },
+    "initial_failures_and_repairs": [
+      "Exported package-config root /var vs /private/var and missing package_graph fixed in isolated copy; no toolchain upgrade or pub dependency change",
+      "Full suite initial account regression resolved by keeping existing home task/account order",
+      "Actual small-shell2x overflow resolved by concise fixed mock banner and scrolling detail"
+    ],
+    "human_approved": false,
+    "real_device_or_field_acceptance": false,
+    "keyboard_inset_mock": {
+      "bottom_logical_px": 280,
+      "languages": [
+        "chinese",
+        "english"
+      ],
+      "viewport": "320x568",
+      "text_scale": 2,
+      "fixed_controls_hit_testable": true,
+      "additional_source_fix_needed": false,
+      "real_software_keyboard_device_test": false
+    },
+    "git_diff_check_exit_code": 0
+  },
+  "preservation": {
+    "baseline_files_hashed": 1251,
+    "preexisting_files_changed": [
+      "app/lib/l10n/english.dart",
+      "configs/planning/dsh-n0-ui-candidate-20261104.json",
+      "docs/BACKEND-DESIGN.zh-HK.md",
+      "app/lib/ui/app_shell.dart",
+      "docs/DATASET-REVIEW.zh-HK.md",
+      "docs/FRONTEND-DESIGN.zh-HK.md",
+      "app/lib/ui/task_home_page.dart"
+    ],
+    "unexpected_preexisting_changes": [],
+    "preexisting_english_W3_changes_preserved": true,
+    "usage_guide_and_unrelated_backend_dataset_source_unchanged": true,
+    "model_sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "model_changed": false,
+    "app_version": "1.4.3+8",
+    "new_version_published_or_installed": false,
+    "stage_commit_push_reset_clean": false,
+    "training_deployment_GPU": false,
+    "keys_extracted_or_printed": false,
+    "signed_DSH_app_changed": false,
+    "existing_DSH_sessions_touched": false
+  },
+  "limits": [
+    "N0 synthetic interaction only. Camera/keyframes/OCR/feature matching/ARKit, real route persistence and real guidance remain N1/N2",
+    "No real screen-reader/field acceptance; UI tests and screenshots are engineering evidence",
+    "Generic live cancel/upstream billing stop remain unverified; existing ACP/mock cancellation evidence not upgraded",
+    "DSH two raw deliveries required supervisor repair; no claim that larger budget alone solves this",
+    "Unreleased work remains uncommitted to avoid mixing unrelated changes; release/install still follows AGENTS.md"
+  ],
+  "next_dependency": "N1 Sol design: single camera/observation source, keyframe quality/dedup, versioned OCR/features, local store/delete. No new training/weights or live cloud vision assumed.",
+  "raw_artifacts": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui",
+  "source_sha256": {
+    "app/lib/route_memory/route_memory_contract.dart": "41e64a16b4471244d89549f9b4e1d7af32c71bf42620362158976ce806605729",
+    "app/lib/route_memory/route_memory_mock_fixtures.dart": "873ba8e1f1e4889fee678219bd5c10eea09b0aa729a6e27e9a327d511488bf49",
+    "app/lib/route_memory/route_memory_mock_page.dart": "b651f31c5ddf53e75efbd9af46e1522c44d294cb1471b12cae1764ecb22fc57c",
+    "app/test/route_memory_controller_test.dart": "379ac5cd33ccc5b0b4da9ce64af4a4dfa8a1e07d7533201f2ef270524e4ee23b",
+    "app/test/route_memory_mock_page_test.dart": "fb1ed1ce7ba1e28d2b6a51c9b44f03696a9084a172c513f987fc837117f6ce28",
+    "app/test/route_memory_mock_flow_test.dart": "cd1952ddbd88a7622a42cc1506a9fdd5b96302f0b2c11bb2bc7e38fe63b2eeb7",
+    "app/test/route_memory_integration_test.dart": "d071673bd6f31527c6ab45d89563b02151ae7a9a444b583462b6be55e7586bb6",
+    "app/lib/ui/task_home_page.dart": "b7573dec1aff610b85760a99ca94cf13559f58ad0a6c810656fd0f497e34788f",
+    "app/lib/ui/app_shell.dart": "7c00afbeb9ec1bb26e1d411ea143ec3996ce35103c48b3d643b75f95f69080cd",
+    "app/lib/l10n/english.dart": "689626bd606651bd856430ed9d491fe60ed6e0c4331a2f8264eb9901c99b1761",
+    "docs/FRONTEND-DESIGN.zh-HK.md": "54abfaf1ef522de58f78cd07a41cb11f9ae66f03bb357ffd0d21434abceca54b",
+    "docs/BACKEND-DESIGN.zh-HK.md": "20d1fc765c9d66d71ada07d40cdb1c21b8bea3360c2d51064044227a00165295",
+    "docs/DATASET-REVIEW.zh-HK.md": "41284f25006b2dd6e59264d39f071163973427c18df604a57c4345f5a58e78e3"
+  },
+  "bridge_source_sha256": {
+    "/Users/darr/Desktop/development/pathguide-dsh-bridge/scoped_control.py": "848ab25eb60f5146387f694af504a3fa74ad5f464148c2fe6fb3b2ba100eadce",
+    "/Users/darr/Desktop/development/pathguide-dsh-bridge/test_scoped_control.py": "120373fc5f386a079483600a6e42bf66f020978d832205b29bccd4df5cfa30cc",
+    "/Users/darr/Desktop/development/pathguide-dsh-bridge/work_package_gate.mjs": "3ce825199caf4a60710618e8135027b23f4e39f894d8a82cc3696481e2c498a9",
+    "/Users/darr/Desktop/development/pathguide-dsh-bridge/bridge.py": "916367aee688d8a6d6a84709ead892fe0a69c5d1f3039e1a8453f9446b96d6b7"
+  },
+  "artifact_sha256": {
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/contract.json": "6f898d5deea99716752e588c979b6ae42a6e1aaaefe2e4468e3976aa67d22f21",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/dispatch.json": "c9b132ddd3d81e3f0276bb08f30816bc71b2a9335f2175dd360f1679234e2e0e",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/request-1.txt": "276d58b02a7ba57316335c93f794532db7759d763e566263559b12d62db4d0bf",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/request-2.txt": "87e7357ec48a224f8e3565ab5d3146d1cead47cd0258052ebc9e1faa59f2b744",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/attempt-1/answer.diff": "b77b0bf74338dee18890b8990dfd954a1849d40a24e4058ce06440cba33366ae",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/attempt-2/answer.diff": "e886dfe703072290bb5be169d9081e25cacabf001685506a1666001a6ed4c7b8",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/final-source.diff": "bc359d5af0f5abc212db4c81903f95f910b660579ba8a31282e47354f5efecb4",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/sol-repair-of-dsh.diff": "a345711a8bf01a320159c3527fe1440abf7312b934320c72ebece5d4b251489d",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/primary-full.log": "ab392d2e6b763441807f411a90726fbd89ed04d7ee1d55a54ba8a3b8673b55c4",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/primary-analyze.log": "7572c1c67bfe00971553ea3e5d8915c9b54db80b827710fd598a840a0c847ce1",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/preview-current-source.log": "c89cdb73fc034a8532e05a2818ea64c482895795bd25221698738e91b3d565c8",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/bridge-regression.json": "00f0af69797bb20e38bd537ac4d0ee14c1b57e567551c56dd8cfb568cf8d3792",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/duplicate-submit-result.json": "21255f6c129ad8b96d9954344d5356c8d6aab9cd0f205e82f86d27d9684dbef4",
+    "verification/ui/route-memory-n0-chinese-2x.png": "dc27906240f3b14a70cc75148006e821b9ec30a15266b9674215473b537462b9",
+    "verification/ui/route-memory-n0-english-2x.png": "d1fcf4e4bbcf922463eac3677292bfcb9f01d6373256d82e08eddc88cd69b601",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-n0-ui/keyboard-before.log": "a773e9cbdc4fba35895d2429fdaa2dac191d0d9696e9fe7ab0d53c562e5e0703"
+  }
+}

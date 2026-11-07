@@ -50,10 +50,12 @@ class DemoPage extends StatefulWidget {
     required this.settings,
     this.onBack,
     this.onAccount,
+    this.developerControls = false,
   });
 
   /// Tests and demo tooling can start in mock mode without racing native setup.
   /// The shipped app keeps the camera default.
+  final bool developerControls;
   final SourceMode initialMode;
   final AppSettings settings;
   final VoidCallback? onBack;
@@ -156,6 +158,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
   bool _hasStarted = false;
   bool _screenReader = false;
   DateTime? _lastResultAt;
+  Timer? _resultExpiry;
   String _readback = '正在準備辨識…';
   bool _resumeAfterInterruption = false;
   bool _initializing = false;
@@ -271,6 +274,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
   }
 
   void _pauseRecognition({bool interrupted = false}) {
+    _resultExpiry?.cancel();
     if (!interrupted) _resumeAfterInterruption = false;
     _initializing = false;
     _pendingStatusAnnouncement = null;
@@ -288,7 +292,8 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
       _statusError = null;
       _readback = '已暫停辨識及播報';
     });
-    _transition = _transition.then((_) => _stopVision());
+    final stopping = _stopVision();
+    _transition = _transition.then((_) => stopping);
   }
 
   Future<void> _readCurrentResult() async {
@@ -387,6 +392,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
   bool _isCurrent(int generation) => _active && _isRequested(generation);
 
   Future<void> _stopVision() async {
+    _resultExpiry?.cancel();
     _diagTimer?.cancel();
     _diagTimer = null;
     final sub = _sub;
@@ -462,6 +468,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
       }
       await _announcePendingStatus();
       if (!_isCurrent(generation)) return;
+      _armResultExpiry();
       if (mode == SourceMode.camera) {
         _diagTimer = Timer.periodic(const Duration(milliseconds: 500), (
           _,
@@ -630,6 +637,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
     // 假源同样按 threshold 过滤）。两处各过滤一次时，不一致的表现是
     // 「滑动条不生效」或「框数对不上」，且不报错。
     _lastResultAt = now;
+    _armResultExpiry();
     // Also retry after a delayed TTS setup or a screen-reader route change.
     // The status helper serializes itself and reads only the active generation.
     if (_pendingStatusAnnouncement != null) {
@@ -673,8 +681,24 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
     });
   }
 
+  void _armResultExpiry() {
+    _resultExpiry?.cancel();
+    final generation = _sourceGeneration;
+    _resultExpiry = Timer(const Duration(seconds: 3), () {
+      if (!_isCurrent(generation)) return;
+      _stopSpeech();
+      setState(() {
+        _detections = const [];
+        _lastResultAt = null;
+        _fps = 0;
+        _readback = '結果已過期，正在重新取得。可暫停後重試或返回首頁。';
+      });
+    });
+  }
+
   @override
   void dispose() {
+    _resultExpiry?.cancel();
     _photoTimer?.cancel();
     widget.settings.removeListener(_applySettings);
     WidgetsBinding.instance.removeObserver(this);
@@ -683,7 +707,8 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
     ++_sourceGeneration;
     _diagTimer?.cancel();
     _stopSpeech();
-    _transition = _transition.then((_) => _stopVision());
+    final stopping = _stopVision();
+    _transition = _transition.then((_) => stopping);
     _settingsFocus.dispose();
     super.dispose();
   }
@@ -707,7 +732,9 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
               child: Row(
                 children: <Widget>[
                   IconButton(
-                    tooltip: context.tr('返回首頁'),
+                    tooltip: context.tr(
+                      widget.developerControls ? '返回測試列表' : '返回首頁',
+                    ),
                     constraints: const BoxConstraints(
                       minWidth: 56,
                       minHeight: 56,
@@ -902,7 +929,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
                     ),
                   ),
                   _statusBar(),
-                  _metricStrip(),
+                  if (widget.developerControls) _metricStrip(),
                   _controlPanel(refresh: refresh),
                 ],
               ),
@@ -1506,164 +1533,166 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
-          const AppText('辨識模型'),
-          const SizedBox(height: 8),
-          SegmentedButton<bool>(
-            key: const ValueKey('recognition-model'),
-            segments: const <ButtonSegment<bool>>[
-              ButtonSegment(value: true, label: AppText('新版十類')),
-              ButtonSegment(value: false, label: AppText('原版九類')),
-            ],
-            selected: <bool>{_pilotModel},
-            onSelectionChanged: (selection) {
-              setState(() => _pilotModel = selection.single);
-              if (_mode == SourceMode.camera) _switchSource(_mode);
-              refresh?.call();
-            },
-          ),
-          const SizedBox(height: 8),
-          AppText(
-            _pilotModel
-                ? '10月27日試用版：門辨識仍偏弱，圍欄未有獨立驗證；可切換原版比較。'
-                : '原版保留上樓梯及落樓梯，可作辨識比較。',
-          ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              border: Border.all(color: AppColors.border),
-              borderRadius: BorderRadius.circular(18),
+          if (widget.developerControls) ...[
+            const AppText('辨識模型'),
+            const SizedBox(height: 8),
+            SegmentedButton<bool>(
+              key: const ValueKey('recognition-model'),
+              segments: const <ButtonSegment<bool>>[
+                ButtonSegment(value: true, label: AppText('新版十類')),
+                ButtonSegment(value: false, label: AppText('原版九類')),
+              ],
+              selected: <bool>{_pilotModel},
+              onSelectionChanged: (selection) {
+                setState(() => _pilotModel = selection.single);
+                if (_mode == SourceMode.camera) _switchSource(_mode);
+                refresh?.call();
+              },
             ),
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    const Icon(
-                      Icons.tune_rounded,
-                      color: AppColors.primary,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    const Expanded(
-                      child: AppText(
-                        '辨識信心門檻',
-                        style: TextStyle(
-                          color: AppColors.text,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
+            const SizedBox(height: 8),
+            AppText(
+              _pilotModel
+                  ? '10月27日試用版：門辨識仍偏弱，圍欄未有獨立驗證；可切換原版比較。'
+                  : '原版保留上樓梯及落樓梯，可作辨識比較。',
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                border: Border.all(color: AppColors.border),
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      const Icon(
+                        Icons.tune_rounded,
+                        color: AppColors.primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: AppText(
+                          '辨識信心門檻',
+                          style: TextStyle(
+                            color: AppColors.text,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.14),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: AppText(
-                        _threshold.toStringAsFixed(2),
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                          fontFeatures: <FontFeature>[
-                            FontFeature.tabularFigures(),
-                          ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.14),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: AppText(
+                          _threshold.toStringAsFixed(2),
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w800,
+                            fontFeatures: <FontFeature>[
+                              FontFeature.tabularFigures(),
+                            ],
+                          ),
                         ),
                       ),
+                    ],
+                  ),
+                  Semantics(
+                    label: context.tr('辨識信心門檻'),
+                    value: _threshold.toStringAsFixed(2),
+                    child: Slider(
+                      key: const ValueKey<String>('detection-threshold'),
+                      value: _threshold,
+                      min: 0.05,
+                      max: 0.95,
+                      divisions: 18,
+                      label: _threshold.toStringAsFixed(2),
+                      onChanged: (v) {
+                        setState(() => _threshold = v);
+                        _source?.threshold = v;
+                        refresh?.call();
+                      },
                     ),
-                  ],
-                ),
-                Semantics(
-                  label: context.tr('辨識信心門檻'),
-                  value: _threshold.toStringAsFixed(2),
-                  child: Slider(
-                    key: const ValueKey<String>('detection-threshold'),
-                    value: _threshold,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            _glass(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  AppText(
+                    '語音播報門檻 · ${widget.settings.speakThreshold.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: AppColors.text,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  const AppText(
+                    '較低會播報更多物件；較高會減少播報。物件亦須達到上方辨識門檻。',
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  ),
+                  Slider(
+                    key: const ValueKey<String>('speech-threshold'),
+                    semanticFormatterCallback: (v) =>
+                        '語音播報門檻 ${(v * 100).round()}%',
+                    value: widget.settings.speakThreshold,
                     min: 0.05,
                     max: 0.95,
                     divisions: 18,
-                    label: _threshold.toStringAsFixed(2),
-                    onChanged: (v) {
-                      setState(() => _threshold = v);
-                      _source?.threshold = v;
+                    label: widget.settings.speakThreshold.toStringAsFixed(2),
+                    onChanged: (value) {
+                      _stopSpeech();
+                      unawaited(widget.settings.setSpeakThreshold(value));
+                      refresh?.call();
+                    },
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: SegmentedButton<SourceMode>(
+                    showSelectedIcon: false,
+                    segments: <ButtonSegment<SourceMode>>[
+                      ButtonSegment<SourceMode>(
+                        value: SourceMode.camera,
+                        label: AppText('相機'),
+                        icon: Icon(Icons.photo_camera, size: 16),
+                      ),
+                      ButtonSegment<SourceMode>(
+                        value: SourceMode.mock,
+                        label: AppText('模擬資料'),
+                        icon: Icon(Icons.grid_on, size: 16),
+                      ),
+                    ],
+                    selected: <SourceMode>{_mode},
+                    onSelectionChanged: (s) async {
+                      // 不再按种类写两个分支去调各自的启动函数：
+                      // 切换来源统一走 _switchSource，它内部同等地处理
+                      // 「停旧的、起新的、重接流与诊断」。
+                      if (s.first == _mode) return;
+                      await _switchSource(s.first);
                       refresh?.call();
                     },
                   ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 10),
-          _glass(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                AppText(
-                  '語音播報門檻 · ${widget.settings.speakThreshold.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: AppColors.text,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                const AppText(
-                  '較低會播報更多物件；較高會減少播報。物件亦須達到上方辨識門檻。',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 12),
-                ),
-                Slider(
-                  key: const ValueKey<String>('speech-threshold'),
-                  semanticFormatterCallback: (v) =>
-                      '語音播報門檻 ${(v * 100).round()}%',
-                  value: widget.settings.speakThreshold,
-                  min: 0.05,
-                  max: 0.95,
-                  divisions: 18,
-                  label: widget.settings.speakThreshold.toStringAsFixed(2),
-                  onChanged: (value) {
-                    _stopSpeech();
-                    unawaited(widget.settings.setSpeakThreshold(value));
-                    refresh?.call();
-                  },
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: SegmentedButton<SourceMode>(
-                  showSelectedIcon: false,
-                  segments: <ButtonSegment<SourceMode>>[
-                    ButtonSegment<SourceMode>(
-                      value: SourceMode.camera,
-                      label: AppText('相機'),
-                      icon: Icon(Icons.photo_camera, size: 16),
-                    ),
-                    ButtonSegment<SourceMode>(
-                      value: SourceMode.mock,
-                      label: AppText('模擬資料'),
-                      icon: Icon(Icons.grid_on, size: 16),
-                    ),
-                  ],
-                  selected: <SourceMode>{_mode},
-                  onSelectionChanged: (s) async {
-                    // 不再按种类写两个分支去调各自的启动函数：
-                    // 切换来源统一走 _switchSource，它内部同等地处理
-                    // 「停旧的、起新的、重接流与诊断」。
-                    if (s.first == _mode) return;
-                    await _switchSource(s.first);
-                    refresh?.call();
-                  },
-                ),
-              ),
-            ],
-          ),
+          ],
           const SizedBox(height: 10),
           Row(
             children: <Widget>[
@@ -1719,55 +1748,57 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
             ),
 
           const SizedBox(height: 8),
-          Theme(
-            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-            child: ExpansionTile(
-              key: const PageStorageKey<String>('technical-details'),
-              tilePadding: const EdgeInsets.symmetric(horizontal: 14),
-              childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
-              collapsedBackgroundColor: AppColors.surface,
-              backgroundColor: AppColors.surface,
-              collapsedShape: RoundedRectangleBorder(
-                side: const BorderSide(color: AppColors.border),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              shape: RoundedRectangleBorder(
-                side: const BorderSide(color: AppColors.border),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              leading: const Icon(
-                Icons.developer_mode_rounded,
-                color: AppColors.textMuted,
-              ),
-              title: const AppText(
-                '技術資料',
-                style: TextStyle(
-                  color: AppColors.text,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
+          if (widget.developerControls)
+            Theme(
+              data: Theme.of(context)
+                  .copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                key: const PageStorageKey<String>('technical-details'),
+                tilePadding: const EdgeInsets.symmetric(horizontal: 14),
+                childrenPadding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                collapsedBackgroundColor: AppColors.surface,
+                backgroundColor: AppColors.surface,
+                collapsedShape: RoundedRectangleBorder(
+                  side: const BorderSide(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ),
-              subtitle: const AppText(
-                '答辯及問題診斷使用',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 11),
-              ),
-              children: <Widget>[
-                _perfPanel(),
-                if (_announcer.history.isNotEmpty) _announceLog(),
-                if (!_isIOS)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: _fitDebug(
-                      _lastFit ??
-                          DisplayFit.contain(
-                            frame: _frameSize,
-                            view: _frameSize,
-                          ),
-                    ),
+                shape: RoundedRectangleBorder(
+                  side: const BorderSide(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                leading: const Icon(
+                  Icons.developer_mode_rounded,
+                  color: AppColors.textMuted,
+                ),
+                title: const AppText(
+                  '技術資料',
+                  style: TextStyle(
+                    color: AppColors.text,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                   ),
-              ],
+                ),
+                subtitle: const AppText(
+                  '答辯及問題診斷使用',
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                ),
+                children: <Widget>[
+                  _perfPanel(),
+                  if (_announcer.history.isNotEmpty) _announceLog(),
+                  if (!_isIOS)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: _fitDebug(
+                        _lastFit ??
+                            DisplayFit.contain(
+                              frame: _frameSize,
+                              view: _frameSize,
+                            ),
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );

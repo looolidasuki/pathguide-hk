@@ -35,9 +35,9 @@ class NavigationPage extends StatefulWidget {
     this.onTaskChanged,
     this.visionFactory,
     this.speechSuspended = false,
-    this.onOpenReplay,
-    this.onOpenDepth,
+    this.onBack,
   });
+  final VoidCallback? onBack;
   final AppSettings settings;
   final NavigationController? controller;
   final SpeechInputService? speech;
@@ -46,8 +46,6 @@ class NavigationPage extends StatefulWidget {
   final ValueChanged<bool>? onTaskChanged;
   final VisionSource Function()? visionFactory;
   final bool speechSuspended;
-  final VoidCallback? onOpenReplay;
-  final VoidCallback? onOpenDepth;
   @override
   State<NavigationPage> createState() => _NavigationPageState();
 }
@@ -584,6 +582,15 @@ class _NavigationPageState extends State<NavigationPage>
               key: const ValueKey('navigation-home'),
               padding: const EdgeInsets.all(20),
               children: [
+                if (widget.onBack != null)
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: TextButton.icon(
+                      onPressed: widget.onBack,
+                      icon: const Icon(Icons.arrow_back),
+                      label: const AppText('返回首頁'),
+                    ),
+                  ),
                 Semantics(
                   header: true,
                   child: AppText(
@@ -648,16 +655,6 @@ class _NavigationPageState extends State<NavigationPage>
                   ],
                 ],
                 if (!hasTask) ...[
-                  if (widget.onOpenDepth != null)
-                    _button(
-                      '物件與測距（試驗）',
-                      nav.busy || _listening ? null : widget.onOpenDepth,
-                    ),
-                  if (widget.onOpenReplay != null)
-                    _button(
-                      '室內路標回放（樣例）',
-                      nav.busy || _listening ? null : widget.onOpenReplay,
-                    ),
                   TextField(
                     controller: _query,
                     enabled: !_listening && !nav.busy,
@@ -792,7 +789,6 @@ class _NavigationPageState extends State<NavigationPage>
                     },
                     child: const AppText('清除此手機地點'),
                   ),
-                  const AppText('錄製路線（開發中）'),
                 ],
               ],
             ),

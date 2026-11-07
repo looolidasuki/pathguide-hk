@@ -11,6 +11,52 @@ void main() {
   const codec = StandardMethodCodec();
   final binding = TestDefaultBinaryMessengerBinding.instance;
 
+  for (final phase in ['startPreview', 'modelDir', 'loadModel']) {
+    test('disposal during $phase cannot load or enable an old model', () async {
+      final entered = Completer<void>(), pending = Completer<Object?>();
+      final calls = <String>[];
+      final messenger = binding.defaultBinaryMessenger;
+      messenger.setMockMethodCallHandler(const MethodChannel(kVisionChannel), (
+        call,
+      ) async {
+        calls.add(call.method);
+        if (call.method == phase) {
+          entered.complete();
+          return pending.future;
+        }
+        return switch (call.method) {
+          'startPreview' => {'started': true},
+          'modelDir' => '/models',
+          'fileSize' => -1,
+          'loadModel' => {'loaded': true, 'classes': 10, 'inputSize': 640},
+          _ => null,
+        };
+      });
+      addTearDown(
+        () => messenger.setMockMethodCallHandler(
+          const MethodChannel(kVisionChannel),
+          null,
+        ),
+      );
+      final source = PlatformVision();
+      final job = source.initialize();
+      await entered.future;
+      await source.dispose();
+      pending.complete(switch (phase) {
+        'startPreview' => {'started': true},
+        'modelDir' => '/models',
+        _ => {'loaded': true, 'classes': 10, 'inputSize': 640},
+      });
+      expect((await job).ok, isFalse);
+      expect(source.isReady, isFalse);
+      expect(calls.where((c) => c == 'release'), hasLength(1));
+      expect(
+        calls.where((c) => c == 'loadModel'),
+        hasLength(phase == 'loadModel' ? 1 : 0),
+      );
+    });
+  }
+
   for (final nativeClasses in [9, 3, 10]) {
     test(
       'startup gates frames and validates native classes=$nativeClasses',

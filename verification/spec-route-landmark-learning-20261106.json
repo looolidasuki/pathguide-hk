@@ -1,0 +1,35 @@
+{
+  "date": "2026-11-06",
+  "timezone": "Asia/Hong_Kong",
+  "kind": "specification_only",
+  "issue_url": "https://github.com/actiondarr/pathguide/issues/19",
+  "parent_issue_url": "https://github.com/actiondarr/pathguide/issues/13",
+  "label": "ready-for-agent",
+  "issue_body_sha256": "ffb1005e3d40a0f440de71810dd2d50b919828439fdbe957f817f8b3de3e48ae",
+  "user_stories": 50,
+  "documents_sha256": {
+    "docs/APP-FEATURES.zh-HK.md": "2e7cc43fb094439ad2ad038959523bf9e4a06aafdb12aea8f6da2c183c0aad33",
+    "docs/FRONTEND-DESIGN.zh-HK.md": "6d2a76adca622765a4fe77cc97a11547ff632adfcccec62f4f898273f45ba0d5",
+    "docs/BACKEND-DESIGN.zh-HK.md": "733ad741168d8eac935d646f5ccdfceca033490cd4e3ccdc07f1f3bdfe47e62b",
+    "docs/DATASET-REVIEW.zh-HK.md": "e84eeb3e73178c1f54d4ec7db7c14bd3d4af816d339a3e53605b84969daad6b6"
+  },
+  "checks": {
+    "published_body_matches_draft": true,
+    "label_verified": true,
+    "native_parent_link_verified": true,
+    "seven_spec_sections": true,
+    "no_implementation_file_paths": true,
+    "four_existing_documents_only": true,
+    "S0_S7_preserved": true,
+    "whitespace_check": true
+  },
+  "runtime_changes": false,
+  "app_tests_run": false,
+  "new_private_data_collected_or_uploaded": false,
+  "training_started": false,
+  "deployment_or_installation": false,
+  "limitations": [
+    "Requirement and specification publication only; no new model accuracy or field acceptance evidence.",
+    "Original workspace unrelated tracked and untracked changes are excluded from this checkpoint."
+  ]
+}

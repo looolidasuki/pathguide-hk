@@ -1,0 +1,47 @@
+{
+  "date_hk": "2026-11-05",
+  "version": "1.5.0+9",
+  "tag": "v1.5.0+9",
+  "source_commit": "b620ec4595ce8436a71f5df92e5b1ce8f9718b64",
+  "release_url": "https://github.com/actiondarr/pathguide/releases/tag/v1.5.0%2B9",
+  "prerelease": true,
+  "remote_tag_and_branch_verified_before_install": true,
+  "bundle_id": "hk.pathguide.pathguide",
+  "signed_release_build": {
+    "status": "signed_release_build_passed",
+    "bundle_id": "hk.pathguide.pathguide",
+    "version": "1.5.0",
+    "build": "9",
+    "codesign_verify_exit": 0,
+    "executable_sha256": "9b714948b4f4fb45b0608333f51f9b721fc6617246372a087e53b688254b8a22",
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/iphone-release-approved.log"
+  },
+  "model_sha256": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "checks": {
+    "Dart_tests": 435,
+    "native_Simulator_tests": 45,
+    "analyze_issues": 0,
+    "code_review": "both axes passed after unconfirmed-stop retry fix"
+  },
+  "installation": "success",
+  "launch": "success",
+  "device_family": "iPhone",
+  "human_camera_VoiceOver_acceptance": "partial: general basic-operation and VoiceOver no-issue reports; edge scenarios not individually enumerated",
+  "raw_device_receipts": "retained locally outside repository; identifiers omitted",
+  "next": "UI cleanup #14; then P3-A encrypted media/device checks",
+  "user_feedback_20261105": {
+    "report": "User reports other operations and VoiceOver have no problems",
+    "confirmed_scope": "general basic operation and VoiceOver reports only",
+    "image_inspection": "attached user screenshot shows upright preview and captured image; no personal image copied into repository",
+    "pending": [
+      "individual permission/background/handoff scenarios",
+      "all orientation changes on device"
+    ],
+    "later_feedback": "User requests clearer UI and trial explanations; tracked separately in #14"
+  }
+}

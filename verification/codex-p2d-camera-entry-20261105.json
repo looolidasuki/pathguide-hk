@@ -1,0 +1,115 @@
+{
+  "date_hk": "2026-11-05",
+  "implementer": "Codex",
+  "status": "P2-D_prerelease_published_installed_launched_human_acceptance_pending",
+  "version": "1.5.0+9",
+  "source_sha256": {
+    "app/lib/route_memory/route_observation_source.dart": "de9e27854197308791394d1db361860d078bf9f727babf634e8f16e168b895fd",
+    "app/lib/route_memory/route_capture_controller.dart": "f952631bc35e03dc886515eaab68f17f827aa866b9383a0ed04ba5cd9589c9b4",
+    "app/lib/route_memory/route_capture_page.dart": "b9fe3e73acc08168d2f3b00b15e7f0e1cc67fe281f85afb9e28028e271e539b1",
+    "app/lib/route_memory/route_memory_mock_page.dart": "411434bbefba324f74520d997bcda7dc76bfc2a0bd7541df174174a29def2861",
+    "app/lib/ui/task_home_page.dart": "1ca7bd6edc6cea36c705dd0cc387e1fcf38db1b58d2e16f7713052a454d760ab",
+    "app/lib/l10n/english.dart": "2e4f87570a8bdb3ae172da487b09d4779bc525964a170a5b1987fb3fd59c0426",
+    "app/ios/Runner/RouteCameraPlugin.swift": "e5853638442e056395c79eca1a082061d67cd64d9436c50c1dd1ad54798ea2d8",
+    "app/ios/Runner/AppDelegate.swift": "e7bf44b1b1e41825494fa242685139c6fbcfa582b8d656c58aafa9c02a571f88",
+    "app/ios/RunnerTests/RunnerTests.swift": "7a2b72e7d5140733af0c1af8cd720a3b8bcdc068c18555e675a377c3870b6cbb",
+    "app/pubspec.yaml": "8cfe935336f8d6b571e241fa9f83280c9a40abe3028d6753ec395d67b7d10a65"
+  },
+  "native": {
+    "command": [
+      "xcodebuild",
+      "-workspace",
+      "app/ios/Runner.xcworkspace",
+      "-scheme",
+      "Runner",
+      "-configuration",
+      "Debug",
+      "-sdk",
+      "iphonesimulator",
+      "-destination",
+      "platform=iOS Simulator,id=A7A79D18-5CBC-4F82-85EC-366C8B8B1B63",
+      "-parallel-testing-enabled",
+      "NO",
+      "CODE_SIGNING_ALLOWED=NO",
+      "test"
+    ],
+    "exit": 0,
+    "tests": 45,
+    "failures": 0,
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/native-final.log"
+  },
+  "dart_checks": [
+    {
+      "step": "flutter-tests-approved",
+      "exit": 0,
+      "tests": 435,
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/flutter-tests-approved.log"
+    },
+    {
+      "step": "analyze-approved",
+      "exit": 0,
+      "issues": 0,
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/analyze-approved.log"
+    }
+  ],
+  "flutter_tests": 435,
+  "new_Dart_tests": 20,
+  "layout": {
+    "size": "320x568",
+    "text_scale": 2,
+    "keyboard_inset": 180,
+    "languages": [
+      "Chinese",
+      "English"
+    ],
+    "image_sha256": {
+      "verification/ui/route-camera-p2d-chinese-2x-keyboard.png": "a6788ca010b9c10d26f6b5841e391b17aa48c2f8c1aa7d21ea0bb926d27010ff",
+      "verification/ui/route-camera-p2d-english-2x-keyboard.png": "96ea23a7aae5e21ac9cabc32122a5af9fdfe0e5ce7c0731f30c0d5904a83d8d8"
+    },
+    "font_review": "local Arial Unicode, not bundled or uploaded"
+  },
+  "regressions": {
+    "subscriber": "Old native cancellation and older Dart event listener both failed before exact native subscriber/shared Dart stream fixes",
+    "native_before_log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/subscriber-before.log",
+    "native_before_exit": -15,
+    "native_before_note": "One assertion failed; xcodebuild hung finalizing failed results and was terminated after suite completion",
+    "dart_before_log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/dart-subscriber-before.log",
+    "cache_before_log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/cache-before.log",
+    "after": "45 native and 435 Dart tests pass; stopped image cache untracked",
+    "stop_retry": {
+      "red_log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/repeated-stop-before.log",
+      "green_log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/repeated-stop-after.log",
+      "behavior": "Retain unresolved identity; repeat native confirmation; block restart until confirmed"
+    }
+  },
+  "phone_build": {
+    "status": "signed_release_build_passed",
+    "bundle_id": "hk.pathguide.pathguide",
+    "version": "1.5.0",
+    "build": "9",
+    "codesign_verify_exit": 0,
+    "executable_sha256": "9b714948b4f4fb45b0608333f51f9b721fc6617246372a087e53b688254b8a22",
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2d/iphone-release-approved.log"
+  },
+  "model_sha256": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "human_device_acceptance": "partial user report: basic operation and VoiceOver no problems; individual edge cases not enumerated",
+  "installation": "installed_and_launched",
+  "persistence": "none; JPEG and its display cache cleared on stop/background/exit",
+  "scope": "live native camera entry, permission/retry/stop/lifecycle; no route storage/localization/walking guidance",
+  "next": "UI cleanup #14 before P3-A; real route storage/localization not delivered",
+  "review": {
+    "standards": "Unconfirmed stop retry finding fixed and re-reviewed; no remaining findings",
+    "spec": "Same stop retry finding fixed and re-reviewed; no remaining findings"
+  },
+  "release": {
+    "tag": "v1.5.0+9",
+    "source_commit": "b620ec4595ce8436a71f5df92e5b1ce8f9718b64",
+    "remote_verified": true,
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.5.0%2B9"
+  }
+}

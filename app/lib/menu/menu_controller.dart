@@ -45,6 +45,9 @@ class MenuReadingController extends ChangeNotifier {
     document = null;
     query = '';
     section = null;
+    voiceReadout = null;
+    rawTranscript = '';
+    partial = '';
     state = MenuState.acquiring;
     message = source == MenuImageSource.library ? '正在開啟照片選取。' : '正在開啟菜單拍攝。';
     _notify();
@@ -125,7 +128,12 @@ class MenuReadingController extends ChangeNotifier {
       );
       if (_disposed || generation != _generation) return null;
       state = MenuState.result;
-      if (response.outcome == MenuSpeechOutcome.cancelled) return null;
+      if (response.outcome == MenuSpeechOutcome.cancelled) {
+        partial = '';
+        message = '已取消收音。可用文字搜尋，或重新啟動語音搜尋。';
+        _notify();
+        return null;
+      }
       final text = response.text;
       rawTranscript = text;
       if (text.trim().isEmpty) {
@@ -158,10 +166,11 @@ class MenuReadingController extends ChangeNotifier {
   }
 
   Future<void> cancel() async {
-    ++_generation;
+    final generation = ++_generation;
     voiceReadout = null;
+    partial = '';
     await reader.cancel();
-    if (_disposed) return;
+    if (_disposed || generation != _generation) return;
     state = document == null ? MenuState.ready : MenuState.result;
     message = '已取消操作。';
     _notify();

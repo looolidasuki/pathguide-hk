@@ -3,6 +3,17 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../tts/announcer.dart' show kMinSpeakScore;
 
+enum AppTask {
+  recognition,
+  navigation,
+  menu,
+  routeCamera,
+  routeMock,
+  landmarkReplay,
+  depth,
+  visionDiagnostics,
+}
+
 enum AppLanguage { chinese, english }
 
 /// The three user-facing speech rates map to the values expected by
@@ -35,13 +46,33 @@ class AppSettings extends ChangeNotifier {
     SpeechSpeed? speed,
     double? speakThreshold,
     AppLanguage language = AppLanguage.chinese,
+    Iterable<String> completedIntroductions = const [],
   }) : _speechSpeed = speed ?? SpeechSpeed.normal,
        // ignore: prefer_initializing_formals
        _language = language,
-       _speakThreshold = speakThreshold ?? kMinSpeakScore;
+       _speakThreshold = speakThreshold ?? kMinSpeakScore,
+       _completedIntroductions = completedIntroductions.toSet();
 
   static const String speechRateKey = 'speech_rate';
   static const String speakThresholdKey = 'speak_threshold';
+  static const String introductionsKey = 'completed_task_introductions_v1';
+  final Set<String> _completedIntroductions;
+  bool hasTaskIntroduction(AppTask task) =>
+      _completedIntroductions.contains(task.name);
+
+  Future<void> completeTaskIntroduction(AppTask task) async {
+    _completedIntroductions.add(task.name);
+    // A local preference failure must not prevent starting the chosen task.
+    try {
+      await _preferences?.setStringList(
+        introductionsKey,
+        _completedIntroductions.toList(),
+      );
+    } catch (_) {
+      // Keep the choice for this session; show the help again after restart.
+    }
+  }
+
   static const String languageKey = 'app_language';
   AppLanguage _language;
   AppLanguage get language => _language;
@@ -77,6 +108,8 @@ class AppSettings extends ChangeNotifier {
     final preferences = await SharedPreferences.getInstance();
     return AppSettings._(
       preferences: preferences,
+      completedIntroductions:
+          preferences.getStringList(introductionsKey) ?? const [],
       language: preferences.getString(languageKey) == 'english'
           ? AppLanguage.english
           : AppLanguage.chinese,

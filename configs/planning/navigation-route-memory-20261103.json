@@ -1,0 +1,257 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-05",
+  "status": "P1_local_sample_storage_verified_unreleased_P2_function_next",
+  "priority": "walking_navigation_cross_floor_realtime_obstacles_and_voice",
+  "user_choices": {
+    "device_first": "general_iPhone",
+    "first_recording": "create_App_unknown_route_not_required_to_be_familiar_to_user",
+    "success_priority": "relocalize_and_retrace_reliably",
+    "cloud_vision": "optional_explicit_consent",
+    "cross_floor": "core_requirement",
+    "walking_navigation": "simultaneous_realtime_obstacle_detection_and_voice_route_guidance",
+    "planning_first": true
+  },
+  "engineering_defaults_not_user_promises": {
+    "first_case": "same-floor is a unit/pilot case only; completion must include multi-floor routes",
+    "recorded_route_first": "first recording creates route data; indoor destination guidance needs route/map data",
+    "floor_evidence": "confirmed building/floor/exit landmark; altitude/OCR are candidates, expected destination is not actual floor",
+    "ARKit": "optional relative pose, separate from LiDAR capability",
+    "LiDAR": "depth enhancement only, no mandatory hardware gate for basic route/object descriptions",
+    "unknown_floor_or_direction": "withhold affected guidance, allow confirmation/relocalization at verified intermediate landmark",
+    "reverse": "separate direction/view evidence; not automatically certified by reversing edges"
+  },
+  "phases": [
+    {
+      "id": "P0",
+      "scope": "Sol floor/connector/observation/perception/guidance contracts; DSH small offline cross-floor and voice-interruption mock packages",
+      "status": "offline_engineering_verified_not_live_navigation"
+    },
+    {
+      "id": "P1",
+      "scope": "encrypted versioned local route packages, atomic active pointer, rollback and deletion lifecycle",
+      "status": "local_storage_function_verified_synthetic_documents_only"
+    },
+    {
+      "id": "P2",
+      "scope": "single native camera owner; latest-frame perception plus keyframe/OCR/feature branch; no detector dependency for recording",
+      "status": "detailed_A_D_packages_prepared_budget_pending",
+      "implementer": "DSH",
+      "reviewer": "Codex"
+    },
+    {
+      "id": "P3",
+      "scope": "first recording, landmark matching, stair/elevator transitions and confirmed exit-floor relocalization",
+      "status": "not_started"
+    },
+    {
+      "id": "P4",
+      "scope": "walking object/depth assessment and hazard/route/screen-reader speech arbitration; quality remains gated",
+      "status": "not_started"
+    },
+    {
+      "id": "P5",
+      "scope": "indoor/outdoor journey, non-LiDAR/LiDAR devices and human/visually-impaired task acceptance",
+      "status": "not_started"
+    },
+    {
+      "id": "P6",
+      "scope": "AGENTS verification/commit/immutable tag/Release/remote check before install",
+      "status": "not_started"
+    }
+  ],
+  "cloud_paid_test_authorized": false,
+  "dataset_dispatch": "paused",
+  "model_training_or_replacement_authorized": false,
+  "next_DSH_package": "P2-A camera ownership coordinator, full implementation and tests by DSH; frozen prompt prepared, fresh budget pending",
+  "existing_DSH_caps": {
+    "usd": 0.1,
+    "model_requests": 2,
+    "seconds": 1200,
+    "status": "historical_completed_N0_cap_two_requests_consumed_not_reusable"
+  },
+  "source_of_truth": "docs/FRONTEND-DESIGN.zh-HK.md#route-memory-plan",
+  "created_date": "2026-11-03",
+  "current_evidence": {
+    "N0": "completed_unreleased_basic_mock_only",
+    "N0_tests": 20,
+    "flutter_tests": 353,
+    "receipt": "verification/dsh-n0-ui-20261104.json",
+    "N0_has_floor_connector_or_walking_perception": false,
+    "model_quality_gate_passed": false,
+    "stationary_depth_is_walking_validation": false,
+    "P0": {
+      "receipt": "verification/dsh-p0-cross-floor-20261104.json",
+      "controller_tests": 19,
+      "UI_tests": 7,
+      "integration_tests": 1,
+      "flutter_tests": 380,
+      "analyze": "clean",
+      "human_approved": false,
+      "real_camera_or_TTS": false,
+      "release_or_install": false
+    },
+    "P1": {
+      "receipt": "verification/dsh-p1-route-store-20261105.json",
+      "storage_tests": 21,
+      "controller_tests": 6,
+      "UI_tests": 6,
+      "screen_tests": 2,
+      "flutter_tests": 415,
+      "analyze": "clean",
+      "human_approved": false,
+      "real_camera_or_TTS": false,
+      "native_keychain_device_test": false
+    }
+  },
+  "legacy_phase_mapping": {
+    "N0": "existing basic mock retained; N0-F is alias of P0 cross-floor extension",
+    "N1": "P1-P3",
+    "N2": "P4-P5",
+    "N3": "optional cloud analysis, not required for core local plan"
+  },
+  "tools": {
+    "ui": "Flutter/Dart, existing AppShell, Semantics and language settings",
+    "native_camera": "Swift AVFoundation; ordinary ARKit optional; one CameraCoordinator",
+    "landmarks": "Apple Vision image feature prints plus sequence/direction constraints",
+    "floor_text": "VNRecognizeTextRequest, runtime language/revision check; manual fallback",
+    "vertical_motion": "optional CMAltimeter with capability/permission check, never floor truth alone",
+    "objects": "existing TFLite runtime, immutable manifest/mapping; current weights remain experimental",
+    "depth": "ARKit sceneDepth on supported LiDAR hardware; walking compensation not implemented",
+    "outdoor": "existing MapKit/Core Location",
+    "storage": "new route-specific store using installed path_provider/cryptography/flutter_secure_storage, no photo-queue data/UID reuse",
+    "speech": "existing Speaker/flutter_tts plus planned GuidanceArbiter and accessibility output adapter"
+  },
+  "known_gaps": [
+    "N0 stays floorless; P0 synthetic floor/connector/events implemented; production serialization/native evidence not implemented",
+    "VisionPlugin captureFrame depends on loaded detector; recording must decouple",
+    "DepthPlugin requires sceneDepth and uses stationary acceptance rules",
+    "MenuOCR currently requires iOS16 while App minimum is15; do not promise existing zh-Hant OCR on15",
+    "SpeechCoordinator only environment/navigation, no critical obstacle priority",
+    "A10 model gate remains false; no new model/training authorization inferred",
+    "feature thresholds, walking event validity and physical floor/obstacle truth need predeclared measured profiles"
+  ],
+  "verification_requirements": [
+    "first record on empty local library",
+    "elevator skip floors and wrong stop",
+    "stairs intermediate landings",
+    "near-identical exits on different floors",
+    "reverse direction separate observations",
+    "unknown/denied motion, AR interruption and pressure drift",
+    "walking false/missed obstacles, unknown range and stale frames",
+    "critical events interrupt route voice; no old queue replay",
+    "background/delete/restart persistence races",
+    "same journey outdoor entrance handoff and cross-floor destination",
+    "general_iPhone and Pro_Max actual capabilities; real VoiceOver/field evidence separate"
+  ],
+  "engineering_candidate_targets": {
+    "state_updates_hz": [
+      5,
+      10
+    ],
+    "end_to_end_p95_ms": 500,
+    "validated": false,
+    "freeze_after_pilot_before_formal_comparison": true,
+    "N0_15s_timeout_not_reused_for_walking": true
+  },
+  "new_DSH_dispatch_authorized": false,
+  "new_hardware_or_model_work_started": false,
+  "P0_DSH_caps": {
+    "usd": 0.1,
+    "requests": 2,
+    "seconds": 1200,
+    "status": "consumed_closed",
+    "estimated_peak_usd": 0.014352,
+    "invoice_verified": false
+  },
+  "P0_clock": {
+    "UI": "explicitly frozen synthetic clock",
+    "test_location_ms": 2000,
+    "test_perception_ms": 500,
+    "validated_walking_profile": false
+  },
+  "P1_DSH_caps": {
+    "usd": 0.1,
+    "requests": 2,
+    "seconds": 1200,
+    "status": "consumed_closed",
+    "estimated_peak_usd": 0.0114939,
+    "invoice_verified": false
+  },
+  "execution_priority": {
+    "user": "先完成功能，系統優化放後",
+    "order": [
+      "P2 native camera",
+      "P3 first recording and cross-floor localization",
+      "P4 obstacle and speech",
+      "P5 journey acceptance",
+      "later system optimization"
+    ],
+    "defer": [
+      "performance profiling/tuning",
+      "power/thermal optimization",
+      "cache and media quota tuning"
+    ],
+    "retain": [
+      "data integrity",
+      "lifecycle cancellation",
+      "basic bounded storage",
+      "required functional and quality checks"
+    ]
+  },
+  "route_data_policy": {
+    "default": "device_local_no_App_cloud_upload",
+    "replay": "process_frames_in_memory_no_photos_or_video_saved_by_default",
+    "recording": "explicit first record/update only bounded compressed deduplicated keyframes and features",
+    "media_caps": "freeze hard per-image/per-node/per-route/library totals in P2-P3; no unbounded recording",
+    "current_P1": "synthetic JSON only",
+    "P1_limits": {
+      "document_bytes": 262144,
+      "library_bytes": 33554432,
+      "versions_per_route": 8
+    },
+    "full": "stop_new_writes_keep_stable_version_offer_explicit_cleanup",
+    "cleanup": "keep_active_one_verified_fallback_and_current_draft",
+    "OS_backup_exclusion": "not_device_verified"
+  },
+  "assignment_override_20261105": {
+    "user": "DSH負責實作及修正，Codex只負責計劃／審核",
+    "supersedes": "earlier Sol implementation ownership for native camera/speech/crypto; historical contributions unchanged",
+    "DSH": [
+      "all new app/native/backend implementation within approved packages",
+      "own tests and corrections",
+      "documentation change proposals"
+    ],
+    "Codex": [
+      "scope/contracts and evidence-based acceptance",
+      "mechanical apply/format/build/test, diff/security/lifecycle review",
+      "update three existing docs from verified evidence",
+      "no hand-written functional fixes or tests to replace DSH output"
+    ],
+    "human": [
+      "truth labels/actual floor/path conditions",
+      "device/visually impaired/field acceptance",
+      "release/install approval where required"
+    ]
+  },
+  "detailed_execution_plan": "configs/planning/dsh-functional-execution-20261105.json",
+  "P2_budget_proposal": {
+    "packages": [
+      "P2-A",
+      "P2-B",
+      "P2-C",
+      "P2-D"
+    ],
+    "usd_total": 0.4,
+    "requests_total": 8,
+    "per_package_usd": 0.1,
+    "per_package_requests": 2,
+    "per_package_model_seconds": 1200,
+    "authorized": false,
+    "later_P3_P5_not_authorized": true
+  },
+  "issue_tracker": {
+    "parent": "https://github.com/actiondarr/pathguide/issues/2",
+    "first_package": "https://github.com/actiondarr/pathguide/issues/3"
+  }
+}

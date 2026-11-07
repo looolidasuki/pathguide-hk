@@ -108,6 +108,13 @@ class Announcer {
     _enabled = value;
   }
 
+  /// Withdraw both pending and playing observations when their evidence expires.
+  Future<void> cancel() {
+    enabled = false;
+    ++_speechGeneration;
+    return _speaker.stop();
+  }
+
   /// 处理一帧检测结果，决定是否播报。
   ///
   /// 返回值是**本帧实际发起播报**的那一条（没有则为 null）。

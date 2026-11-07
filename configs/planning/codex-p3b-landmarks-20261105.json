@@ -1,0 +1,22 @@
+{
+  "issue": 8,
+  "baseline_commit": "93b9b8f3dae826a83fb5cd1e1c9745fc90e04e3b",
+  "feature_revision": "vision-featureprint-v1",
+  "native_feature_revision": 1,
+  "preprocess_revision": "upright-jpeg-v1",
+  "vision_crop": "scaleFit",
+  "max_distance": 8.0,
+  "minimum_different_node_gap": 2.0,
+  "maximum_evidence_age_ms": 5000,
+  "walking_validated": false,
+  "maximum_views": 64,
+  "views_per_node": 4,
+  "scope": "stationary engineering candidate core; P3-C wires real camera/store/UI",
+  "excluded": [
+    "public transit",
+    "ride hailing",
+    "automatic floor truth",
+    "unrecorded reverse traversal",
+    "private image collection"
+  ]
+}

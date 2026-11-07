@@ -1,0 +1,43 @@
+{
+  "date_hk": "2026-11-05",
+  "status": "shared_application_lifecycle_integrated_engineering_passed",
+  "source_sha256": {
+    "app/ios/Runner/AppDelegate.swift": "e7bf44b1b1e41825494fa242685139c6fbcfa582b8d656c58aafa9c02a571f88",
+    "app/ios/RunnerTests/RunnerTests.swift": "5ad4a19265ca79257cf6f537c17f71e1aa14d9d4770912d7dd125f59e157ce92"
+  },
+  "native": {
+    "command": [
+      "xcodebuild",
+      "-workspace",
+      "app/ios/Runner.xcworkspace",
+      "-scheme",
+      "Runner",
+      "-configuration",
+      "Debug",
+      "-sdk",
+      "iphonesimulator",
+      "-destination",
+      "platform=iOS Simulator,id=A7A79D18-5CBC-4F82-85EC-366C8B8B1B63",
+      "-parallel-testing-enabled",
+      "NO",
+      "CODE_SIGNING_ALLOWED=NO",
+      "test"
+    ],
+    "exit": 0,
+    "tests": 44,
+    "failures": 0,
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-lifecycle/after.log"
+  },
+  "red": {
+    "exit": 65,
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-lifecycle/before.log",
+    "reason": "new lifecycle binding absent before implementation"
+  },
+  "behavior": [
+    "shared coordinator gates requests after background notification",
+    "foreground only permits explicit restart",
+    "binding initialized before Flutter camera plugins"
+  ],
+  "review_finding": "P2-A had tested lifecycle methods but no production notification binding",
+  "device_acceptance": "not_run"
+}

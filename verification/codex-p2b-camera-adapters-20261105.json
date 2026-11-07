@@ -1,0 +1,107 @@
+{
+  "date_hk": "2026-11-05",
+  "implementer": "Codex",
+  "status": "P2-B_local_engineering_passed_device_acceptance_pending",
+  "source_sha256": {
+    "app/ios/Runner/CameraCoordinator.swift": "01bb64d64e02cfc8e7e94ec98e94e248f8cd56d12750fe69bb158ae61c729778",
+    "scripts/verify_camera_coordinator.swift": "77504d7772ecd12d14e514d7cbe4c48ab9907eee91f22f43d0dfefd064f297fa",
+    "app/ios/Runner/VisionPlugin.swift": "70e45136f04f219a2e56c85b35f76f3114a483efb42e358e8f60a9be51e5f13f",
+    "app/ios/Runner/DepthPlugin.swift": "8b65e6ec6f0e182d122d44f705059c410a8c3696deb5e8408e71dcfbe743dbbb",
+    "app/ios/Runner/MenuPlugin.swift": "16dad19f9d736f47a15603b1689fdc604867b9c6109af1b0fbb96473d8a54802",
+    "app/ios/RunnerTests/RunnerTests.swift": "f66b5a9be59783412941e7d7939d63ca842b62600b8bab628e9c646bb47e1dea",
+    "app/ios/Runner.xcodeproj/project.pbxproj": "ad30f07dffe145c2e29cbcf65d067af60026d1858592c91bbf3d1b0f7e9a878b"
+  },
+  "checks": {
+    "camera_core": {
+      "scenarios": 30,
+      "exit": 0,
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2/camera-checks-30.log"
+    },
+    "native_simulator": {
+      "command": [
+        "xcodebuild",
+        "-workspace",
+        "app/ios/Runner.xcworkspace",
+        "-scheme",
+        "Runner",
+        "-configuration",
+        "Debug",
+        "-sdk",
+        "iphonesimulator",
+        "-destination",
+        "platform=iOS Simulator,id=A7A79D18-5CBC-4F82-85EC-366C8B8B1B63",
+        "-parallel-testing-enabled",
+        "NO",
+        "CODE_SIGNING_ALLOWED=NO",
+        "test"
+      ],
+      "exit": 0,
+      "tests": 26,
+      "failures": 0,
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2/p2b-native-tests-final.log",
+      "code_signing": false,
+      "parallel_testing": false
+    },
+    "flutter": {
+      "tests": 415,
+      "exit": 0,
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2/p2b-flutter-tests.log"
+    },
+    "analyze": {
+      "exit": 0,
+      "issues": 0,
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2/p2b-flutter-analyze.log"
+    },
+    "project_format": {
+      "command": "plutil -lint app/ios/Runner.xcodeproj/project.pbxproj",
+      "exit": 0
+    },
+    "diff_check": {
+      "command": "git diff --check",
+      "exit": 0
+    }
+  },
+  "regression": {
+    "baseline_exit": 1,
+    "baseline_failure": "FAIL: pending stop retains client",
+    "expected_baseline_failure": "FAIL: pending stop retains client",
+    "dropped_callback_baseline": {
+      "exit": 1,
+      "failure": "FAIL: client retained until timeout"
+    }
+  },
+  "coverage": [
+    "Vision serial session queue start/stop barrier before next grant",
+    "Depth pause plus model-work queue barrier",
+    "Menu picker dismissal acknowledgment and repeated cancellation",
+    "queued cancellation without permission or invented stop",
+    "late permission rejected after cancel",
+    "denied permission releases exact lease",
+    "capture failure waits for dismissal before replying",
+    "background stops without foreground auto-resume",
+    "client shutdown reply survives plugin dropping its reference",
+    "dropped hardware callback still delivers bounded timeout after client release; gate remains blocked"
+  ],
+  "previous_attempts": [
+    {
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2/p2b-native-tests.log",
+      "status": "failed_test_fixture_weak_controller_not_retained",
+      "correction": "Test retains UIViewController as UIKit presentation would."
+    },
+    {
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2/p2b-native-tests-r2.log",
+      "tests": 23,
+      "failures": 0
+    }
+  ],
+  "api_references": [
+    "https://developer.apple.com/documentation/arkit/arsession/pause()",
+    "https://developer.apple.com/documentation/avfoundation/avcapturesession/stoprunning()"
+  ],
+  "limitations": [
+    "No physical camera/device/VoiceOver acceptance",
+    "P2-C route capture and P2-D Flutter entry remain unimplemented",
+    "Not a released App version or rollback checkpoint"
+  ],
+  "next": "P2-C #5: model/LiDAR-independent route camera; preview/latest frame/on-demand bounded JPEG and native clock metadata; then P2-D #6 Flutter entry"
+}

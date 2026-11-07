@@ -327,7 +327,7 @@ class _GraphReplayPageState extends State<GraphReplayPage>
               children: [
                 IconButton(
                   onPressed: widget.onBack ?? () => Navigator.maybePop(context),
-                  tooltip: _t('返回導航', 'Back to navigation'),
+                  tooltip: _t('返回測試列表', 'Back to testing'),
                   icon: const Icon(Icons.arrow_back),
                 ),
                 Expanded(

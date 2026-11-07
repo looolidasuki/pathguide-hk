@@ -79,6 +79,11 @@ void main() {
       ),
     );
     await settle(tester);
+    await tester.scrollUntilVisible(find.text('設定與使用教學'), 150);
+    await tester.ensureVisible(find.widgetWithText(OutlinedButton, '設定與使用教學'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(OutlinedButton, '設定與使用教學'));
+    await settle(tester);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('manage-account')),
       150,
@@ -109,7 +114,7 @@ void main() {
     expect(find.textContaining('驗證碼'), findsNothing);
     await tester.tap(find.byTooltip('返回原任務'));
     await settle(tester);
-    expect(find.text('即時辨識'), findsOneWidget);
+    expect(find.text('播報速度'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets(
@@ -125,7 +130,7 @@ void main() {
       await tester.ensureVisible(find.byKey(const ValueKey('skip-contact')));
       await tester.tap(find.byKey(const ValueKey('skip-contact')));
       await settle(tester);
-      expect(find.text('即時辨識'), findsOneWidget);
+      expect(find.text('播報速度'), findsOneWidget);
       expect(f.controller.contact, isNull);
     },
   );

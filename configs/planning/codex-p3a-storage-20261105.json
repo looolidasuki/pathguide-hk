@@ -1,0 +1,39 @@
+{
+  "date_hk": "2026-11-05",
+  "issue": 7,
+  "owner": "Codex",
+  "baseline_commit": "df99475b76c402384b4d0c0e2344eb49c0d2647f",
+  "caps": {
+    "image_plain_bytes": 524288,
+    "feature_plain_bytes": 65536,
+    "views_per_node": 4,
+    "views_per_route": 64,
+    "document_plain_bytes": 262144,
+    "versions_per_route": 8,
+    "route_encrypted_disk_bytes_including_history_drafts_temp": 67108864,
+    "library_disk_bytes_including_catalog_temp": 268435456,
+    "catalog_max_bytes": 2097152,
+    "maintenance_reserve_within_library_bytes": 2097152
+  },
+  "policy": {
+    "scope": "device-local; separate from account and photo training queue",
+    "ios_key": "existing v1 key; WhenUnlockedThisDeviceOnly; non-synchronizable",
+    "ios_files": "complete protection; exclude backup at creation and after rename; protect existing v1 in place",
+    "restore": "no cross-device restore guarantee; key loss does not overwrite files",
+    "writes": "explicit record/update only; replay read-only",
+    "quota": "retain stable pointer; explicit cleanup; no cloud spillover"
+  },
+  "device_check": "separate directory and key; generated artificial schema-2 fixture; write/read/delete in separate processes; no user camera photo",
+  "ui_reference": {
+    "navigation_entries": [
+      "search destination",
+      "my routes",
+      "record new route"
+    ],
+    "excluded": [
+      "public transit",
+      "ride hailing"
+    ],
+    "integration": "P3-C/P5; media store alone is not a navigation UI"
+  }
+}

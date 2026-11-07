@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "work_package": "P0-cross-floor-offline-20261104",
+  "status": "closed_accepted_after_supervisor_repairs",
+  "frozen_contract_sha256": "16615bc666d06c69e05bce2797645841941459d51cb98c660e9c7cf936e9cfe8",
+  "input_version": {
+    "head": "7de2f4fd83c7096abe83b4eb6552846629f107ea",
+    "dirty_dependencies_required": true,
+    "sha256": {
+      "AGENTS.md": "017b94fe9af0b4d97087287bbd184591fb0b4d316deb394de485e47135f80b66",
+      "app/lib/route_memory/cross_floor_contract.dart": "367607b474995168549a5cd31198662dd2f13435fefa29f78075a5f8aadff704",
+      "app/lib/route_memory/cross_floor_mock_fixtures.dart": "8ca4916a8af758224cb38fd08f337461f3b5586f76b16507c5597171ca3d6b33",
+      "app/lib/settings/app_settings.dart": "59cbf464cf2d7ba8bfcf0825480c847a2be4d3c8e0f46a9a01512602e780fe1f",
+      "app/pubspec.yaml": "17467a49fb0d284c5d31bef1886bb8d1319f0a8012d25d431f2d936a1cfb278e",
+      "app/pubspec.lock": "b369cea437d6fe9867297eb69928c903e68a30bc5c4701b055215569fe1f308c",
+      "docs/FRONTEND-DESIGN.zh-HK.md": "8e7b2948f2dc57ec9192374acf4c2014402b2bfef30ee94e713ea7e1f4579662",
+      "docs/BACKEND-DESIGN.zh-HK.md": "12769eda151abfb1567dfa77236b39fb29a0ed90debd0164ba33917fe7aa2200",
+      "docs/DATASET-REVIEW.zh-HK.md": "641c1d7a019393c69331a611a63f1daf0ac82df8a5e9f3eb1280e605d8b401fd"
+    },
+    "isolated_app": "/private/var/folders/_l/nhnp00w947598_nt77dvpw2r0000gn/T/pathguide-p0-ao875ay5/app"
+  },
+  "allowed_worker_files": [
+    "app/lib/route_memory/cross_floor_mock_page.dart",
+    "app/test/cross_floor_mock_page_test.dart"
+  ],
+  "limits": {
+    "live_enabled": true,
+    "cost_usd": 0.1,
+    "requests": 2,
+    "wall_seconds": 1200,
+    "slot_cost_usd": 0.05,
+    "max_output_tokens": 12288,
+    "max_parallel_file_writers": 1
+  },
+  "authorization": {
+    "user_reply": "批准這個上限",
+    "scope": "P0 fixed-contract offline UI and corrections",
+    "max_requests": 2,
+    "cost_usd": 0.1,
+    "wall_seconds": 1200,
+    "no_hardware_model_install": true
+  },
+  "next_live_request_authorized": false,
+  "receipt": "verification/dsh-p0-cross-floor-20261104.json",
+  "raw_contract": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/contract.json",
+  "pricing": {
+    "verified": "2026-11-04",
+    "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "peak_input_miss_per_million": 0.3,
+    "peak_output_per_million": 1.2
+  }
+}

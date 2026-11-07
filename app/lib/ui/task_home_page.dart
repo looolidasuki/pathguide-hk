@@ -2,23 +2,18 @@ import '../l10n/app_language.dart';
 
 import 'package:flutter/material.dart';
 
-import 'usage_guide.dart';
-import '../account/account_ui.dart';
-
 class TaskHomePage extends StatelessWidget {
   const TaskHomePage({
     super.key,
     required this.onExplore,
     required this.onNavigation,
     required this.onSettings,
-    required this.onAccount,
     required this.onMenu,
   });
 
   final VoidCallback onExplore;
   final VoidCallback onNavigation;
   final VoidCallback onSettings;
-  final VoidCallback onAccount;
   final VoidCallback onMenu;
 
   @override
@@ -37,21 +32,35 @@ class TaskHomePage extends StatelessWidget {
         const SizedBox(height: 12),
         const AppText('先選擇任務。基本辨識毋須登入，也不會儲存或上傳相片。'),
         const SizedBox(height: 24),
-        _task('即時辨識', Icons.visibility_rounded, onExplore),
-        _task('路線導航', Icons.navigation_outlined, onNavigation),
-        _task('菜單閱讀與語音搜尋', Icons.restaurant_menu, onMenu),
-        _task('設定與使用教學', Icons.settings_outlined, onSettings),
-        AccountEntry(onManage: onAccount),
+        _task(
+          '即時辨識',
+          '用相機辨識支援的物件，聽取簡短結果。',
+          Icons.visibility_rounded,
+          onExplore,
+        ),
+        _task(
+          '路線導航',
+          '搜尋戶外目的地，或錄製室內路標路線。',
+          Icons.navigation_outlined,
+          onNavigation,
+        ),
+        _task('菜單閱讀與語音搜尋', '拍攝菜單，查詢菜名及價格。', Icons.restaurant_menu, onMenu),
         const SizedBox(height: 8),
-        TextButton(
-          onPressed: () => showUsageGuide(context),
-          child: const AppText('閱讀首次使用教學'),
+        OutlinedButton.icon(
+          onPressed: onSettings,
+          icon: const Icon(Icons.settings_outlined),
+          label: const AppText('設定與使用教學'),
         ),
       ],
     ),
   );
 
-  Widget _task(String title, IconData icon, VoidCallback onPressed) => Padding(
+  Widget _task(
+    String title,
+    String description,
+    IconData icon,
+    VoidCallback onPressed,
+  ) => Padding(
     padding: const EdgeInsets.only(bottom: 16),
     child: FilledButton.icon(
       style: FilledButton.styleFrom(
@@ -61,7 +70,14 @@ class TaskHomePage extends StatelessWidget {
       ),
       onPressed: onPressed,
       icon: ExcludeSemantics(child: Icon(icon)),
-      label: AppText(title),
+      label: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          AppText(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 6),
+          AppText(description, style: const TextStyle(fontSize: 15)),
+        ],
+      ),
     ),
   );
 }

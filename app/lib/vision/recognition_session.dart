@@ -28,24 +28,44 @@ class RecognitionSession extends ChangeNotifier {
     if (_disposed || generation != _generation) return;
     _freshness?.cancel();
     ready = false;
-    announcer.enabled = false;
+    _cancelSpeech();
     frame = null;
     status = '辨識暫時不可用，請停止後重試。';
     _notify();
+  }
+
+  void _cancelSpeech() {
+    unawaited(announcer.cancel().catchError((Object _) {}));
+  }
+
+  void _armFreshness(int generation) {
+    _freshness?.cancel();
+    _freshness = Timer(const Duration(seconds: 3), () {
+      if (_disposed || generation != _generation) return;
+      frame = null;
+      _cancelSpeech();
+      status = '結果已過期，正在重新取得。可停止後重試或返回。';
+      _notify();
+    });
   }
 
   Future<void> setRunning(bool value) {
     if (_disposed || value == requested) return _transition;
     requested = value;
     final generation = ++_generation;
-    announcer.enabled = false;
+    _cancelSpeech();
     _freshness?.cancel();
     frame = null;
     ready = false;
     status = value ? '正在準備辨識…' : '辨識已停止';
     _notify();
+    // Stop reaches native immediately even while camera permission is pending.
+    final old = !value ? source : null;
+    if (!value) source = null;
+    final stopping = old?.dispose();
     _transition = _transition
         .then((_) async {
+          await stopping;
           await _subscription?.cancel();
           _subscription = null;
           final old = source;
@@ -58,14 +78,11 @@ class RecognitionSession extends ChangeNotifier {
             (value) {
               if (_disposed || generation != _generation || !ready) return;
               frame = value;
-              status = '辨識中';
-              _freshness?.cancel();
-              _freshness = Timer(const Duration(seconds: 3), () {
-                if (_disposed || generation != _generation) return;
-                frame = null;
-                status = '暫時未有最新結果，請保持手機穩定再試。';
-                _notify();
-              });
+              status = value.detections.isEmpty
+                  ? '暫未辨識到支援的物件。可繼續觀察或停止；不代表前方暢通。'
+                  : '辨識中';
+              _armFreshness(generation);
+              announcer.enabled = true;
               announcer.onFrame(value.detections);
               _notify();
             },
@@ -79,6 +96,7 @@ class RecognitionSession extends ChangeNotifier {
             status = result.message;
             announcer.reset();
             announcer.enabled = ready;
+            if (ready) _armFreshness(generation);
           } catch (_) {
             if (_disposed || generation != _generation) return;
             status = '辨識暫時不可用，請停止後重試。';

@@ -1,0 +1,150 @@
+{
+  "date_hk": "2026-11-05",
+  "package": "P2-A",
+  "issue": "https://github.com/actiondarr/pathguide/issues/3",
+  "status": "blocked_after_three_rejected_DSH_deliveries",
+  "implementer": "DSH",
+  "reviewer": "Codex",
+  "requests": 3,
+  "authorized_P2_requests": 8,
+  "authorized_P2_total_usd": 0.4,
+  "package_request_limit": 3,
+  "attempts": [
+    {
+      "slot": 1,
+      "task_id": "dsh-n0-66aee15c-5db6-47bc-8e95-baa65f1a2dbd",
+      "session_id": "session-9317f87e-1368-444f-8212-ff83e1511ffa",
+      "transport_status": "completed",
+      "usage": [
+        {
+          "inputTokens": 14300,
+          "outputTokens": 5513,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "totalTokens": 19813
+        }
+      ],
+      "acceptance": "rejected"
+    },
+    {
+      "slot": 2,
+      "task_id": "dsh-n0-6a812434-1c8f-43cd-bcba-204ecadf1bbf",
+      "session_id": "session-ddc4b258-f9f4-4a62-9c0b-cb0781a4c22c",
+      "transport_status": "completed",
+      "usage": [
+        {
+          "inputTokens": 8797,
+          "outputTokens": 9856,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "totalTokens": 18653
+        }
+      ],
+      "acceptance": "rejected"
+    },
+    {
+      "slot": "explicit_exception_3",
+      "task_id": "dsh-n0-e32cfd58-8fce-462b-8d2c-35b8bb643610",
+      "session_id": "session-49612066-fb97-4c9c-a8e6-25005716e633",
+      "transport_status": "completed",
+      "usage": [
+        {
+          "inputTokens": 8635,
+          "outputTokens": 4423,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "totalTokens": 13058
+        }
+      ],
+      "acceptance": "rejected"
+    }
+  ],
+  "token_totals": {
+    "input": 31732,
+    "output": 19792
+  },
+  "peak_price_estimate_usd": 0.03327,
+  "cost_note": "Conservative peak-rate token estimate, not an invoice or observed account debit. Package request count is exhausted despite remaining phase budget.",
+  "evidence_root": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-05/dsh-p2a-start-180532-live",
+  "checks": {
+    "attempt1_source_compile_exit": 0,
+    "attempt1_DSH_checks_exit": -5,
+    "attempt2_strict_patch_exit": 128,
+    "attempt2_recount_patch_exit": 1,
+    "attempt2_DSH_check_compile_exit": 1,
+    "attempt2_reviewer_probe_compile_exit": 0,
+    "attempt2_reviewer_probe_exit": 1,
+    "probe_output": "handoff_completion_count=0, expected=1\nforeign_tokens_equal=true, expected=false\nforeign_release_stopped_local=true, expected=false\n",
+    "attempt3_review_results": [
+      {
+        "check": "strict_patch",
+        "exit": 128,
+        "output": "error: corrupt patch at /Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-05/dsh-p2a-start-180532-live-exception3/attempt-1/normalized.diff:15\n"
+      },
+      {
+        "check": "recount_patch",
+        "exit": 1,
+        "output": "error: patch failed: app/ios/Runner/CameraCoordinator.swift:288\nerror: app/ios/Runner/CameraCoordinator.swift: patch does not apply\n"
+      },
+      {
+        "check": "exact_context_metadata_normalization",
+        "exit": 0
+      },
+      {
+        "check": "compile",
+        "exit": 1,
+        "output": "app/ios/Runner/CameraCoordinator.swift:257:26: warning: immutable value 'lease' was never used; consider replacing with '_' or removing it [#NoUsage]\n255 |         case .idle:\n256 |             break\n257 |         case .active(let lease):\n    |                          `- warning: immutable value 'lease' was never used; consider replacing with '_' or removing it [#NoUsage]\n258 |             failWaiter(.backgrounded) // usually nil\n259 |             cancelActive()\n\n[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>\nscripts/verify_camera_coordinator.swift:431:13: warning: initialization of immutable value 'bReq' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]\n429 |         _ = c.request(owner: .vision) { a.append($0) }\n430 |         // B callback synchronously submits C when superseded.\n431 |         let bReq = c.request(owner: .depth) { out in\n    |             `- warning: initialization of immutable value 'bReq' was never used; consider replacing with assignment to '_' or removing it [#NoUsage]\n432 |             b.append(out)\n433 |             if case .failed(.superseded) = out {\n\nscripts/verify_camera_coordinator.swift:489:25: error: type 'CameraRequestID' has no member 'foreign'\n487 |     /// Test-only helper to mint a fully foreign token for stale-cancel checks.\n488 |     static func foreignForTest(owner: CameraOwner) -> CameraRequestID {\n489 |         CameraRequestID.foreign(owner: owner)\n    |                         `- error: type 'CameraRequestID' has no member 'foreign'\n490 |     }\n491 | }\n\n[#NoUsage]: <https://docs.swift.org/compiler/documentation/diagnostics/no-usage>\n"
+      }
+    ],
+    "attempt3_reviewer_probe_exit": 1,
+    "attempt3_probe_output": "handoff_completion_count=1, expected=1\nforeign_tokens_equal=true, expected=false\nforeign_release_stopped_local=true, expected=false\n",
+    "attempt3_pbx_metadata_lint": 0
+  },
+  "blocking_findings": [
+    {
+      "id": "A-01",
+      "detail": "Handoff stores pending but ack consumes waiter/waiterCompletion, which are not assigned for initial handoff. Completion count remains0 after ack."
+    },
+    {
+      "id": "A-02",
+      "detail": "Identity uses ObjectIdentifier(CameraCoordinator.self), shared class identity. Distinct coordinators produce equal leases and accept foreign release."
+    },
+    {
+      "id": "A-03",
+      "detail": "Request supersession/failure callbacks run before committing replacement state, potentially losing synchronous reentrant requests."
+    },
+    {
+      "id": "A-04",
+      "detail": "DSH test forges fileprivate token and calls actor-isolated request from a nonisolated adapter; compile rejected."
+    },
+    {
+      "id": "A-05",
+      "detail": "Malformed hunk counts and pbx contexts do not apply to pinned baseline."
+    }
+  ],
+  "integrated_files": [],
+  "primary_app_unchanged": true,
+  "device_tests": "not_run",
+  "human_approved": false,
+  "downstream": {
+    "P2-B": "blocked_on_unaccepted_P2-A",
+    "P2-C": "not_dispatched",
+    "P2-D": "not_dispatched"
+  },
+  "next_action": "No fourth model request is authorized. Preserve candidate and return failure evidence; reconsider DSH execution strategy before requesting another correction.",
+  "exception_job": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-05/dsh-p2a-start-180532-live-exception3",
+  "exception_approved": true,
+  "remaining_P2_request_ceiling": 5,
+  "remaining_dispatch_blocked_by": "unaccepted P2-A; P2-A three-call cap reached",
+  "third_review": {
+    "handoff_completion": "fixed by DSH, independent probe count1",
+    "cross_coordinator_identity": "still fails: UUID bridged to transient AnyObject then ObjectIdentifier; equal foreign tokens and foreign release stop local owner observed",
+    "DSH_test_compile": "fails: CameraRequestID has no member foreign",
+    "new_regressions": [
+      "four new tests13-16 not invoked from main",
+      "App Sources incorrectly includes CLI @main verification script",
+      "completion-reentry supersession ordering remains unfixed"
+    ],
+    "mechanical_processing": "only fences/metadata stripped and each original hunk matched byte-for-byte exactly once; no Swift source or assertion logic repaired by reviewer"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "issue": 18,
+  "parent_issue": 16,
+  "baseline_commit": "f81b2a8ad697a43daa6fcb8f6b6aa7c9a3b04b8c",
+  "checks": {
+    "flutter_tests": 516,
+    "analyze": "passed",
+    "native": 54,
+    "logs": [
+      "dataset_pipeline/review_artifacts/floor-context-full-reviewed.log",
+      "dataset_pipeline/review_artifacts/floor-context-native.log",
+      "dataset_pipeline/review_artifacts/floor-context-analyze-clean.log"
+    ]
+  },
+  "schema": "captured3 provenance; legacy1/2 retained; old reader rejects3",
+  "review": {
+    "standards": "no blockers after manual continuity fix; re-reviewed 2aa7059...35da1d2",
+    "spec": "no blockers after UI inheritance and edited incoming connector fix; re-reviewed 2aa7059...35da1d2"
+  },
+  "release": {
+    "source_commit": "6e6a962acea75f1cd6dca25c320a1236e12b8ed3",
+    "remote_branch_and_tag": "verified before installation",
+    "isPrerelease": true,
+    "tagName": "v1.8.0+15",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.8.0%2B15"
+  },
+  "human_acceptance": "1.8.0+15 user recording/floor/VoiceOver/field retest pending",
+  "privacy": "no user media, keys, location or screenshots included; no model/training/cloud changes",
+  "phone_build": {
+    "version": "1.8.0+15",
+    "status": "signed_build_codesign_and_models_verified",
+    "executable_sha256": "be5b95a71d6983bfb55c7425af7520cc1e2639d53dbe69ba44c7fe278cf3a7c4",
+    "dart_app_sha256": "003f205d48e6b29c39b2f9eab260ad0d7b7699315ebba01025f6f3e25031f2bc",
+    "log": "dataset_pipeline/review_artifacts/floor-context-iphone-final.log"
+  },
+  "models": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "phone_delivery": {
+    "status": "installed_and_normal_launch_succeeded",
+    "initial_attempt": "transport reset; device-info reconnect and second install succeeded",
+    "data_preservation": "update only, no uninstall or clear",
+    "human_acceptance": "pending"
+  }
+}

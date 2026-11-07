@@ -8,6 +8,35 @@ import 'package:pathguide/menu/menu_reader.dart';
 import 'support/fake_menu.dart';
 
 void main() {
+  test('native speech cancellation restores text search and notifies without an old price', () async {
+    final reader = FakeMenuReader()..document = sampleMenu();
+    final c = MenuReadingController(reader);
+    await c.read(MenuImageSource.library);
+    await c.listen();
+    expect(c.voiceReadout, contains('48'));
+    reader.speechOutcome = MenuSpeechOutcome.cancelled;
+    var notifications = 0;
+    c.addListener(() => notifications++);
+    expect(await c.listen(), isNull);
+    expect(c.state, MenuState.result);
+    expect(c.canSearch, isTrue);
+    expect(c.partial, isEmpty);
+    expect(c.voiceReadout, isNull);
+    expect(c.message, contains('已取消收音'));
+    expect(notifications, greaterThan(2));
+    c.search('叉燒飯');
+    expect(c.searchReadout, contains('45'));
+    final pending = Completer<MenuDocument?>();
+    reader.readFuture = pending.future;
+    final next = c.read(MenuImageSource.camera);
+    expect(c.query, isEmpty);
+    expect(c.rawTranscript, isEmpty);
+    expect(c.voiceReadout, isNull);
+    pending.complete(null);
+    await next;
+    expect(c.document, isNull);
+    c.dispose();
+  });
   test(
     'voice searches recognized menu and reads only matching known price',
     () async {

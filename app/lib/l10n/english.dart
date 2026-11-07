@@ -1,5 +1,61 @@
 // Product copy. Keep user and provider content unchanged.
 const english = <String, String>{
+  "返回": "Back",
+  "開始": "Start",
+  "語音": "Speech",
+  "返回測試列表": "Back to testing",
+  "用相機辨識支援的物件，聽取簡短結果。":
+      "Recognize supported objects with the camera and hear a short result.",
+  "搜尋戶外目的地，或錄製室內路標路線。":
+      "Search outdoor destinations or record indoor landmark routes.",
+  "拍攝菜單，查詢菜名及價格。": "Photograph a menu and look up dishes and prices.",
+  "調整語言及語速，查看帳號、教學和私隱。":
+      "Adjust language and speech speed. View your account, help and privacy.",
+  "開發測試": "Developer testing",
+  "相機試驗、合成樣例及診斷工具；不提供室內導航。":
+      "Camera trials, synthetic samples and diagnostics. No indoor navigation.",
+  "返回設定": "Back to settings",
+  "以下工具用來檢查個別功能，尚未連成室內錄路及導航流程。": "These tools check individual features. They do not yet form an indoor route recording or navigation flow.",
+  "錄路相機試驗": "Route camera trial",
+  "只檢查預覽及取相；相片暫存此頁，不會保存路線或提供導航。": "Check the preview and take a photo held only on this page. This does not save a route or provide navigation.",
+  "用合成路標試錄製、回放及跨樓層；不會開相機或定位。": "Try recording, replay and floor changes with synthetic landmarks. No camera or location is used.",
+  "回放預設路標及提示；不會判斷你身處的位置。":
+      "Replay preset landmarks and cues. This does not locate you.",
+  "用相機及支援的深度感測檢查物件距離；不提供避障指令。": "Check object ranges with the camera and supported depth sensors. No obstacle avoidance instructions.",
+  "辨識與模型診斷": "Recognition and model diagnostics",
+  "比較辨識模型、模擬資料及門檻，查看技術資料。進入後會開相機。": "Compare models, mock data and thresholds, and view technical details. Entering starts the camera.",
+  "模型資料": "Model details",
+  "開始前": "Before you start",
+  "略過說明": "Skip introduction",
+  "將相機對準前方，開始後聽取物件名稱。": "Point the camera ahead. Start to hear object names.",
+  "只辨識支援的物件；不代表前方暢通。可隨時暫停或返回。": "Only supported objects are recognized. This does not establish clear space. Pause or go back at any time.",
+  "選擇搜尋目的地、我的路線或錄製新路線。":
+      "Choose Search destination, My routes or Record new route.",
+  "搜尋提供戶外步行路線；室內可錄路標並逐點重認，樓層及方向須自行確認。": "Search provides outdoor routes. Record and rematch indoor landmarks; check floors and direction yourself.",
+  "拍攝或選取菜單，再用文字或語音查詢。":
+      "Take or choose a menu photo, then search by text or voice.",
+  "閱讀可確認的菜名及價格；讀不到或配對不明時可重拍。": "Reads identifiable dishes and prices. Retake the photo if text or price pairing is unclear.",
+  "按開始開啟相機，再按「取一張相」檢查畫面。":
+      "Press Start to open the camera, then Take photo to check the image.",
+  "只暫存一張相；停止或返回會清除，尚未保存為路線。": "Holds one photo temporarily. Stop or go back to clear it. No route is saved.",
+  "使用預設合成路標，試錄製、命名及回放；可開啟跨樓層樣例。": "Try recording, naming and replay with preset synthetic landmarks. Floor change samples are also available.",
+  "畫面只演示狀態轉換，不會開相機、定位或帶你行路。": "Demonstrates state changes only. No camera, positioning or walking guidance.",
+  "選擇預設樣例，逐步查看路標及提示。":
+      "Choose a preset sample and step through landmarks and cues.",
+  "提示來自樣例資料，不會判斷你身處的位置。":
+      "Cues come from sample data. This does not locate you.",
+  "將相機對準物件，查看辨識及支援硬件提供的距離。": "Point the camera at an object to view recognition and ranges from supported hardware.",
+  "距離功能需要支援的深度感測；此試驗不提供避障指令。": "Range needs supported depth sensing. This trial gives no obstacle avoidance instructions.",
+  "進入後開啟相機；在「更多操作」比較模型、模擬資料及門檻。": "Entering starts the camera. Use More actions to compare models, mock data and thresholds.",
+  "這些控制用於診斷；一般辨識毋須調整。可隨時暫停或返回。": "These controls are for diagnostics. Regular recognition needs no adjustment. Pause or go back at any time.",
+  "室內路線工具（試驗）": "Indoor route tools (trial)",
+  "辨識已取消，請重新開始": "Recognition cancelled. Start again.",
+  "結果已過期，正在重新取得。可停止後重試或返回。":
+      "Results expired. Getting new observations. Stop and retry, or go back.",
+  "結果已過期，正在重新取得。可暫停後重試或返回首頁。": "Results expired. Getting new observations. Pause and retry, or return Home.",
+  "暫未辨識到支援的物件。可繼續觀察或停止；不代表前方暢通。": "No supported objects recognized yet. Keep observing or stop; this does not establish clear space.",
+  "已取消收音。可用文字搜尋，或重新啟動語音搜尋。":
+      "Recording cancelled. Use text search, or start voice search again.",
   "物件與測距（試驗）": "Objects and range (trial)",
   "LiDAR 測距（試驗）": "LiDAR range (trial)",
   "室內路標回放（樣例）": "Indoor landmark replay (sample)",
@@ -352,11 +408,13 @@ const english = <String, String>{
   "未分類文字": "Unclassified text",
   "辨識門檻": "Detection threshold",
   "播報門檻": "Speech threshold",
-  "在首頁選擇「即時辨識」便會啟動相機及自動播報；首次使用需要允許相機權限。\n\n把手機後置相機朝向要辨識的環境，保持穩定；避免手指遮住鏡頭。\n\n「更多操作」內可重播目前結果、開關播報及調整辨識設定；「暫停辨識」會停止相機及播報。中斷後返回 App 會自動恢復辨識；手動暫停則需要按「繼續辨識」。\n\n開啟 VoiceOver 後，可左右輕掃選擇項目，再雙擊啟動目前項目；雙擊不需要落在按鈕的位置。Android 請使用 TalkBack 的標準操作。\n\n讀屏開啟時同樣會自動播報物件，不需要逐次按按鈕取得結果。沒有辨識結果不代表前方安全；本版不提供距離、扶手電梯方向或避障指令。\n\n菜單閱讀：先拍攝或選取菜單，再按語音搜尋講出菜式，例如我想食牛腩飯。會自動搜尋並朗讀可確認的價錢；亦可用文字修改搜尋。菜單文字在 iPhone 本機辨識，不加入訓練照片。若手機未提供離線粵語，使用 Apple 線上語音前會另外詢問；錄音只在你啟動語音搜尋時進行。\n\n路線導航：輸入或講出香港目的地，核對名稱、地址及步行路線後按開始導航。導航期間可以重播下一步、查詢位置、暫停或結束。切到背景即暫停，返回後需按繼續導航。定位不足時停止精確指示；接近終點後請自行確認入口。路線的樓梯、升降機及入口未經實地核實。收藏只存在此手機，使用時重新計算路線；Android 需要 Google Play 服務及已配置的路線服務。\n\n基本辨識毋須登入；個人模型照片須另外配置及同意。你可以關閉教學，之後從設定再次閱讀。": "Choose Live recognition on Home to start the camera and announcements. Camera permission is required the first time.\n\nPoint the rear camera at the scene and hold the phone steady. Keep your fingers away from the lens.\n\nMore actions lets you replay results, mute speech and adjust settings. Pause recognition stops the camera and announcements. Recognition resumes after interruptions; a manual pause requires Resume recognition.\n\nWith VoiceOver, swipe to select an item and double-tap anywhere to activate it. On Android, use standard TalkBack gestures. Objects are announced automatically with the screen reader enabled.\n\nNo detection does not mean the path is clear. This version does not measure distance, escalator direction or provide obstacle avoidance.\n\nMenu reader: photograph or choose a menu, then say a dish in Cantonese or type your search. The app reads prices it can identify. OCR runs on iPhone and menu photos are excluded from training. Online Apple speech requires separate consent when offline Cantonese is unavailable. Recording starts only when you request voice search.\n\nWalking navigation: enter a Hong Kong destination, check the name, address and route, then start. You can replay instructions, request your position, pause or finish. Navigation pauses in the background and requires Resume when you return. Unreliable location suppresses precise guidance. Confirm the destination entrance yourself. Stairs, lifts and entrances are unverified. Saved places stay on this phone. Android requires Google Play services and a configured routing service.\n\nRecognize while navigating uses the same speech output: navigation takes priority and camera results are not queued. It does not save or upload camera frames.\n\nChoose Chinese or English in Settings. This changes the app interface and app-generated speech; voice search currently remains Cantonese. Provider place names, routes and recognized menu text retain their original language.\n\nBasic recognition needs no sign-in. Personal model photos need separate setup and consent. You can reopen this guide from Settings.",
+  "在首頁選擇「即時辨識」；首次用途說明可略過，確認後才啟動相機及自動播報。首次使用需要允許相機權限。\n\n把手機後置相機朝向要辨識的環境，保持穩定；避免手指遮住鏡頭。\n\n「更多操作」內可重播目前結果、開關播報及物件標籤；「暫停辨識」會停止相機及播報。模型、門檻、合成路線及相機試驗位於「設定 → 開發測試」，各入口會說明用途及限制。中斷後返回 App 會自動恢復辨識；手動暫停則需要按「繼續辨識」。\n\n開啟 VoiceOver 後，可左右輕掃選擇項目，再雙擊啟動目前項目；雙擊不需要落在按鈕的位置。Android 請使用 TalkBack 的標準操作。\n\n讀屏開啟時同樣會自動播報物件，不需要逐次按按鈕取得結果。基本辨識只提示物件名稱，沒有辨識結果不代表前方安全；不提供扶手電梯方向或避障指令。\n\n測距試驗位於「設定 → 開發測試」：站定後才開始，只在支援裝置提供鏡頭至可信表面的粗略距離；不是物件最近邊緣、行走距離或可通行判斷。缺乏可靠深度時顯示「距離未知」，不可用作避障。\n\n菜單閱讀：先拍攝或選取菜單，再按語音搜尋講出菜式，例如我想食牛腩飯。會自動搜尋並朗讀可確認的價錢；亦可用文字修改搜尋。菜單文字在 iPhone 本機辨識，不加入訓練照片。若手機未提供離線粵語，使用 Apple 線上語音前會另外詢問；錄音只在你啟動語音搜尋時進行。\n\n路線導航：輸入或講出香港目的地，核對名稱、地址及步行路線後按開始導航。導航期間可以重播下一步、查詢位置、暫停或結束。切到背景即暫停，返回後需按繼續導航。定位不足時停止精確指示；接近終點後請自行確認入口。路線的樓梯、升降機及入口未經實地核實。收藏只存在此手機，使用時重新計算路線；Android 需要 Google Play 服務及已配置的路線服務。\n\n基本辨識毋須登入；帳號及緊急聯絡人位於設定。個人模型照片須另外配置及同意。你可以關閉教學，之後從設定再次閱讀。": "Choose Live recognition on Home. The first-use introduction can be skipped; confirming it starts the camera and announcements. Camera permission is required the first time.\n\nPoint the rear camera at the scene and hold the phone steady. Keep your fingers away from the lens.\n\nMore actions lets you replay results, mute speech and toggle object labels. Pause recognition stops the camera and announcements. Models, thresholds, synthetic routes and camera trials are in Settings → Developer testing, with each entry explaining its purpose and limits. Recognition resumes after interruptions; a manual pause requires Resume recognition.\n\nWith VoiceOver, swipe to select an item and double-tap anywhere to activate it. On Android, use standard TalkBack gestures. Objects are announced automatically with the screen reader enabled.\n\nNo detection does not mean the path is clear. Basic recognition names objects; it does not determine escalator direction or provide obstacle avoidance.\n\nRange trial is in Settings → Developer testing: stand still before starting. Supported devices estimate rough camera-to-surface range using reliable depth. This is not the nearest object edge, walking distance or a free-space decision. Without reliable depth, the result is Range unknown. Do not use it for obstacle avoidance.\n\nMenu reader: photograph or choose a menu, then say a dish in Cantonese or type your search. The app reads prices it can identify. OCR runs on iPhone and menu photos are excluded from training. Online Apple speech requires separate consent when offline Cantonese is unavailable. Recording starts only when you request voice search.\n\nWalking navigation: enter a Hong Kong destination, check the name, address and route, then start. You can replay instructions, request your position, pause or finish. Navigation pauses in the background and requires Resume when you return. Unreliable location suppresses precise guidance. Confirm the destination entrance yourself. Stairs, lifts and entrances are unverified. Saved places stay on this phone. Android requires Google Play services and a configured routing service.\n\nRecognize while navigating uses the same speech output: navigation takes priority and camera results are not queued. It does not save or upload camera frames.\n\nChoose Chinese or English in Settings. This changes the app interface and app-generated speech; voice search currently remains Cantonese. Provider place names, routes and recognized menu text retain their original language.\n\nBasic recognition needs no sign-in. Your account and emergency contact are in Settings. Personal model photos need separate setup and consent. You can reopen this guide from Settings.",
   "開啟後，可手動回報環境照片；自動擷取須另外開啟。照片可能包含旁人或文字，請避免拍攝私人文件。\n\n照片綁定你的帳號，僅供本人個人模型資料準備及獲授權組員人工覆核，不自動加入共用模型。照片不含定位，不錄影；模型預測未經確認。\n\n本機加密待傳最多 50 張或 50 MB，七日到期；只經 Wi-Fi 上傳。雲端未覆核照片最多保留三十日，之後刪除。\n\n關閉收集會停止新擷取、停止待傳並清除本機待傳照片；雲端既有照片依保留規則處理。刪除帳號會清理本階段雲端照片。拒絕不影響基本辨識。": "Enabling collection lets you report environment photos manually. Automatic capture needs a separate switch. Photos may contain people or text; avoid private documents.\n\nPhotos belong to your account and are used only to prepare your personal model data and for authorized team review. They do not automatically enter the shared model. No location or video is included. Predictions are unverified.\n\nThe encrypted local queue holds up to 50 photos or 50 MB for up to seven days. Upload is over Wi-Fi only. Unreviewed cloud photos are retained for at most 30 days, then deleted.\n\nDisabling collection stops capture and uploads, and clears pending local photos. Existing cloud photos follow retention rules. Deleting your account cleans up current cloud photos. Declining does not affect basic recognition.",
 };
 
 const englishTemplates = <String, String>{
+  "版本 {} · {} 類 · {} MB": "Version {} · {} classes · {} MB",
+  "版本 {} · {} 類": "Version {} · {} classes",
   "版本 {}": "Version {}",
   "{} 類": "{} classes",
   "播報速度，目前為 {}": "Speech speed, currently {}",

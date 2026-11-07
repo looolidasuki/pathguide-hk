@@ -68,8 +68,7 @@ class NativeMenuReader implements MenuReader {
   void Function(MenuSpeechPhase)? _onPhase;
   @override
   // Android 自 2026-10-23 起有對應實作（MenuPlugin.kt，ML Kit 中文辨識）。
-  // 注意：Android 版目前是**單頁**、走系統相機／相簿，且 ML Kit 不提供逐行置信度
-  // （細節與已知差異見 MenuPlugin.kt 的類別註解與 verification JSON）。
+  // Android 版目前是單頁、走系統相機／相簿，ML Kit 不提供逐行置信度。
   bool get supported =>
       !kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.iOS ||

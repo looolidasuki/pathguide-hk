@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-04",
+  "work_package": "P0-cross-floor-offline-20261104",
+  "status": "offline_engineering_verified_unreleased",
+  "base_head": "7de2f4fd83c7096abe83b4eb6552846629f107ea",
+  "scope": "P0 cross-floor state/obstacle guidance mock; P1-P6 not started",
+  "authorization": {
+    "user_reply": "批准這個上限",
+    "scope": "P0 fixed-contract offline UI and corrections",
+    "max_requests": 2,
+    "cost_usd": 0.1,
+    "wall_seconds": 1200,
+    "no_hardware_model_install": true
+  },
+  "runtime": {
+    "app_bundle": "/Users/darr/Desktop/DSH Desktop.app",
+    "desktop_version": "0.13.0",
+    "harness_version": "0.2.1-rc.3",
+    "app_asar_sha256": "af6b42c66706c8886541c92a1edd9905811c6eee2d27f5edbabb55848d32e2ab",
+    "bridge": "/Users/darr/Desktop/development/pathguide-dsh-bridge/scoped_control.py",
+    "legacy_task_prefix": "runner emits dsh-n0 UUIDs; contract hash binds these IDs to P0, not historical N0"
+  },
+  "DSH": [
+    {
+      "task_id": "dsh-n0-d61cd98b-95d9-4208-a02d-eb642bf7fd53",
+      "session_id": "session-01079e01-ae45-408a-89e2-acb47a17e7cf",
+      "status": "completed",
+      "slot": 1,
+      "elapsed_seconds": 16.369,
+      "usage": [
+        {
+          "inputTokens": 5389,
+          "outputTokens": 4023,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "totalTokens": 9412
+        }
+      ],
+      "raw_delivery_accepted": false,
+      "acceptance": "requires_supervisor_repairs"
+    },
+    {
+      "task_id": "dsh-n0-e14bf7a1-981c-40de-9051-774955ff4610",
+      "session_id": "session-8e23c969-04d2-46d4-ab0f-2b038906bd7f",
+      "status": "completed",
+      "slot": 2,
+      "elapsed_seconds": 19.842,
+      "usage": [
+        {
+          "inputTokens": 6167,
+          "outputTokens": 5048,
+          "cacheReadTokens": 0,
+          "cacheWriteTokens": 0,
+          "totalTokens": 11215
+        }
+      ],
+      "raw_delivery_accepted": false,
+      "acceptance": "requires_supervisor_repairs"
+    }
+  ],
+  "cost": {
+    "requests": 2,
+    "input_tokens": 11556,
+    "output_tokens": 9071,
+    "peak_estimate_usd": 0.014351999999999998,
+    "pre_forward_peak_upper_usd": 0.046775399999999995,
+    "budget_usd": 0.1,
+    "pricing": {
+      "verified": "2026-11-04",
+      "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+      "peak_input_miss_per_million": 0.3,
+      "peak_output_per_million": 1.2
+    },
+    "invoice_verified": false,
+    "automatic_retry": false,
+    "closed_no_third_request": true
+  },
+  "bridge_evidence": {
+    "task_session_ids": true,
+    "status_and_results": true,
+    "idempotent_duplicate_returned_same_task": true,
+    "duplicate_new_request": false,
+    "preflight_network_requests": 0,
+    "tool_calls": 0,
+    "owned_process_timeout_supported": true,
+    "cancel_this_run": "not_needed_completed; no existing Desktop session touched",
+    "API_gateway_or_Desktop_session_control_verified": false
+  },
+  "review": {
+    "attempt1": [
+      "fenced/miscounted diff normalized only in isolated export",
+      "missing fixture import and nullable access fail analyze",
+      "button key/label arguments reversed",
+      "fixed-height multi-column controls clip 2x text",
+      "cached readback/controller update issues"
+    ],
+    "attempt2": [
+      "fenced multi-file diff headers required strict reconstruction; bodies preserved",
+      "test assigned read-only AppSettings.language",
+      "lifecycle test expected wrong phase and omitted late callback application",
+      "unused canPropose and active no-op buttons",
+      "readback omitted target; banner too large; hold reasons incomplete"
+    ],
+    "supervisor_owned_fixes": [
+      "arrival expectedFloor null connector bounds check",
+      "foreground return notifies enabled UI without resuming",
+      "wrong-floor guidance preserves mismatch instead of confirm instruction"
+    ],
+    "accepted_delivery": "final source SHA manifest and Sol repair diff, not either raw DSH delivery"
+  },
+  "verification": {
+    "cwd": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/app",
+    "commands": [
+      {
+        "command": "flutter test --no-pub --reporter expanded",
+        "exit_code": 0,
+        "passed": 380,
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/primary-full.log"
+      },
+      {
+        "command": "flutter analyze --no-pub",
+        "exit_code": 0,
+        "summary": "No issues found",
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/primary-analyze-final.log"
+      },
+      {
+        "command": "flutter test --no-pub --dart-define=CAPTURE_DIR=<verification/ui> <raw>/preview_cross_floor_test.dart --reporter expanded",
+        "exit_code": 0,
+        "passed": 1,
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/preview-final.log"
+      },
+      {
+        "command": "git diff --check",
+        "exit_code": 0,
+        "log": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/diff-check.log"
+      }
+    ],
+    "P0_tests": {
+      "controller": 19,
+      "UI": 7,
+      "integration": 1,
+      "total": 27
+    },
+    "integration_platform_channel_calls": 0,
+    "UI_languages": [
+      "chinese",
+      "english"
+    ],
+    "viewport": [
+      320,
+      568
+    ],
+    "text_scale": 2,
+    "visual_review": "both rendered PNGs inspected; actual unknown, expected3F, candidate2F; Back/Pause visible",
+    "initial_full_test_failure": "new test used ensureVisible before lazy Home item existed; fixed test to scrollUntilVisible, final full suite passed"
+  },
+  "preservation": {
+    "baseline_files": 1262,
+    "changed_existing_files": [
+      "app/lib/route_memory/route_memory_mock_page.dart",
+      "configs/planning/navigation-route-memory-20261103.json",
+      "docs/BACKEND-DESIGN.zh-HK.md",
+      "docs/DATASET-REVIEW.zh-HK.md",
+      "docs/FRONTEND-DESIGN.zh-HK.md"
+    ],
+    "new_files": [
+      "app/lib/route_memory/cross_floor_contract.dart",
+      "app/lib/route_memory/cross_floor_mock_fixtures.dart",
+      "app/lib/route_memory/cross_floor_mock_page.dart",
+      "app/test/cross_floor_controller_test.dart",
+      "app/test/cross_floor_integration_test.dart",
+      "app/test/cross_floor_mock_page_test.dart",
+      "configs/planning/dsh-p0-cross-floor-20261104.json",
+      "verification/ui/cross-floor-p0-chinese-2x.png",
+      "verification/ui/cross-floor-p0-english-2x.png",
+      "verification/dsh-p0-cross-floor-20261104.json"
+    ],
+    "unrelated_baseline_files_unchanged": true,
+    "staged_files": [],
+    "commit_tag_release_install": false,
+    "backend_dataset_model_B11_unchanged": true
+  },
+  "limitations": [
+    "Synthetic frozen UI clock and injected floor/obstacle answers; not live positioning or first recording",
+    "2s location/500ms perception windows are test fixtures, not validated walking profile",
+    "No camera, OCR, AR, real detector, mic, TTS or durable storage connected",
+    "VoiceOver/device/visually impaired/field acceptance unrun; human_approved false",
+    "A10 quality gate remains false; no labels/splits/weights/training/GPU/deployment/install",
+    "Full persisted/native contract fields deferred to P1-P4"
+  ],
+  "human_approved": false,
+  "next": "P1 encrypted versioned route storage/rollback/delete; DSH UI only after Sol interface freeze, separate contract and budget",
+  "source_sha256": {
+    "app/lib/route_memory/cross_floor_contract.dart": "aa1c183b01f65fd406cfbb4cc8acb7a9844585f883fcfa8195a93e723302c49a",
+    "app/lib/route_memory/cross_floor_mock_fixtures.dart": "8ca4916a8af758224cb38fd08f337461f3b5586f76b16507c5597171ca3d6b33",
+    "app/lib/route_memory/cross_floor_mock_page.dart": "1c06e749ac068058f952b7e21b2783d48a5b0def7a3c02f8b549b76725e2f486",
+    "app/test/cross_floor_controller_test.dart": "43545e04cd93f7c93ca686a1001cfa2f6e2d4a343569e8917ce6919723dc2303",
+    "app/test/cross_floor_mock_page_test.dart": "f602d827b7af0cfb26fa27ce59cce4e5a72bb0c47e90fdaaa6eb2c1f380d53f6",
+    "app/test/cross_floor_integration_test.dart": "06bb768ba5095d9aaffe3af70693a9d6952dbbb5d6694667e6018ff5ae4469d0",
+    "app/lib/route_memory/route_memory_mock_page.dart": "e197ee23d6d62c963223e8e2471534af7a1580ae7be3e0ff526df051c6bda6be",
+    "docs/FRONTEND-DESIGN.zh-HK.md": "ec6e7bf18af640aa3acf45e811621b1ba51ae7511c78384041138503b908a11a",
+    "docs/BACKEND-DESIGN.zh-HK.md": "0a065394e17f58ed9526256f4ef2e58dd0357b26254ba7667a26353339f6f48f",
+    "docs/DATASET-REVIEW.zh-HK.md": "13c11de066df5555226c7898af111f0d4451730c2a380d29d2151679d9622fdf",
+    "configs/planning/navigation-route-memory-20261103.json": "dcf8d4ea335467e4e0818e9734be62e4547071bd1f60eb5f5eb1651b11bdf8dd",
+    "configs/planning/dsh-p0-cross-floor-20261104.json": "d1c9375b1ce2600363f48b36281115c66f00455d1687e282e9e9467ff0a77c07"
+  },
+  "artifact_sha256": {
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/primary-full.log": "8813f964710cf1317fc5ea19c44cd4b32cd7be8b12dc07013f6090bd406ef745",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/primary-analyze-final.log": "d01ff4359e5c823b2d619c25c81a9356f4fe83023007c725d038284f51aca2d0",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/preview-final.log": "c3e2d350df7066e729a5291e4bf106adf8e3e676ffa0693122572d618b288b67",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/final-source.diff": "c3573afe6c5eaf305a00fe2a10d2322eb48da92162aeca2c3a449867a6f1a0b8",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/sol-repair-of-dsh.diff": "886acf4e49126303e5b0ffdbfb94726b777f419c6a6e5aba42ea53d40ff82dd0",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/attempt-1/answer.diff": "0bdec3119e164f142fb5f7673cdc123baa91fb61d30db9bfc430fd5a79222892",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/attempt-2/answer.diff": "ecfa361bb8a408a4e7ca7fe61e38dc608fefca299f6a844d669c178c1188c44c",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/attempt-1/analyze.log": "4d494a1ccb1000366f0cac1ae6cfdbc00e2658c141fe423c4c772f329dc3cf44",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/attempt-2/test-before-repair.log": "ede6b7242cad4cca46f134a7a61a6e8d47723efbfd3deee81c8ea5905276a162",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/contract.json": "16615bc666d06c69e05bce2797645841941459d51cb98c660e9c7cf936e9cfe8",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/dispatch.json": "d6886b96e92d0106f5e63ff9e8c234de5459424e285e20c94e14bca1eb4c0f67",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/request-1.txt": "7c2c9ca3957c34b5e6de2cf4d05f9c509780349ea8d9566b767b6f832a4e49af",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/request-2.txt": "d73116e7c289980243b1896546fb10a50a3294667a86332a8b112efa5b4d0b06",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/authorization.json": "a727ba9ce88cc6880aac2d8f1e5f591853a25191959023a66e41db21f1e3f8ec",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/before.json": "2f958979e0efdd5c5ca0219364c8c98c886360ce456bab31976784bea0299203",
+    "dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor/duplicate-submit-result.json": "ae254e4c569c2228e12d5e63c33fd10e8659d301cfd77280739706cd511812e1"
+  },
+  "screenshots": {
+    "verification/ui/cross-floor-p0-chinese-2x.png": "7a557a6ebb514fd3086263988401a37a9c87acb538e74a46c54f3e839a60f768",
+    "verification/ui/cross-floor-p0-english-2x.png": "5c078b002b65c6a8b80a6503b40b14f30e9016452383578551874872ca2db9b7"
+  },
+  "raw_artifacts": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p0-cross-floor",
+  "candidate": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/configs/planning/dsh-p0-cross-floor-20261104.json"
+}

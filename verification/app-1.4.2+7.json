@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-29",
+  "timezone": "Asia/Hong_Kong",
+  "appVersion": "1.4.2+7",
+  "tag": "v1.4.2+7",
+  "type": "prerelease",
+  "previousAppTag": "v1.4.1+6",
+  "scope": [
+    "Understandable range recovery and collapsed diagnostics",
+    "Read status without current objects or a valid distance",
+    "Expired camera results and speech withdrawal",
+    "Menu speech cancellation and invalidation of old acquisition",
+    "Native camera handoff and cancellation of late permission callbacks"
+  ],
+  "verification": {
+    "flutterTestsPassed": 328,
+    "newFlutterTests": 10,
+    "flutterAnalyze": "No issues found",
+    "nativeXCTestPassed": 12,
+    "nativeXCTestNewRegression": "testVisionReleaseInvalidatesLateCameraPermission",
+    "nativeNumericalChecksPassed": 33,
+    "iosSignedReleaseBuild": "passed",
+    "systemSignatureVerification": "passed",
+    "bundleVersionChecked": "1.4.2+7",
+    "modelManifestMatchesSource": true,
+    "deviceInstalled": false,
+    "uiPreviews": [
+      "verification/ui/app-1.4.2+7-depth-chinese-2x.png",
+      "verification/ui/app-1.4.2+7-depth-english-2x.png"
+    ],
+    "uiPreviewEvidence": "Synthetic Flutter widget previews, visually inspected; not device or field acceptance"
+  },
+  "model": {
+    "version": "2026-10-27.mixed10.experimental.1",
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "bytes": 10695172,
+    "modelClassCount": 10,
+    "validationGatePassed": false,
+    "changed": false
+  },
+  "privacy": {
+    "newImageStorage": false,
+    "newImageUpload": false,
+    "depthSaved": false,
+    "poseSaved": false,
+    "photoUploadEnabledChanged": false,
+    "cloudDeployment": false,
+    "paidGPUEnabled": false
+  },
+  "pending": [
+    "Physical iPhone VoiceOver and camera handoff acceptance",
+    "Original multi-person range scene and independent ruler ground truth",
+    "Recognition, range and menu full field task acceptance and outdoor regression",
+    "Unified task coordinator and simple intent-driven assistance UI remain unimplemented"
+  ],
+  "buildCheckpoint": "Pre-delivery snapshot. Later remote and installation results belong in verification/release-receipts/app-1.4.2+7.json."
+}

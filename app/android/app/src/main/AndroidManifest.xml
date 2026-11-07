@@ -37,9 +37,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <!-- 快速設定磁貼：全盲使用者唯一「兩秒內可達、不必回主頁」的啟動路徑。
-             下面三個屬性（permission / exported / QS_TILE intent-filter）任何一個寫錯，
-             結果都是磁貼靜默消失，系統不報任何錯。 -->
+        <!-- 快速設定磁貼：全盲使用者唯一「兩秒內可達、不必回主頁」的啟動路徑。 -->
         <service
             android:name=".PathGuideTileService"
             android:exported="true"

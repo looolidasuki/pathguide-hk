@@ -1,0 +1,23 @@
+{
+  "date_hk": "2026-11-05",
+  "kind": "source_checkpoint_not_phone_release",
+  "branch": "feature/cross-platform-navigation",
+  "verified_remote_commit": "8c98f10fc360cb0b8bbb75ae35bfafad8da437a4",
+  "scope": [
+    "N0/P0/P1 required App dependencies",
+    "P2-A/B/C native camera",
+    "canonical docs and agreed checkpoint/device cadence"
+  ],
+  "review": {
+    "standards": "Missing planning inputs fixed; no remaining actionable findings",
+    "spec": "Shared camera background bridge added; no remaining actionable findings"
+  },
+  "validation": {
+    "isolated_source": "e8ca32f",
+    "flutter_tests": 415,
+    "analyze_issues": 0,
+    "native_lifecycle_tests": 44
+  },
+  "phone_installation": false,
+  "next": "P2-D live Flutter camera entry and first phone prerelease"
+}

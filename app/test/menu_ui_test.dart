@@ -3,6 +3,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -115,6 +117,9 @@ void main() {
   testWidgets('online speech fallback asks first and can be refused', (
     tester,
   ) async {
+    // 斷言用的是**當前平台**的廠商名：臨時改 debugDefaultTargetPlatformOverride
+    // 必須在測試體內復位，漏了會被 flutter_test 的 invariant 檢查抓到。
+    final vendor = onlineVoiceVendorFor(defaultTargetPlatform);
     final reader = FakeMenuReader()
       ..document = sampleMenu()
       ..speechError = const MenuFailure(
@@ -127,13 +132,19 @@ void main() {
     await tester.ensureVisible(find.byKey(const ValueKey('voice-menu-search')));
     await tester.tap(find.byKey(const ValueKey('voice-menu-search')));
     await tester.pumpAndSettle();
-    expect(find.text('使用 Apple 線上語音搜尋？'), findsOneWidget);
+    expect(find.text('使用 $vendor 線上語音搜尋？'), findsOneWidget);
     expect(reader.listens, 1);
     await tester.tap(find.text('取消，改用文字'));
     await tester.pumpAndSettle();
     expect(reader.listens, 1);
     expect(speaker.utterances, isEmpty);
     await tester.pumpWidget(const SizedBox());
+  });
+  test('★ 線上語音的廠商名：iOS=Apple、Android=Google、其餘=系統', () {
+    // 隱私說明必須點對第三方服務：寫錯等於在錄音用途上騙人。
+    expect(onlineVoiceVendorFor(TargetPlatform.iOS), 'Apple');
+    expect(onlineVoiceVendorFor(TargetPlatform.android), 'Google');
+    expect(onlineVoiceVendorFor(TargetPlatform.linux), '系統');
   });
   testWidgets(
     'two-times text retains usable capture, search and fixed stop controls',

@@ -8,9 +8,12 @@ import VisionKit
 
 /// Menu photos and OCR results stay in memory and never enter the training queue.
 final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerDelegate, PHPickerViewControllerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+  static weak var active: MenuPlugin?
   private let channel: FlutterMethodChannel
   private var pending: FlutterResult?
   private var requestId = ""
+  private var operation = UUID()
+  private var completingRequest = false
   private weak var picker: UIViewController?
   private let work = DispatchQueue(label: "hk.pathguide.menu.ocr", qos: .userInitiated)
   private var textRequest: VNRecognizeTextRequest?
@@ -29,11 +32,36 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
   private var heardVoice = false
   private var timedOut = false
   private var speechTimer: Timer?
+  private let cameraCoordinator: CameraCoordinator
+  private let cameraAuthorizationStatus: () -> AVAuthorizationStatus
+  private let requestCameraAccess: (@escaping (Bool) -> Void) -> Void
+  private var cameraAccess: CameraLeaseClient?
+  private var finishingCapture = false
+  private var dismissingPicker = false
+  private var dismissalWaiters: [() -> Void] = []
+  // Injectable presentation keeps lifecycle tests independent of camera hardware.
+  private let cameraPresenter: ((Bool) -> UIViewController?)?
+  private let pickerDismisser: ((UIViewController, @escaping () -> Void) -> Void)?
 
 
-  init(messenger: FlutterBinaryMessenger) {
+  init(messenger: FlutterBinaryMessenger,
+       cameraCoordinator: CameraCoordinator = .shared,
+       cameraAuthorizationStatus: @escaping () -> AVAuthorizationStatus = {
+         AVCaptureDevice.authorizationStatus(for: .video)
+       },
+       requestCameraAccess: @escaping (@escaping (Bool) -> Void) -> Void = {
+         AVCaptureDevice.requestAccess(for: .video, completionHandler: $0)
+       },
+       cameraPresenter: ((Bool) -> UIViewController?)? = nil,
+       pickerDismisser: ((UIViewController, @escaping () -> Void) -> Void)? = nil) {
+    self.cameraCoordinator = cameraCoordinator
+    self.cameraAuthorizationStatus = cameraAuthorizationStatus
+    self.requestCameraAccess = requestCameraAccess
+    self.cameraPresenter = cameraPresenter
+    self.pickerDismisser = pickerDismisser
     channel = FlutterMethodChannel(name: "hk.pathguide/menu", binaryMessenger: messenger)
     super.init()
+    Self.active = self
     NotificationCenter.default.addObserver(self, selector: #selector(enteredBackground),
       name: UIApplication.didEnterBackgroundNotification, object: nil)
     channel.setMethodCallHandler { [weak self] call, result in self?.handle(call, result: result) }
@@ -47,13 +75,16 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
     registrar.addMethodCallDelegate(plugin, channel: plugin.channel)
   }
   func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-    if call.method == "cancelMenu" { cancel(); result(nil); return }
+    if call.method == "cancelMenu" { releaseCamera { result(nil) }; return }
     if call.method == "finishMenuSpeech" { finishSpeech(); result(nil); return }
     guard ["readMenu", "listenMenuQuery"].contains(call.method) else { result(FlutterMethodNotImplemented); return }
-    guard pending == nil else { result(FlutterError(code: "busy", message: "請先完成或取消目前操作。", details: nil)); return }
+    guard pending == nil, !dismissingPicker, !completingRequest else { result(FlutterError(code: "busy", message: "請先完成或取消目前操作。", details: nil)); return }
     guard let args = call.arguments as? [String: Any], let id = args["requestId"] as? String else {
       result(FlutterError(code: "bad_args", message: "缺少請求識別碼。", details: nil)); return
     }
+    cameraAccess = nil
+    operation = UUID()
+    finishingCapture = false
     pending = result; requestId = id
     isSpeechRequest = call.method == "listenMenuQuery"
     if isSpeechRequest { authorizeSpeech(id: id, allowNetwork: args["allowNetwork"] as? Bool == true); return }
@@ -68,44 +99,100 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
     return root
   }
   private func complete(_ value: Any?) {
+    guard !completingRequest else { return }
     let callback = pending; pending = nil; requestId = ""; textRequest = nil
-    cleanupSpeech(); isSpeechRequest = false; callback?(value)
+    operation = UUID()
+    cleanupSpeech(); isSpeechRequest = false
+    completingRequest = true
+    callback?(value)
+    completingRequest = false
   }
   private func fail(_ code: String, _ message: String) { complete(FlutterError(code: code, message: message, details: nil)) }
   private func cancel() {
-    textRequest?.cancel()
-    picker?.dismiss(animated: true); picker = nil
-    complete(isSpeechRequest ? ["outcome": "cancelled", "text": ""] : nil)
+    releaseCamera {}
   }
+  /// Invalidate before dismissal; the next camera waits for completion.
+  func releaseCamera(completion: @escaping () -> Void) {
+    textRequest?.cancel()
+    let access = cameraAccess
+    cameraAccess = nil
+    if let access {
+      complete(isSpeechRequest ? ["outcome": "cancelled", "text": ""] : nil)
+      access.cancel { _ in completion() }
+    } else {
+      // A library picker has no lease. Begin dismissing it before a reentrant
+      // reply can open a new picker, and reply to cancel after invalidation.
+      dismissPicker { DispatchQueue.main.async(execute: completion) }
+      complete(isSpeechRequest ? ["outcome": "cancelled", "text": ""] : nil)
+    }
+  }
+
+  private func dismissPicker(completion: @escaping () -> Void) {
+    dismissalWaiters.append(completion)
+    guard !dismissingPicker else { return }
+    dismissingPicker = true
+    let finish = { [self] in
+      picker = nil
+      dismissingPicker = false
+      let callbacks = dismissalWaiters
+      dismissalWaiters = []
+      callbacks.forEach { $0() }
+    }
+    if let controller = picker {
+      if let pickerDismisser { pickerDismisser(controller, finish) }
+      else if controller.presentingViewController != nil {
+        controller.dismiss(animated: false, completion: finish)
+      } else { finish() }
+    } else { finish() }
+  }
+
   private func openCamera(id: String, scanner: Bool = false) {
+    let expected = operation
+    let access = CameraLeaseClient(owner: .menu, coordinator: cameraCoordinator) { [weak self] in
+      guard let self, self.operation == expected, !self.finishingCapture else { return }
+      self.complete(nil)
+    }
+    cameraAccess = access
     func permitted() {
       // The permission sheet may be dismissing when its completion runs.
       presentCamera(id: id, scanner: scanner, attempt: 0)
     }
-    switch AVCaptureDevice.authorizationStatus(for: .video) {
-    case .authorized: permitted()
-    case .notDetermined:
-      AVCaptureDevice.requestAccess(for: .video) { [weak self] granted in
-        DispatchQueue.main.async {
-          guard let self, self.requestId == id, self.pending != nil else { return }
-          if granted { self.presentCamera(id: id, scanner: scanner, attempt: 0) }
-          else { self.fail("camera_denied", "未獲相機權限。請到 iPhone 設定的領路通開啟相機，或選取照片。") }
+    access.acquire(stop: { [weak self] acknowledge in
+      guard let self else { acknowledge(true); return }
+      self.dismissPicker { acknowledge(true) }
+    }) { [weak self] acquired in
+      guard let self, acquired, access.isCurrent else { return }
+      switch self.cameraAuthorizationStatus() {
+      case .authorized: permitted()
+      case .notDetermined:
+        self.requestCameraAccess { [weak self] granted in
+          DispatchQueue.main.async {
+            guard let self, access.isCurrent, self.requestId == id, self.pending != nil else { return }
+            if granted { self.presentCamera(id: id, scanner: scanner, attempt: 0) }
+            else { self.fail("camera_denied", "未獲相機權限。請到 iPhone 設定的領路通開啟相機，或選取照片。"); access.cancel() }
+          }
         }
+      case .restricted: self.fail("camera_restricted", "相機受系統限制，可檢查螢幕使用時間或改為選取照片。"); access.cancel()
+      default: self.fail("camera_denied", "未獲相機權限。請到 iPhone 設定的領路通開啟相機，或選取照片。"); access.cancel()
       }
-    case .restricted: fail("camera_restricted", "相機受系統限制，可檢查螢幕使用時間或改為選取照片。")
-    default: fail("camera_denied", "未獲相機權限。請到 iPhone 設定的領路通開啟相機，或選取照片。")
     }
   }
   private func presentCamera(id: String, scanner: Bool, attempt: Int) {
-    DepthPlugin.active?.stop()
-    guard requestId == id, pending != nil else { return }
+    guard requestId == id, pending != nil, picker == nil,
+      let access = cameraAccess, access.isCurrent else { return }
+    if let cameraPresenter {
+      picker = cameraPresenter(scanner)
+      if picker == nil { fail("camera_unavailable", "相機未能開啟，請再試或選取照片。"); access.cancel() }
+      return
+    }
     guard let host = presenter(), host.viewIfLoaded?.window != nil,
           !host.isBeingDismissed, !host.isBeingPresented else {
       if attempt < 10 {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) { [weak self] in
+          guard access.isCurrent else { return }
           self?.presentCamera(id: id, scanner: scanner, attempt: attempt + 1)
         }
-      } else { fail("no_presenter", "相機未能開啟，請再試或選取菜單照片。") }
+      } else { fail("no_presenter", "相機未能開啟，請再試或選取菜單照片。"); access.cancel() }
       return
     }
     if scanner && VNDocumentCameraViewController.isSupported {
@@ -114,7 +201,7 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
       host.present(vc, animated: true)
     } else {
       guard UIImagePickerController.isSourceTypeAvailable(.camera) else {
-        fail("camera_unavailable", "此裝置無可用相機，可選取菜單照片。"); return
+        fail("camera_unavailable", "此裝置無可用相機，可選取菜單照片。"); access.cancel(); return
       }
       let vc = UIImagePickerController()
       vc.sourceType = .camera; vc.cameraDevice = .rear
@@ -124,18 +211,21 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
     }
   }
   func imagePickerControllerDidCancel(_ controller: UIImagePickerController) {
-    controller.dismiss(animated: true); picker = nil; complete(nil)
+    guard picker === controller else { return }
+    cancel()
   }
   func imagePickerController(_ controller: UIImagePickerController,
       didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+    guard picker === controller else { return }
     let id = requestId
     guard let image = info[.originalImage] as? UIImage else {
-      controller.dismiss(animated: true); picker = nil
-      fail("capture_failed", "未能取得照片，請重拍或選取照片。"); return
+      finishCameraCapture {
+        self.fail("capture_failed", "未能取得照片，請重拍或選取照片。")
+      }; return
     }
-    controller.dismiss(animated: true) { [weak self] in
+    finishCameraCapture { [weak self] in
       guard let self, self.requestId == id, self.pending != nil else { return }
-      self.picker = nil; self.recognize([image], truncated: false)
+      self.recognize([image], truncated: false)
     }
   }
   private func openLibrary() {
@@ -145,21 +235,39 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
     host.present(vc, animated: true)
   }
   func documentCameraViewControllerDidCancel(_ controller: VNDocumentCameraViewController) {
-    controller.dismiss(animated: true); picker = nil; complete(nil)
+    guard picker === controller else { return }
+    cancel()
   }
   func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFailWithError _: Error) {
+    guard picker === controller else { return }
     let id = requestId
-    controller.dismiss(animated: true) { [weak self] in
+    let access = cameraAccess
+    dismissPicker { [weak self] in
       guard let self, self.requestId == id, self.pending != nil else { return }
-      self.picker = nil; self.presentCamera(id: id, scanner: false, attempt: 0)
+      guard access?.isCurrent == true else { return }
+      self.presentCamera(id: id, scanner: false, attempt: 0)
     }
   }
   func documentCameraViewController(_ controller: VNDocumentCameraViewController, didFinishWith scan: VNDocumentCameraScan) {
+    guard picker === controller else { return }
     let images = (0..<min(scan.pageCount, 3)).map { scan.imageOfPage(at: $0) }
-    controller.dismiss(animated: true); picker = nil
-    recognize(images, truncated: scan.pageCount > 3)
+    finishCameraCapture { self.recognize(images, truncated: scan.pageCount > 3) }
+  }
+
+  private func finishCameraCapture(_ completion: @escaping () -> Void) {
+    guard pending != nil, cameraAccess?.isCurrent == true else { return }
+    let expected = operation
+    finishingCapture = true
+    cameraAccess?.cancel { [weak self] confirmed in
+      guard let self else { return }
+      guard self.operation == expected, self.pending != nil else { return }
+      self.finishingCapture = false
+      if confirmed { completion() }
+      else { self.fail("camera_stop_unconfirmed", "相機停止尚未確認，請取消後再試。") }
+    }
   }
   func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+    guard self.picker === picker else { return }
     picker.dismiss(animated: true); self.picker = nil
     guard let item = results.first else { complete(nil); return }
     let id = requestId

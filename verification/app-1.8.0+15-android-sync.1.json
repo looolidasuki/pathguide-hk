@@ -1,0 +1,63 @@
+{
+  "date": "2026-10-23",
+  "appVersion": "1.8.0+15",
+  "tag": "v1.8.0+15-android-sync.1",
+  "type": "upstream-sync",
+  "previousCheckpoint": {
+    "tag": "v1.4.1+6-android-menu.1",
+    "appVersion": "1.4.1+6"
+  },
+  "change": {
+    "upstreamSnapshot": "pathguide-feature-cross-platform-navigation (1.8.0+15)",
+    "synced": ["app", "backend", "docs", "verification", "dataset_pipeline", "configs/planning", "AGENTS.md", "README.md"],
+    "keptFromThisLine": [
+      "scripts/ tests/ data/ (python pipeline)",
+      "configs/classes.json v6 + class_aliases.json + commons_sources.json",
+      "android quick settings tile + four-locale app_name (re-applied)",
+      "android menu OCR plugin MenuPlugin.kt (re-applied)",
+      "menu page platform-aware vendor wording (re-applied)"
+    ],
+    "upstreamNewInThisSync": [
+      "route_memory/ (captured route store, encrypted route store, route library/journey pages)",
+      "iOS RouteCameraPlugin/RouteLandmarkPlugin/RouteStoragePlugin/CameraCoordinator",
+      "docs/APP-FEATURES.zh-HK.md and docs/agents/",
+      "verification set expanded to 70+ evidence files"
+    ],
+    "desktopOnlyTestGuards": {
+      "reason": "route memory encryption keys come from iOS Keychain; unavailable on non-macOS hosts",
+      "guardedFiles": [
+        "app/test/captured_route_store_test.dart",
+        "app/test/encrypted_route_store_test.dart",
+        "app/test/route_journey_page_test.dart",
+        "app/test/route_record_replay_test.dart"
+      ]
+    }
+  },
+  "verification": {
+    "flutterTestsPassed": 457,
+    "flutterTestsSkipped": 4,
+    "pythonTestsPassed": 444,
+    "pythonTestsSkipped": 1,
+    "flutterAnalyze": "No issues found",
+    "androidDebugApkBuilt": true,
+    "deviceInstalled": false,
+    "iosBuildRun": false,
+    "androidManualTestRun": false
+  },
+  "androidParityAfterSync": {
+    "menuOcr": "implemented by this line (ML Kit), upstream still has none; not device-verified",
+    "menuSpeechQuery": "implemented by this line; not device-verified",
+    "quickSettingsTile": "implemented by this line; upstream still has none; not device-verified",
+    "localizedAppName": "implemented by this line (4 locales); upstream manifest still hardcodes 領路通",
+    "depthMeasurement": "unsupported on Android (upstream iOS-only, ARKit)",
+    "navigation": "Android proxy exists upstream; not device-verified",
+    "routeMemory": "upstream iOS-only so far (iOS plugins + Keychain store); no Android implementation",
+    "googleSignIn": "requires Android OAuth client + google-services.json (not in repository)"
+  },
+  "knownLimitations": [
+    "No Android device attached during this sync (adb devices empty); none of the Android-side work has been exercised on hardware.",
+    "Upstream 1.8.0+15 app version is prerelease state; its own verification records still do not claim device acceptance for this line.",
+    "Repository path contains a space; Flutter builds/tests require reaching the tree through a space-free path (subst drive or relocation).",
+    "4 Flutter test files are skipped on non-macOS hosts because route memory requires iOS Keychain; they still run in full on macOS."
+  ]
+}

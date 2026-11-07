@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-29",
+  "version": "1.4.2+7",
+  "appSourceCommit": "66bc1d03498a583981a5e1525a69186947d0596e",
+  "remoteBranch": "feature/cross-platform-navigation",
+  "tag": "v1.4.2+7",
+  "tagObject": "a9bf3373bf08f952b3e06bdca7d4b16d8a20f821",
+  "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.4.2%2B7",
+  "prerelease": true,
+  "remoteCommitAndTagVerified": true,
+  "releaseHeadingTagAndCommitVerified": true,
+  "flutterTestsPassed": 328,
+  "nativeXCTestPassed": 12,
+  "nativeNumericalChecksPassed": 33,
+  "analyze": "No issues found",
+  "signedReleaseBuild": "passed",
+  "systemSignatureVerification": "passed",
+  "bundleVersion": "1.4.2+7",
+  "modelSha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+  "deviceModel": "iPhone 15 Pro Max",
+  "deviceInstalled": true,
+  "deviceLaunched": true,
+  "installationBlocker": null,
+  "fieldFixVerified": false,
+  "jointClassAndDistanceAccuracyValidated": false,
+  "voiceOverAndCameraHandoffFieldAccepted": false,
+  "previousAppTag": "v1.4.1+6",
+  "installationHistory": [
+    "GitHub branch/tag/prerelease verified before installation",
+    "Initial transient connection reset; device inventory confirmed paired device available",
+    "Installation retry and process launch returned success"
+  ],
+  "buildCheckpoint": "verification/app-1.4.2+7.json is a pre-delivery snapshot; this receipt records subsequent delivery status.",
+  "remaining": [
+    "Physical VoiceOver and multi-task camera handoff acceptance",
+    "Original multi-person range scene with independent ruler ground truth",
+    "Full recognition/range/menu task acceptance and outdoor regression"
+  ]
+}

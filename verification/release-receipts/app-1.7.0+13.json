@@ -1,0 +1,38 @@
+{
+  "version": "1.7.0+13",
+  "release": {
+    "version": "1.7.0+13",
+    "tag": "v1.7.0+13",
+    "source_commit": "2582c1864d3da539a29dc0289d41ca4504bf90c1",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.7.0%2B13",
+    "remote_branch_and_peeled_tag": "verified before install",
+    "status": "prerelease published; iPhone installed and launched normally"
+  },
+  "verification": {
+    "status": "final_signed_release_build_codesign_models_verified",
+    "version": "1.7.0",
+    "build": "13",
+    "executable_sha256": "24290659807a6a884e49923786528d30945e8f9e0b4cd2982a503e872f81427f",
+    "log": "dataset_pipeline/review_artifacts/p3c-iphone-reviewed-build.log"
+  },
+  "model_sha256": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "checks": {
+    "flutter": 490,
+    "native_simulator": 53,
+    "analyze": "passed",
+    "standards_review": "passed after fixes",
+    "spec_review": "passed after fixes"
+  },
+  "device": {
+    "family": "iPhone",
+    "install_outcome": "success",
+    "normal_launch_outcome": "success"
+  },
+  "human_acceptance": "P3-C recording, matching quality, floor transition, VoiceOver and large text pending user session",
+  "scope": "recorded checkpoint replay; no continuous spoken turns/live obstacle avoidance/GPS trace; no private photos uploaded"
+}

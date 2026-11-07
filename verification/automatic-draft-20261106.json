@@ -1,0 +1,33 @@
+{
+  "issue": 17,
+  "parent_issue": 16,
+  "baseline_commit": "b0fae5f8d7b2d11c4a583187aff117f0af81634e",
+  "scope": "automatic unknown-floor draft pilot only; source checkpoint, no phone release",
+  "user_floor_decision": "continue unconfirmed draft and complete metadata later",
+  "pilot": {
+    "interval_seconds": 5,
+    "automatic_view_limit": 48,
+    "route_view_limit": 64,
+    "detail_screen": "max64px, mean15..240, neighbor gradient>=4",
+    "dedupe": "same image SHA or last retained feature distance<2",
+    "calibrated": false
+  },
+  "checks": {
+    "controller_scenarios": 12,
+    "full_suite": 498,
+    "review": {
+      "standards": "passed; re-reviewed 7b9af1a...6d1921e",
+      "spec": "passed after actual widget finish/save/reopen acceptance and failure-notice epoch guard"
+    },
+    "analyze": "passed",
+    "widget_acceptance": "actual start button -> automatic candidate -> finish/name/save -> encrypted reopen passed",
+    "additional_cases": "feature similarity of distinct synthetic JPEGs; interruption error notice epoch fencing",
+    "logs": [
+      "dataset_pipeline/review_artifacts/auto-draft-full-reviewed.log",
+      "dataset_pipeline/review_artifacts/auto-draft-analyze-complete.log",
+      "dataset_pipeline/review_artifacts/auto-draft-widget.log"
+    ]
+  },
+  "phone": "unchanged 1.7.1+14; retest pending",
+  "private_data": "synthetic generated detail-grid test JPEG only; no user images"
+}

@@ -74,6 +74,7 @@ class PlatformVision implements VisionSource {
   Stream<VisionFrame>? _frames;
   bool _loaded = false;
   bool _ready = false;
+  bool _disposed = false;
   Set<int> _acceptedClassIds = const <int>{};
   String? _loadError;
   int _inputSize = 0;
@@ -143,6 +144,8 @@ class PlatformVision implements VisionSource {
   /// 启动预览、请求权限、加载模型。返回可展示的结果，**不抛异常**。
   @override
   Future<VisionSourceStatus> initialize() async {
+    const cancelled = VisionSourceStatus(ok: false, message: '辨識已取消，請重新開始');
+    if (_disposed) return cancelled;
     _ready = false;
     _acceptedClassIds = const <int>{};
     // 1) 订阅结果流（必须在相机启动前，否则会丢首帧）
@@ -153,6 +156,7 @@ class PlatformVision implements VisionSource {
 
     // 2) 请求权限并启动原生相机预览
     final started = await _startPreview();
+    if (_disposed) return cancelled;
     if (!started) {
       return VisionSourceStatus(
         ok: false,
@@ -177,10 +181,12 @@ class PlatformVision implements VisionSource {
       );
     }
     final manifest = parsed.manifest!;
+    if (_disposed) return cancelled;
 
     // Load once with the declared mapping. An unmapped warm-up interpreter can
     // emit local indices (0/5) as legacy app IDs (entrance/railing).
     final ok = await _loadModel(manifest.modelClassIds);
+    if (_disposed) return cancelled;
     final mapping = ok
         ? resolveMapping(
             modelClassCount: _modelClassCount,
@@ -330,6 +336,7 @@ class PlatformVision implements VisionSource {
       return false;
     }
 
+    if (_disposed) return false;
     try {
       final reply = await _method.invokeMethod<Map<Object?, Object?>>(
         VisionMethods.loadModel,
@@ -338,6 +345,7 @@ class PlatformVision implements VisionSource {
           VisionKeys.classIds: classIds,
         },
       );
+      if (_disposed) return false;
       _loaded = reply?[VisionKeys.loaded] == true;
       _modelClassCount = _asInt(reply?[VisionKeys.classes]) ?? 0;
       _inputSize = _asInt(reply?[VisionKeys.inputSize]) ?? 0;
@@ -388,6 +396,8 @@ class PlatformVision implements VisionSource {
 
   @override
   Future<void> dispose() async {
+    if (_disposed) return;
+    _disposed = true;
     _ready = false;
     try {
       await _method.invokeMethod<void>(VisionMethods.release);

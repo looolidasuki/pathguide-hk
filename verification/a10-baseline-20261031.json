@@ -1,0 +1,2335 @@
+{
+  "date": "2026-10-31",
+  "timezone": "Asia/Hong_Kong",
+  "scope": "A10 ten-class trusted baseline: source/split audit, per-image App-settings evaluation, ten-vs-nine comparable classes",
+  "app_version": "1.4.3+8",
+  "app_weights_changed": false,
+  "training_started": false,
+  "deployment_performed": false,
+  "quality_gate_passed": false,
+  "environment": {
+    "python": "3.15.0",
+    "torch": "2.15.0",
+    "ultralytics": "8.4.182",
+    "opencv": "5.0.0",
+    "numpy": "2.5.4",
+    "device": "Apple M5 MPS",
+    "inference_batch": 8,
+    "note": "Local venv; no paid GPU or cloud worker."
+  },
+  "inputs": {
+    "source_index": {
+      "path": "dataset_pipeline/review_artifacts/2026-10-30/coverage-repair-v1/source-index.json",
+      "bytes": 7059807,
+      "sha256": "cb8a0d3845a5f07207f71fa53116633870178beb4c9b4ce43b57fce3127ebee8",
+      "rows": 12346
+    },
+    "records": {
+      "path": "dataset_pipeline/review_artifacts/2026-10-30/model-source/records.jsonl",
+      "bytes": 4777578,
+      "sha256": "1a0ab06f1e254c8329221015fbc419985c519d9210e35a44e0073cbb354af3b2",
+      "rows": 12346
+    },
+    "coverage": {
+      "path": "dataset_pipeline/review_artifacts/2026-10-30/model-source/coverage.json",
+      "bytes": 695034,
+      "sha256": "47c7a1406198308952d611ed8b220adc2ed10a45248e0ef309e16bb1c052fc71",
+      "rows": 12346
+    },
+    "fresh_review": {
+      "path": "dataset_pipeline/review_artifacts/2026-10-30/fresh-door-review/reviewed-candidates.json",
+      "bytes": 95355,
+      "sha256": "e3554f4c6371b3354d71577cad18d75822eace6ba33b835eb79c0238ab2cee97",
+      "rows": 42
+    },
+    "ten_source_pt": {
+      "path": "dataset_pipeline/review_artifacts/2026-10-30/model-source/candidate-best.pt",
+      "bytes": 5484634,
+      "sha256": "33e8eb1d46c265796111bbb516ba4311e2de4bdddb401c65d99cde88254946b7"
+    },
+    "nine_source_pt": {
+      "path": "../pathguide-colab/hk9-best-20261018.pt",
+      "bytes": 16028773,
+      "sha256": "31ee356124022ec512c24d6f73eaa090d3d9f640fb04c00e0028d6d338f24569"
+    },
+    "app_tflite": {
+      "path": "app/assets/models/detector.tflite",
+      "bytes": 10695172,
+      "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+    },
+    "app_manifest": {
+      "path": "app/assets/models/detector.json",
+      "bytes": 668,
+      "sha256": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327"
+    },
+    "audit_json": {
+      "path": "dataset_pipeline/review_artifacts/2026-10-31/a10-baseline/audit/audit.json",
+      "bytes": 5568,
+      "sha256": "c6a2e68294aaf08fe98fe83a9ec742834ccfb4a2ef595add5b7b62eafa6604a1"
+    },
+    "analysis_json": {
+      "path": "dataset_pipeline/review_artifacts/2026-10-31/a10-baseline/analysis.json",
+      "bytes": 64446,
+      "sha256": "1ee4842e706488ef38c9c0628593b7f5a631597385f82432dcacddeea969672d"
+    }
+  },
+  "dataset_audit": {
+    "total_indexed_records": 12388,
+    "by_source_split": {
+      "indoor-ccby4/train": 340,
+      "legacy-hk9/test": 620,
+      "legacy-hk9/train": 9549,
+      "legacy-hk9/val": 1374,
+      "macao-ccby4/train": 436,
+      "oid-ccby2/test": 13,
+      "oid-ccby2/val": 14,
+      "oid-ccby2-fresh/train": 27,
+      "oid-ccby2-fresh/val": 15
+    },
+    "coverage_lengths": {
+      "1": 811,
+      "2": 5,
+      "3": 29,
+      "8": 11543
+    },
+    "exact_byte_groups": 6,
+    "exact_cross_split_groups": 0,
+    "phash_pairs_radius_6": 1449,
+    "cross_split_candidate_groups": 424,
+    "validation": {
+      "images": 1403,
+      "exact_sha_in_train": 0,
+      "same_video_group_in_train": 23,
+      "nearest_train_phash_radius_counts": {
+        "2": 228,
+        "4": 242,
+        "6": 256,
+        "8": 265,
+        "10": 286
+      },
+      "duplicate_candidates_radius_6": 279,
+      "clean_subset_images": 1124,
+      "strict_same_source_subset_images": 1082
+    },
+    "class_positive_boxes": {
+      "all_val": {
+        "person": 278,
+        "bicycle": 274,
+        "bin": 234,
+        "bollard": 743,
+        "traffic_cone": 270,
+        "caution_slippery": 115,
+        "stairs": 224,
+        "escalator": 157,
+        "fence": 0,
+        "door": 39
+      },
+      "clean_val": {
+        "person": 277,
+        "bicycle": 274,
+        "bin": 189,
+        "bollard": 735,
+        "traffic_cone": 270,
+        "caution_slippery": 50,
+        "stairs": 57,
+        "escalator": 155,
+        "fence": 0,
+        "door": 39
+      },
+      "strict_val": {
+        "person": 277,
+        "bicycle": 274,
+        "bin": 189,
+        "bollard": 735,
+        "traffic_cone": 270,
+        "caution_slippery": 8,
+        "stairs": 55,
+        "escalator": 155,
+        "fence": 0,
+        "door": 39
+      }
+    },
+    "fresh_door_cohort": {
+      "train_images": 27,
+      "val_images": 15,
+      "train_authors": 27,
+      "val_authors": 15,
+      "author_overlap": [],
+      "val_nearest_fresh_train_phash": [
+        {
+          "id": "fresh-oid-4736473322f99da5",
+          "nearest_fresh_train_phash": 22
+        },
+        {
+          "id": "fresh-oid-4c04b488ddc48225",
+          "nearest_fresh_train_phash": 24
+        },
+        {
+          "id": "fresh-oid-4dcbea7a792e8d6c",
+          "nearest_fresh_train_phash": 26
+        },
+        {
+          "id": "fresh-oid-5894684a6f19c9a5",
+          "nearest_fresh_train_phash": 24
+        },
+        {
+          "id": "fresh-oid-6e13d5bed5469154",
+          "nearest_fresh_train_phash": 20
+        },
+        {
+          "id": "fresh-oid-8b0efac1156dca24",
+          "nearest_fresh_train_phash": 22
+        },
+        {
+          "id": "fresh-oid-976093cd8c1d21fb",
+          "nearest_fresh_train_phash": 24
+        },
+        {
+          "id": "fresh-oid-98fc5678bc6a942b",
+          "nearest_fresh_train_phash": 26
+        },
+        {
+          "id": "fresh-oid-a183f4972bc4fb3c",
+          "nearest_fresh_train_phash": 26
+        },
+        {
+          "id": "fresh-oid-aed59fc1d72f575d",
+          "nearest_fresh_train_phash": 26
+        },
+        {
+          "id": "fresh-oid-b48ad51e692bf8d1",
+          "nearest_fresh_train_phash": 22
+        },
+        {
+          "id": "fresh-oid-ce1a04fbc5096c01",
+          "nearest_fresh_train_phash": 22
+        },
+        {
+          "id": "fresh-oid-cfa5389b9eeba8f1",
+          "nearest_fresh_train_phash": 20
+        },
+        {
+          "id": "fresh-oid-dd524cdb2e8652cf",
+          "nearest_fresh_train_phash": 22
+        },
+        {
+          "id": "fresh-oid-f118751addb4519c",
+          "nearest_fresh_train_phash": 24
+        }
+      ],
+      "val_nearest_source_train_phash": [
+        18,
+        16,
+        16,
+        18,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        16,
+        18,
+        16,
+        18,
+        16
+      ]
+    },
+    "limits": [
+      "pHash and filename groups are candidate evidence, not scene truth.",
+      "The fixed legacy validation split was not re-split; clean_gate is a subset definition.",
+      "Macao and indoor CC BY images exist only in train, so they have no held-out validation.",
+      "Fresh door validation has no independent human adjudication and no fence positives.",
+      "Test split photos were not inferred or inspected in this audit."
+    ]
+  },
+  "evaluation": {
+    "method": {
+      "input": "independent float RGB half-pixel bilinear 640 letterbox, 114 padding",
+      "argmax_before_coverage_filter": true,
+      "nms_iou": 0.45,
+      "maximum": 100,
+      "match_iou": 0.5,
+      "confidences": [
+        0.3,
+        0.7
+      ],
+      "ap": "101-point COCO-style AP50, class-aware",
+      "not_nv12_camera_capture": true
+    },
+    "models": {
+      "ten": {
+        "path": "dataset_pipeline/review_artifacts/2026-10-30/model-source/candidate-best.pt",
+        "sha256": "33e8eb1d46c265796111bbb516ba4311e2de4bdddb401c65d99cde88254946b7",
+        "names": [
+          "person",
+          "bicycle",
+          "bin",
+          "bollard",
+          "traffic_cone",
+          "caution_slippery",
+          "stairs",
+          "escalator",
+          "fence",
+          "door"
+        ]
+      },
+      "nine": {
+        "path": "../pathguide-colab/hk9-best-20261018.pt",
+        "sha256": "31ee356124022ec512c24d6f73eaa090d3d9f640fb04c00e0028d6d338f24569",
+        "names": [
+          "bicycle",
+          "bin",
+          "bollard",
+          "downstairs",
+          "escalator",
+          "person",
+          "traffic_cone",
+          "upstairs",
+          "wet_floor_sign"
+        ]
+      }
+    },
+    "subsets": {
+      "definition": {
+        "all_val": "1,388 fixed validation records plus 15 fresh OID val",
+        "legacy_val": "fixed legacy validation split (leakage audited separately)",
+        "original_oid_val": "14 original OID validation door images",
+        "fresh_oid_val": "15 frozen fresh OID door images, unseen by training",
+        "clean_val": "validation images with no train pHash group within radius 6",
+        "door_val": "images whose coverage annotates door"
+      },
+      "counts": {
+        "all_val": 1403,
+        "legacy_val": 1374,
+        "original_oid_val": 14,
+        "fresh_oid_val": 15,
+        "clean_val": 1124,
+        "clean_legacy_val": 1095,
+        "door_val": 29
+      }
+    },
+    "ten_class": {
+      "strict": {
+        "images": 1082,
+        "0.3": {
+          "person": {
+            "tp": 152,
+            "fp": 75,
+            "fn": 125,
+            "ground_truth": 277,
+            "precision": 0.6696035242290749,
+            "recall": 0.5487364620938628
+          },
+          "bicycle": {
+            "tp": 220,
+            "fp": 55,
+            "fn": 54,
+            "ground_truth": 274,
+            "precision": 0.8,
+            "recall": 0.8029197080291971
+          },
+          "bin": {
+            "tp": 164,
+            "fp": 9,
+            "fn": 25,
+            "ground_truth": 189,
+            "precision": 0.9479768786127167,
+            "recall": 0.8677248677248677
+          },
+          "bollard": {
+            "tp": 587,
+            "fp": 117,
+            "fn": 148,
+            "ground_truth": 735,
+            "precision": 0.8338068181818182,
+            "recall": 0.7986394557823129
+          },
+          "traffic_cone": {
+            "tp": 212,
+            "fp": 15,
+            "fn": 58,
+            "ground_truth": 270,
+            "precision": 0.933920704845815,
+            "recall": 0.7851851851851852
+          },
+          "caution_slippery": {
+            "tp": 8,
+            "fp": 1,
+            "fn": 0,
+            "ground_truth": 8,
+            "precision": 0.8888888888888888,
+            "recall": 1.0
+          },
+          "stairs": {
+            "tp": 31,
+            "fp": 16,
+            "fn": 24,
+            "ground_truth": 55,
+            "precision": 0.6595744680851063,
+            "recall": 0.5636363636363636
+          },
+          "escalator": {
+            "tp": 113,
+            "fp": 35,
+            "fn": 42,
+            "ground_truth": 155,
+            "precision": 0.7635135135135135,
+            "recall": 0.7290322580645161
+          },
+          "fence": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "ground_truth": 0,
+            "precision": null,
+            "recall": null
+          },
+          "door": {
+            "tp": 6,
+            "fp": 8,
+            "fn": 33,
+            "ground_truth": 39,
+            "precision": 0.42857142857142855,
+            "recall": 0.15384615384615385
+          }
+        },
+        "0.7": {
+          "person": {
+            "tp": 98,
+            "fp": 19,
+            "fn": 179,
+            "ground_truth": 277,
+            "precision": 0.8376068376068376,
+            "recall": 0.35379061371841153
+          },
+          "bicycle": {
+            "tp": 176,
+            "fp": 9,
+            "fn": 98,
+            "ground_truth": 274,
+            "precision": 0.9513513513513514,
+            "recall": 0.6423357664233577
+          },
+          "bin": {
+            "tp": 160,
+            "fp": 2,
+            "fn": 29,
+            "ground_truth": 189,
+            "precision": 0.9876543209876543,
+            "recall": 0.8465608465608465
+          },
+          "bollard": {
+            "tp": 373,
+            "fp": 12,
+            "fn": 362,
+            "ground_truth": 735,
+            "precision": 0.9688311688311688,
+            "recall": 0.507482993197279
+          },
+          "traffic_cone": {
+            "tp": 192,
+            "fp": 1,
+            "fn": 78,
+            "ground_truth": 270,
+            "precision": 0.9948186528497409,
+            "recall": 0.7111111111111111
+          },
+          "caution_slippery": {
+            "tp": 8,
+            "fp": 0,
+            "fn": 0,
+            "ground_truth": 8,
+            "precision": 1.0,
+            "recall": 1.0
+          },
+          "stairs": {
+            "tp": 16,
+            "fp": 5,
+            "fn": 39,
+            "ground_truth": 55,
+            "precision": 0.7619047619047619,
+            "recall": 0.2909090909090909
+          },
+          "escalator": {
+            "tp": 90,
+            "fp": 11,
+            "fn": 65,
+            "ground_truth": 155,
+            "precision": 0.8910891089108911,
+            "recall": 0.5806451612903226
+          },
+          "fence": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "ground_truth": 0,
+            "precision": null,
+            "recall": null
+          },
+          "door": {
+            "tp": 5,
+            "fp": 3,
+            "fn": 34,
+            "ground_truth": 39,
+            "precision": 0.625,
+            "recall": 0.1282051282051282
+          }
+        },
+        "ap50": {
+          "person": 0.5733382319920377,
+          "bicycle": 0.853642225315332,
+          "bin": 0.8840075487433559,
+          "bollard": 0.8420217004387333,
+          "traffic_cone": 0.8813330808148182,
+          "caution_slippery": 1.0,
+          "stairs": 0.5878997974519712,
+          "escalator": 0.7582153890452564,
+          "fence": null,
+          "door": 0.15603182044935116
+        }
+      },
+      "clean": {
+        "images": 1124,
+        "0.3": {
+          "person": {
+            "tp": 152,
+            "fp": 75,
+            "fn": 125,
+            "ground_truth": 277,
+            "precision": 0.6696035242290749,
+            "recall": 0.5487364620938628
+          },
+          "bicycle": {
+            "tp": 220,
+            "fp": 55,
+            "fn": 54,
+            "ground_truth": 274,
+            "precision": 0.8,
+            "recall": 0.8029197080291971
+          },
+          "bin": {
+            "tp": 164,
+            "fp": 9,
+            "fn": 25,
+            "ground_truth": 189,
+            "precision": 0.9479768786127167,
+            "recall": 0.8677248677248677
+          },
+          "bollard": {
+            "tp": 587,
+            "fp": 117,
+            "fn": 148,
+            "ground_truth": 735,
+            "precision": 0.8338068181818182,
+            "recall": 0.7986394557823129
+          },
+          "traffic_cone": {
+            "tp": 212,
+            "fp": 15,
+            "fn": 58,
+            "ground_truth": 270,
+            "precision": 0.933920704845815,
+            "recall": 0.7851851851851852
+          },
+          "caution_slippery": {
+            "tp": 48,
+            "fp": 1,
+            "fn": 2,
+            "ground_truth": 50,
+            "precision": 0.9795918367346939,
+            "recall": 0.96
+          },
+          "stairs": {
+            "tp": 33,
+            "fp": 16,
+            "fn": 24,
+            "ground_truth": 57,
+            "precision": 0.673469387755102,
+            "recall": 0.5789473684210527
+          },
+          "escalator": {
+            "tp": 113,
+            "fp": 35,
+            "fn": 42,
+            "ground_truth": 155,
+            "precision": 0.7635135135135135,
+            "recall": 0.7290322580645161
+          },
+          "fence": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "ground_truth": 0,
+            "precision": null,
+            "recall": null
+          },
+          "door": {
+            "tp": 6,
+            "fp": 8,
+            "fn": 33,
+            "ground_truth": 39,
+            "precision": 0.42857142857142855,
+            "recall": 0.15384615384615385
+          }
+        },
+        "0.7": {
+          "person": {
+            "tp": 98,
+            "fp": 19,
+            "fn": 179,
+            "ground_truth": 277,
+            "precision": 0.8376068376068376,
+            "recall": 0.35379061371841153
+          },
+          "bicycle": {
+            "tp": 176,
+            "fp": 9,
+            "fn": 98,
+            "ground_truth": 274,
+            "precision": 0.9513513513513514,
+            "recall": 0.6423357664233577
+          },
+          "bin": {
+            "tp": 160,
+            "fp": 2,
+            "fn": 29,
+            "ground_truth": 189,
+            "precision": 0.9876543209876543,
+            "recall": 0.8465608465608465
+          },
+          "bollard": {
+            "tp": 373,
+            "fp": 12,
+            "fn": 362,
+            "ground_truth": 735,
+            "precision": 0.9688311688311688,
+            "recall": 0.507482993197279
+          },
+          "traffic_cone": {
+            "tp": 192,
+            "fp": 1,
+            "fn": 78,
+            "ground_truth": 270,
+            "precision": 0.9948186528497409,
+            "recall": 0.7111111111111111
+          },
+          "caution_slippery": {
+            "tp": 47,
+            "fp": 0,
+            "fn": 3,
+            "ground_truth": 50,
+            "precision": 1.0,
+            "recall": 0.94
+          },
+          "stairs": {
+            "tp": 18,
+            "fp": 5,
+            "fn": 39,
+            "ground_truth": 57,
+            "precision": 0.782608695652174,
+            "recall": 0.3157894736842105
+          },
+          "escalator": {
+            "tp": 90,
+            "fp": 11,
+            "fn": 65,
+            "ground_truth": 155,
+            "precision": 0.8910891089108911,
+            "recall": 0.5806451612903226
+          },
+          "fence": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "ground_truth": 0,
+            "precision": null,
+            "recall": null
+          },
+          "door": {
+            "tp": 5,
+            "fp": 3,
+            "fn": 34,
+            "ground_truth": 39,
+            "precision": 0.625,
+            "recall": 0.1282051282051282
+          }
+        },
+        "ap50": {
+          "person": 0.5733327097864883,
+          "bicycle": 0.853642225315332,
+          "bin": 0.8840075487433559,
+          "bollard": 0.8420045607538719,
+          "traffic_cone": 0.8813330808148182,
+          "caution_slippery": 0.9603960396039604,
+          "stairs": 0.6037561782071196,
+          "escalator": 0.7582153890452564,
+          "fence": null,
+          "door": 0.15603182044935116
+        }
+      },
+      "all": {
+        "images": 1403,
+        "0.3": {
+          "person": {
+            "tp": 153,
+            "fp": 75,
+            "fn": 125,
+            "ground_truth": 278,
+            "precision": 0.6710526315789473,
+            "recall": 0.5503597122302158
+          },
+          "bicycle": {
+            "tp": 220,
+            "fp": 55,
+            "fn": 54,
+            "ground_truth": 274,
+            "precision": 0.8,
+            "recall": 0.8029197080291971
+          },
+          "bin": {
+            "tp": 208,
+            "fp": 11,
+            "fn": 26,
+            "ground_truth": 234,
+            "precision": 0.9497716894977168,
+            "recall": 0.8888888888888888
+          },
+          "bollard": {
+            "tp": 595,
+            "fp": 117,
+            "fn": 148,
+            "ground_truth": 743,
+            "precision": 0.8356741573033708,
+            "recall": 0.800807537012113
+          },
+          "traffic_cone": {
+            "tp": 212,
+            "fp": 15,
+            "fn": 58,
+            "ground_truth": 270,
+            "precision": 0.933920704845815,
+            "recall": 0.7851851851851852
+          },
+          "caution_slippery": {
+            "tp": 113,
+            "fp": 1,
+            "fn": 2,
+            "ground_truth": 115,
+            "precision": 0.9912280701754386,
+            "recall": 0.9826086956521739
+          },
+          "stairs": {
+            "tp": 184,
+            "fp": 33,
+            "fn": 40,
+            "ground_truth": 224,
+            "precision": 0.847926267281106,
+            "recall": 0.8214285714285714
+          },
+          "escalator": {
+            "tp": 115,
+            "fp": 35,
+            "fn": 42,
+            "ground_truth": 157,
+            "precision": 0.7666666666666667,
+            "recall": 0.732484076433121
+          },
+          "fence": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "ground_truth": 0,
+            "precision": null,
+            "recall": null
+          },
+          "door": {
+            "tp": 6,
+            "fp": 8,
+            "fn": 33,
+            "ground_truth": 39,
+            "precision": 0.42857142857142855,
+            "recall": 0.15384615384615385
+          }
+        },
+        "0.7": {
+          "person": {
+            "tp": 99,
+            "fp": 19,
+            "fn": 179,
+            "ground_truth": 278,
+            "precision": 0.8389830508474576,
+            "recall": 0.35611510791366907
+          },
+          "bicycle": {
+            "tp": 176,
+            "fp": 9,
+            "fn": 98,
+            "ground_truth": 274,
+            "precision": 0.9513513513513514,
+            "recall": 0.6423357664233577
+          },
+          "bin": {
+            "tp": 203,
+            "fp": 2,
+            "fn": 31,
+            "ground_truth": 234,
+            "precision": 0.9902439024390244,
+            "recall": 0.8675213675213675
+          },
+          "bollard": {
+            "tp": 377,
+            "fp": 12,
+            "fn": 366,
+            "ground_truth": 743,
+            "precision": 0.9691516709511568,
+            "recall": 0.5074024226110363
+          },
+          "traffic_cone": {
+            "tp": 192,
+            "fp": 1,
+            "fn": 78,
+            "ground_truth": 270,
+            "precision": 0.9948186528497409,
+            "recall": 0.7111111111111111
+          },
+          "caution_slippery": {
+            "tp": 112,
+            "fp": 0,
+            "fn": 3,
+            "ground_truth": 115,
+            "precision": 1.0,
+            "recall": 0.9739130434782609
+          },
+          "stairs": {
+            "tp": 125,
+            "fp": 10,
+            "fn": 99,
+            "ground_truth": 224,
+            "precision": 0.9259259259259259,
+            "recall": 0.5580357142857143
+          },
+          "escalator": {
+            "tp": 92,
+            "fp": 11,
+            "fn": 65,
+            "ground_truth": 157,
+            "precision": 0.8932038834951457,
+            "recall": 0.5859872611464968
+          },
+          "fence": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "ground_truth": 0,
+            "precision": null,
+            "recall": null
+          },
+          "door": {
+            "tp": 5,
+            "fp": 3,
+            "fn": 34,
+            "ground_truth": 39,
+            "precision": 0.625,
+            "recall": 0.1282051282051282
+          }
+        },
+        "ap50": {
+          "person": 0.5740464906715581,
+          "bicycle": 0.8535929275975959,
+          "bin": 0.906245759180982,
+          "bollard": 0.8431877212853293,
+          "traffic_cone": 0.8808819414144017,
+          "caution_slippery": 0.9801980198019802,
+          "stairs": 0.8338186123535447,
+          "escalator": 0.7617525561857525,
+          "fence": null,
+          "door": 0.15603182044935116
+        }
+      }
+    },
+    "door": {
+      "combined": {
+        "tp": 5,
+        "fp": 3,
+        "fn": 34,
+        "ground_truth": 39,
+        "precision": 0.625,
+        "recall": 0.1282051282051282,
+        "ap50": 0.156
+      },
+      "original_oid_14_images_18_boxes": {
+        "tp": 2,
+        "fp": 1,
+        "fn": 16,
+        "gt": 18,
+        "ap50": 0.198
+      },
+      "fresh_oid_15_images_21_boxes": {
+        "tp": 3,
+        "fp": 2,
+        "fn": 18,
+        "gt": 21,
+        "ap50": 0.149
+      },
+      "positive_images": 27,
+      "negative_images": 2,
+      "max_score_bins_positive_images": {
+        "0.0-0.3": 17,
+        "0.3-0.5": 2,
+        "0.5-0.7": 2,
+        "0.7-1.0": 6
+      },
+      "per_image": [
+        {
+          "id": "oid-0c3567f0d4d650eb",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.005232041701674461,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "fence",
+              "score": 0.1119103729724884
+            },
+            {
+              "name": "person",
+              "score": 0.06693179160356522
+            },
+            {
+              "name": "person",
+              "score": 0.04699094966053963
+            }
+          ]
+        },
+        {
+          "id": "oid-34366cc10d904e94",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.0053916797041893005,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.020195869728922844
+            },
+            {
+              "name": "person",
+              "score": 0.01725747436285019
+            },
+            {
+              "name": "person",
+              "score": 0.009409824386239052
+            }
+          ]
+        },
+        {
+          "id": "oid-5a330274338e4ac5",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.7181515693664551,
+          "0.3": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "escalator",
+              "score": 0.7734036445617676
+            },
+            {
+              "name": "door",
+              "score": 0.7139178514480591
+            },
+            {
+              "name": "fence",
+              "score": 0.4255543053150177
+            }
+          ]
+        },
+        {
+          "id": "oid-731c46b4150a73ab",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.23077839612960815,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.23077839612960815
+            },
+            {
+              "name": "fence",
+              "score": 0.014250632375478745
+            },
+            {
+              "name": "person",
+              "score": 0.01131800003349781
+            }
+          ]
+        },
+        {
+          "id": "oid-784e87eb95e08847",
+          "source": "oid-ccby2",
+          "gt_doors": 2,
+          "max_door_score": 0.7907196283340454,
+          "0.3": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "gt": 2
+          },
+          "0.7": {
+            "tp": 2,
+            "fp": 0,
+            "fn": 0,
+            "gt": 2
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.7907196283340454
+            },
+            {
+              "name": "door",
+              "score": 0.7654582262039185
+            },
+            {
+              "name": "fence",
+              "score": 0.5389618873596191
+            }
+          ]
+        },
+        {
+          "id": "oid-86558b4f454ee7e3",
+          "source": "oid-ccby2",
+          "gt_doors": 2,
+          "max_door_score": 0.344308078289032,
+          "0.3": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 2,
+            "gt": 2
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "gt": 2
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.820403516292572
+            },
+            {
+              "name": "person",
+              "score": 0.6330592036247253
+            },
+            {
+              "name": "person",
+              "score": 0.6127597689628601
+            }
+          ]
+        },
+        {
+          "id": "oid-96b573942e14da60",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.16612425446510315,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.7171991467475891
+            },
+            {
+              "name": "door",
+              "score": 0.16612425446510315
+            },
+            {
+              "name": "fence",
+              "score": 0.10788058489561081
+            }
+          ]
+        },
+        {
+          "id": "oid-9dba9c1e70302873",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.6852926015853882,
+          "0.3": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.6852926015853882
+            },
+            {
+              "name": "fence",
+              "score": 0.11323808133602142
+            },
+            {
+              "name": "fence",
+              "score": 0.040781501680612564
+            }
+          ]
+        },
+        {
+          "id": "oid-be445decf3070749",
+          "source": "oid-ccby2",
+          "gt_doors": 2,
+          "max_door_score": 0.0008795114699751139,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "gt": 2
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "gt": 2
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.11911933869123459
+            },
+            {
+              "name": "person",
+              "score": 0.11565782129764557
+            },
+            {
+              "name": "person",
+              "score": 0.07738639414310455
+            }
+          ]
+        },
+        {
+          "id": "oid-d5616e7411a58099",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.5727565288543701,
+          "0.3": {
+            "tp": 1,
+            "fp": 1,
+            "fn": 0,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.5727565288543701
+            },
+            {
+              "name": "door",
+              "score": 0.322061151266098
+            },
+            {
+              "name": "person",
+              "score": 0.09211660176515579
+            }
+          ]
+        },
+        {
+          "id": "oid-dca77c13036ee7b8",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.057920441031455994,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.5638827085494995
+            },
+            {
+              "name": "door",
+              "score": 0.057920441031455994
+            },
+            {
+              "name": "fence",
+              "score": 0.014905201271176338
+            }
+          ]
+        },
+        {
+          "id": "oid-e5c8d21e5260fdee",
+          "source": "oid-ccby2",
+          "gt_doors": 2,
+          "max_door_score": 0.10707379132509232,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "gt": 2
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "gt": 2
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.10707379132509232
+            },
+            {
+              "name": "door",
+              "score": 0.017247699201107025
+            },
+            {
+              "name": "person",
+              "score": 0.006040855776518583
+            }
+          ]
+        },
+        {
+          "id": "oid-ef40e3891a5b52a2",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.0022182853426784277,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.5617369413375854
+            },
+            {
+              "name": "person",
+              "score": 0.4790385067462921
+            },
+            {
+              "name": "person",
+              "score": 0.32428357005119324
+            }
+          ]
+        },
+        {
+          "id": "oid-fbd2f16697562dd1",
+          "source": "oid-ccby2",
+          "gt_doors": 1,
+          "max_door_score": 0.02849913015961647,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "fence",
+              "score": 0.08369186520576477
+            },
+            {
+              "name": "person",
+              "score": 0.037943631410598755
+            },
+            {
+              "name": "person",
+              "score": 0.03492260351777077
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-4736473322f99da5",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.3048940896987915,
+          "0.3": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.3048940896987915
+            },
+            {
+              "name": "door",
+              "score": 0.212278351187706
+            },
+            {
+              "name": "fence",
+              "score": 0.00962143950164318
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-4c04b488ddc48225",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 0,
+          "max_door_score": 0.0011518779210746288,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "gt": 0
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 0,
+            "gt": 0
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.20536133646965027
+            },
+            {
+              "name": "person",
+              "score": 0.022172637283802032
+            },
+            {
+              "name": "person",
+              "score": 0.013853546231985092
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-4dcbea7a792e8d6c",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.0023576465900987387,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.058417387306690216
+            },
+            {
+              "name": "fence",
+              "score": 0.030847517773509026
+            },
+            {
+              "name": "person",
+              "score": 0.02784435823559761
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-5894684a6f19c9a5",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.2830730974674225,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.2830730974674225
+            },
+            {
+              "name": "door",
+              "score": 0.24105364084243774
+            },
+            {
+              "name": "fence",
+              "score": 0.13102824985980988
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-6e13d5bed5469154",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 3,
+          "max_door_score": 0.032405830919742584,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "gt": 3
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "gt": 3
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.032405830919742584
+            },
+            {
+              "name": "person",
+              "score": 0.014520470052957535
+            },
+            {
+              "name": "person",
+              "score": 0.012168129906058311
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-8b0efac1156dca24",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.8769381642341614,
+          "0.3": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.8769381642341614
+            },
+            {
+              "name": "fence",
+              "score": 0.5504045486450195
+            },
+            {
+              "name": "fence",
+              "score": 0.0019480219343677163
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-976093cd8c1d21fb",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.1476684808731079,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.34039872884750366
+            },
+            {
+              "name": "person",
+              "score": 0.33660444617271423
+            },
+            {
+              "name": "door",
+              "score": 0.1476684808731079
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-98fc5678bc6a942b",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.7590987682342529,
+          "0.3": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.7590987682342529
+            },
+            {
+              "name": "door",
+              "score": 0.08307582139968872
+            },
+            {
+              "name": "fence",
+              "score": 0.00976200308650732
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-a183f4972bc4fb3c",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 3,
+          "max_door_score": 0.004611219745129347,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "gt": 3
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "gt": 3
+          },
+          "predicted_top": [
+            {
+              "name": "person",
+              "score": 0.18182608485221863
+            },
+            {
+              "name": "person",
+              "score": 0.08909989148378372
+            },
+            {
+              "name": "person",
+              "score": 0.051970262080430984
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-aed59fc1d72f575d",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 2,
+          "max_door_score": 0.8975086808204651,
+          "0.3": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 1,
+            "gt": 2
+          },
+          "0.7": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 1,
+            "gt": 2
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.8975086808204651
+            },
+            {
+              "name": "fence",
+              "score": 0.6760305166244507
+            },
+            {
+              "name": "fence",
+              "score": 0.048915889114141464
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-b48ad51e692bf8d1",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 2,
+          "max_door_score": 0.14666391909122467,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "gt": 2
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 2,
+            "gt": 2
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.14666391909122467
+            },
+            {
+              "name": "person",
+              "score": 0.05643118917942047
+            },
+            {
+              "name": "person",
+              "score": 0.025711458176374435
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-ce1a04fbc5096c01",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.8580518960952759,
+          "0.3": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 1,
+            "fp": 0,
+            "fn": 0,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.8580518960952759
+            },
+            {
+              "name": "fence",
+              "score": 0.12319497764110565
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-cfa5389b9eeba8f1",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 0,
+          "max_door_score": 0.8454049229621887,
+          "0.3": {
+            "tp": 0,
+            "fp": 2,
+            "fn": 0,
+            "gt": 0
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 1,
+            "fn": 0,
+            "gt": 0
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.8454049229621887
+            },
+            {
+              "name": "door",
+              "score": 0.5781396627426147
+            },
+            {
+              "name": "fence",
+              "score": 0.15231123566627502
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-dd524cdb2e8652cf",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 1,
+          "max_door_score": 0.21021859347820282,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 1,
+            "gt": 1
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.21021859347820282
+            },
+            {
+              "name": "door",
+              "score": 0.17290262877941132
+            },
+            {
+              "name": "door",
+              "score": 0.03668167069554329
+            }
+          ]
+        },
+        {
+          "id": "fresh-oid-f118751addb4519c",
+          "source": "oid-ccby2-fresh",
+          "gt_doors": 3,
+          "max_door_score": 0.04204973578453064,
+          "0.3": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "gt": 3
+          },
+          "0.7": {
+            "tp": 0,
+            "fp": 0,
+            "fn": 3,
+            "gt": 3
+          },
+          "predicted_top": [
+            {
+              "name": "door",
+              "score": 0.04204973578453064
+            },
+            {
+              "name": "person",
+              "score": 0.00967850349843502
+            },
+            {
+              "name": "fence",
+              "score": 0.006136963609606028
+            }
+          ]
+        }
+      ]
+    },
+    "person": {
+      "strict_0.7": {
+        "tp": 98,
+        "fp": 19,
+        "fn": 179,
+        "ground_truth": 277,
+        "precision": 0.8376068376068376,
+        "recall": 0.35379061371841153
+      },
+      "strict_ap50": 0.5733382319920377,
+      "strict_0.3": {
+        "tp": 152,
+        "fp": 75,
+        "fn": 125,
+        "ground_truth": 277,
+        "precision": 0.6696035242290749,
+        "recall": 0.5487364620938628
+      },
+      "all_0.7": {
+        "tp": 99,
+        "fp": 19,
+        "fn": 179,
+        "ground_truth": 278,
+        "precision": 0.8389830508474576,
+        "recall": 0.35611510791366907
+      },
+      "confidence_intervals_0.7": {
+        "precision": [
+          0.7602,
+          0.8935
+        ],
+        "recall": [
+          0.2998,
+          0.4117
+        ]
+      }
+    },
+    "fence": {
+      "val_images_with_fence_coverage": 10,
+      "val_fence_positive_boxes": 0,
+      "fence_predictions": {
+        "0.3": 0,
+        "0.7": 0
+      },
+      "recall_measurable": false
+    },
+    "ten_vs_nine": {
+      "all_val": {
+        "person": {
+          "ten": {
+            "p": 0.8389830508474576,
+            "r": 0.35611510791366907,
+            "ap50": 0.5740464906715581
+          },
+          "nine": {
+            "p": 0.896551724137931,
+            "r": 0.37410071942446044,
+            "ap50": 0.6085397427688521
+          }
+        },
+        "bicycle": {
+          "ten": {
+            "p": 0.9513513513513514,
+            "r": 0.6423357664233577,
+            "ap50": 0.8535929275975959
+          },
+          "nine": {
+            "p": 0.9655172413793104,
+            "r": 0.6131386861313869,
+            "ap50": 0.8614395498926933
+          }
+        },
+        "bin": {
+          "ten": {
+            "p": 0.9902439024390244,
+            "r": 0.8675213675213675,
+            "ap50": 0.906245759180982
+          },
+          "nine": {
+            "p": 0.9951456310679612,
+            "r": 0.8760683760683761,
+            "ap50": 0.9473805367417121
+          }
+        },
+        "bollard": {
+          "ten": {
+            "p": 0.9691516709511568,
+            "r": 0.5074024226110363,
+            "ap50": 0.8431877212853293
+          },
+          "nine": {
+            "p": 0.9642857142857143,
+            "r": 0.5087483176312247,
+            "ap50": 0.8703720318449512
+          }
+        },
+        "traffic_cone": {
+          "ten": {
+            "p": 0.9948186528497409,
+            "r": 0.7111111111111111,
+            "ap50": 0.8808819414144017
+          },
+          "nine": {
+            "p": 0.9844559585492227,
+            "r": 0.7037037037037037,
+            "ap50": 0.8905054520137012
+          }
+        },
+        "caution_slippery": {
+          "ten": {
+            "p": 1.0,
+            "r": 0.9739130434782609,
+            "ap50": 0.9801980198019802
+          },
+          "nine": {
+            "p": 0.991304347826087,
+            "r": 0.991304347826087,
+            "ap50": 0.9949641515875722
+          }
+        },
+        "escalator": {
+          "ten": {
+            "p": 0.8932038834951457,
+            "r": 0.5859872611464968,
+            "ap50": 0.7617525561857525
+          },
+          "nine": {
+            "p": 0.8979591836734694,
+            "r": 0.5605095541401274,
+            "ap50": 0.8033075918204032
+          }
+        }
+      },
+      "clean_val": {
+        "person": {
+          "ten": {
+            "p": 0.8376068376068376,
+            "r": 0.35379061371841153,
+            "ap50": 0.5733327097864883
+          },
+          "nine": {
+            "p": 0.8956521739130435,
+            "r": 0.37184115523465705,
+            "ap50": 0.607314015717241
+          }
+        },
+        "bicycle": {
+          "ten": {
+            "p": 0.9513513513513514,
+            "r": 0.6423357664233577,
+            "ap50": 0.853642225315332
+          },
+          "nine": {
+            "p": 0.9655172413793104,
+            "r": 0.6131386861313869,
+            "ap50": 0.8614434702792663
+          }
+        },
+        "bin": {
+          "ten": {
+            "p": 0.9876543209876543,
+            "r": 0.8465608465608465,
+            "ap50": 0.8840075487433559
+          },
+          "nine": {
+            "p": 0.9938650306748467,
+            "r": 0.8571428571428571,
+            "ap50": 0.9365200475099921
+          }
+        },
+        "bollard": {
+          "ten": {
+            "p": 0.9688311688311688,
+            "r": 0.507482993197279,
+            "ap50": 0.8420045607538719
+          },
+          "nine": {
+            "p": 0.9639175257731959,
+            "r": 0.508843537414966,
+            "ap50": 0.868731715627588
+          }
+        },
+        "traffic_cone": {
+          "ten": {
+            "p": 0.9948186528497409,
+            "r": 0.7111111111111111,
+            "ap50": 0.8813330808148182
+          },
+          "nine": {
+            "p": 0.9844559585492227,
+            "r": 0.7037037037037037,
+            "ap50": 0.8909229370686522
+          }
+        },
+        "caution_slippery": {
+          "ten": {
+            "p": 1.0,
+            "r": 0.94,
+            "ap50": 0.9603960396039604
+          },
+          "nine": {
+            "p": 0.98,
+            "r": 0.98,
+            "ap50": 0.9871869539895168
+          }
+        },
+        "escalator": {
+          "ten": {
+            "p": 0.8910891089108911,
+            "r": 0.5806451612903226,
+            "ap50": 0.7582153890452564
+          },
+          "nine": {
+            "p": 0.9052631578947369,
+            "r": 0.5548387096774193,
+            "ap50": 0.8111844590457985
+          }
+        }
+      },
+      "strict_val": {
+        "person": {
+          "ten": {
+            "p": 0.8376068376068376,
+            "r": 0.35379061371841153,
+            "ap50": 0.5733382319920377
+          },
+          "nine": {
+            "p": 0.8956521739130435,
+            "r": 0.37184115523465705,
+            "ap50": 0.6073148420935419
+          }
+        },
+        "bicycle": {
+          "ten": {
+            "p": 0.9513513513513514,
+            "r": 0.6423357664233577,
+            "ap50": 0.853642225315332
+          },
+          "nine": {
+            "p": 0.9655172413793104,
+            "r": 0.6131386861313869,
+            "ap50": 0.8614434702792663
+          }
+        },
+        "bin": {
+          "ten": {
+            "p": 0.9876543209876543,
+            "r": 0.8465608465608465,
+            "ap50": 0.8840075487433559
+          },
+          "nine": {
+            "p": 0.9938650306748467,
+            "r": 0.8571428571428571,
+            "ap50": 0.9365200475099921
+          }
+        },
+        "bollard": {
+          "ten": {
+            "p": 0.9688311688311688,
+            "r": 0.507482993197279,
+            "ap50": 0.8420217004387333
+          },
+          "nine": {
+            "p": 0.9639175257731959,
+            "r": 0.508843537414966,
+            "ap50": 0.868731715627588
+          }
+        },
+        "traffic_cone": {
+          "ten": {
+            "p": 0.9948186528497409,
+            "r": 0.7111111111111111,
+            "ap50": 0.8813330808148182
+          },
+          "nine": {
+            "p": 0.9844559585492227,
+            "r": 0.7037037037037037,
+            "ap50": 0.8909229370686522
+          }
+        },
+        "caution_slippery": {
+          "ten": {
+            "p": 1.0,
+            "r": 1.0,
+            "ap50": 1.0
+          },
+          "nine": {
+            "p": 0.8888888888888888,
+            "r": 1.0,
+            "ap50": 0.9581958195819581
+          }
+        },
+        "escalator": {
+          "ten": {
+            "p": 0.8910891089108911,
+            "r": 0.5806451612903226,
+            "ap50": 0.7582153890452564
+          },
+          "nine": {
+            "p": 0.9052631578947369,
+            "r": 0.5548387096774193,
+            "ap50": 0.8111951099782658
+          }
+        }
+      },
+      "legacy_val": {
+        "person": {
+          "ten": {
+            "p": 0.8389830508474576,
+            "r": 0.35611510791366907,
+            "ap50": 0.5754655631227109
+          },
+          "nine": {
+            "p": 0.896551724137931,
+            "r": 0.37410071942446044,
+            "ap50": 0.6099962058480579
+          }
+        },
+        "bicycle": {
+          "ten": {
+            "p": 0.9513513513513514,
+            "r": 0.6423357664233577,
+            "ap50": 0.8535929275975959
+          },
+          "nine": {
+            "p": 0.9655172413793104,
+            "r": 0.6131386861313869,
+            "ap50": 0.8614395498926933
+          }
+        },
+        "bin": {
+          "ten": {
+            "p": 0.9902439024390244,
+            "r": 0.8675213675213675,
+            "ap50": 0.906245759180982
+          },
+          "nine": {
+            "p": 0.9951456310679612,
+            "r": 0.8760683760683761,
+            "ap50": 0.9473805367417121
+          }
+        },
+        "bollard": {
+          "ten": {
+            "p": 0.9691516709511568,
+            "r": 0.5074024226110363,
+            "ap50": 0.8431877212853293
+          },
+          "nine": {
+            "p": 0.9642857142857143,
+            "r": 0.5087483176312247,
+            "ap50": 0.8703720318449512
+          }
+        },
+        "traffic_cone": {
+          "ten": {
+            "p": 0.9948186528497409,
+            "r": 0.7111111111111111,
+            "ap50": 0.8808819414144017
+          },
+          "nine": {
+            "p": 0.9844559585492227,
+            "r": 0.7037037037037037,
+            "ap50": 0.8905054520137012
+          }
+        },
+        "caution_slippery": {
+          "ten": {
+            "p": 1.0,
+            "r": 0.9739130434782609,
+            "ap50": 0.9801980198019802
+          },
+          "nine": {
+            "p": 0.991304347826087,
+            "r": 0.991304347826087,
+            "ap50": 0.9949641515875722
+          }
+        },
+        "escalator": {
+          "ten": {
+            "p": 0.8932038834951457,
+            "r": 0.5859872611464968,
+            "ap50": 0.7617525561857525
+          },
+          "nine": {
+            "p": 0.8979591836734694,
+            "r": 0.5605095541401274,
+            "ap50": 0.8033075918204032
+          }
+        }
+      },
+      "clean_legacy_val": {
+        "person": {
+          "ten": {
+            "p": 0.8376068376068376,
+            "r": 0.35379061371841153,
+            "ap50": 0.574791098480088
+          },
+          "nine": {
+            "p": 0.8956521739130435,
+            "r": 0.37184115523465705,
+            "ap50": 0.6088128977332381
+          }
+        },
+        "bicycle": {
+          "ten": {
+            "p": 0.9513513513513514,
+            "r": 0.6423357664233577,
+            "ap50": 0.853642225315332
+          },
+          "nine": {
+            "p": 0.9655172413793104,
+            "r": 0.6131386861313869,
+            "ap50": 0.8614434702792663
+          }
+        },
+        "bin": {
+          "ten": {
+            "p": 0.9876543209876543,
+            "r": 0.8465608465608465,
+            "ap50": 0.8840075487433559
+          },
+          "nine": {
+            "p": 0.9938650306748467,
+            "r": 0.8571428571428571,
+            "ap50": 0.9365200475099921
+          }
+        },
+        "bollard": {
+          "ten": {
+            "p": 0.9688311688311688,
+            "r": 0.507482993197279,
+            "ap50": 0.8420045607538719
+          },
+          "nine": {
+            "p": 0.9639175257731959,
+            "r": 0.508843537414966,
+            "ap50": 0.868731715627588
+          }
+        },
+        "traffic_cone": {
+          "ten": {
+            "p": 0.9948186528497409,
+            "r": 0.7111111111111111,
+            "ap50": 0.8813330808148182
+          },
+          "nine": {
+            "p": 0.9844559585492227,
+            "r": 0.7037037037037037,
+            "ap50": 0.8909229370686522
+          }
+        },
+        "caution_slippery": {
+          "ten": {
+            "p": 1.0,
+            "r": 0.94,
+            "ap50": 0.9603960396039604
+          },
+          "nine": {
+            "p": 0.98,
+            "r": 0.98,
+            "ap50": 0.9871869539895168
+          }
+        },
+        "escalator": {
+          "ten": {
+            "p": 0.8910891089108911,
+            "r": 0.5806451612903226,
+            "ap50": 0.7582153890452564
+          },
+          "nine": {
+            "p": 0.9052631578947369,
+            "r": 0.5548387096774193,
+            "ap50": 0.8111844590457985
+          }
+        }
+      }
+    },
+    "nine_ap50_strict": {
+      "person": 0.6073148420935419,
+      "bicycle": 0.8614434702792663,
+      "bin": 0.9365200475099921,
+      "bollard": 0.868731715627588,
+      "traffic_cone": 0.8909229370686522,
+      "caution_slippery": 0.9581958195819581,
+      "escalator": 0.8111951099782658
+    }
+  },
+  "findings": [
+    "Door is the weakest measured class: 5 TP / 3 FP / 34 FN at conf0.7 over 39 boxes in 29 images; recall 12.8% (95% CI 5.6-26.7), AP50 0.156.",
+    "17 of 27 positive door images never reach door score 0.30; 6 reach 0.70, but only 5 are TP and 2 are high-score localisation/matching false positives; one additional door-negative image is reported as door at 0.845.",
+    "Person on the strict subset: 98 TP / 19 FP / 179 FN at conf0.7; precision 83.8%, recall 35.4% (95% CI 30.0-41.2), AP50 0.573. The low recall is consistent with the user report, but bed/reflection/bag negatives are not yet measured.",
+    "Validation leakage is material: 279/1,403 (19.9%) validation images have a train pHash within 6; 23 share a train video group; there are no exact byte duplicates across splits. Stairs AP50 falls from 0.834 to 0.588 and caution from 0.980 to 1.000 with only 8 positive boxes after strict same-source filtering.",
+    "Fence cannot be evaluated: 10 validation images have fence coverage, 0 have a fence positive box, and 0 fence predictions occur at conf0.3/0.7 inside coverage. The 1,242 train fence boxes have no independent positive holdout.",
+    "Nine-class is higher than ten-class on all seven comparable classes at the clean subset (e.g. person 0.607 vs 0.573, bin 0.937 vs 0.884, escalator 0.811 vs 0.758 AP50). It has no door, fence or stairs and is an older pipeline, so it is not a fallback; it does show the ten-class additions did not improve the old classes.",
+    "Macao/indoor CC BY images (776) exist only in train, so their domain has no held-out validation.",
+    "No candidate, weight change, deployment or quality-gate pass is implied; the app remains 1.4.3+8 with 10-class experimental weights."
+  ],
+  "next_data_requirements": [
+    "Door: at least 100 independent reviewed images/boxes across >=20 source groups, including small, distant, glass, double and partially occluded doors, with at least two confirmed negatives per positive.",
+    "Person: full-image hard negatives (bed, mirror/reflection, bag, mannequin, poster) and positives at measured 0.5/1/2/3 m; keep the original user scene separate and consented.",
+    "Fence: positive and negative holdout boxes; zero positive validation boxes currently exist.",
+    "Keep the strict subset and per-image report fixed; add data only after review, then rerun the same script without retuning on validation.",
+    "Do not start training, publish weights or deploy the review service from this baseline alone."
+  ],
+  "limits": [
+    "Source PyTorch checkpoint, not an in-pass TFLite/phone-camera run; PT<->TFLite parity was verified separately at max abs 2.65e-5.",
+    "No NV12 camera capture, real HKDI scene, distance measurement or VoiceOver task evidence.",
+    "Labels are assistant-reviewed candidates, not independent human adjudication.",
+    "Door holdout is 29 images/39 boxes; confidence intervals are wide.",
+    "Nine-class training/selection history and possible validation exposure are not fully documented; comparison is directional only.",
+    "Legacy validation split was not re-split; clean and strict subsets are definitions, not a new official split.",
+    "Test-split images were not inferred or inspected."
+  ],
+  "evidence": {
+    "audit": "dataset_pipeline/review_artifacts/2026-10-31/a10-baseline/audit/audit.json",
+    "analysis": "dataset_pipeline/review_artifacts/2026-10-31/a10-baseline/analysis.json",
+    "per_image_ten": "dataset_pipeline/review_artifacts/2026-10-31/a10-baseline/eval/per-image-ten.json",
+    "per_image_nine": "dataset_pipeline/review_artifacts/2026-10-31/a10-baseline/eval/per-image-nine.json",
+    "scripts": [
+      "dataset_pipeline/a10_audit.py",
+      "dataset_pipeline/a10_evaluate.py",
+      "dataset_pipeline/a10_report.py"
+    ]
+  }
+}

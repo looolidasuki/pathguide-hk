@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "work_package": "P1-local-route-library-20261104",
+  "status": "closed_supervisor_repaired_function_verified",
+  "started": "2026-11-04",
+  "completed": "2026-11-05",
+  "frozen_contract_sha256": "f90af8557d7c66afa32742c6f3d07d1d772d783bdef2a83734025df33af3b4f9",
+  "input_version": {
+    "head": "7de2f4fd83c7096abe83b4eb6552846629f107ea",
+    "working_tree_dependencies": true,
+    "sha256": {
+      "AGENTS.md": "017b94fe9af0b4d97087287bbd184591fb0b4d316deb394de485e47135f80b66",
+      "app/lib/route_memory/route_library_controller.dart": "1b2f26b966e5f5568a3a77650df41a8027bd6374376e9e6516cb0b3c9c9052b2",
+      "app/lib/route_memory/route_package.dart": "46ae7e0290977fcf7b7b90b9aec0ccca32e1de52fc6e6735d91d4ffacefaaad4",
+      "app/lib/route_memory/encrypted_route_store.dart": "314235929b78cfa207fbcafa13438ed3f82d0e9d608e0ab00a16f919829afa50",
+      "app/lib/route_memory/device_route_library.dart": "f174c36f22b8cac4191000acf9dd87a3b8c5256aead11e3a8284b36ffb8c5ca3",
+      "app/lib/settings/app_settings.dart": "59cbf464cf2d7ba8bfcf0825480c847a2be4d3c8e0f46a9a01512602e780fe1f",
+      "docs/FRONTEND-DESIGN.zh-HK.md": "ec6e7bf18af640aa3acf45e811621b1ba51ae7511c78384041138503b908a11a",
+      "docs/BACKEND-DESIGN.zh-HK.md": "0a065394e17f58ed9526256f4ef2e58dd0357b26254ba7667a26353339f6f48f",
+      "docs/DATASET-REVIEW.zh-HK.md": "13c11de066df5555226c7898af111f0d4451730c2a380d29d2151679d9622fdf",
+      "app/pubspec.lock": "b369cea437d6fe9867297eb69928c903e68a30bc5c4701b055215569fe1f308c"
+    },
+    "isolated_app": "/private/var/folders/_l/nhnp00w947598_nt77dvpw2r0000gn/T/pathguide-p1-sj2c1qyb/app"
+  },
+  "allowed_worker_files": [
+    "app/lib/route_memory/route_library_page.dart",
+    "app/test/route_library_page_test.dart"
+  ],
+  "limits": {
+    "live_enabled": true,
+    "cost_usd": 0.1,
+    "requests": 2,
+    "wall_seconds": 1200,
+    "max_parallel_file_writers": 1
+  },
+  "authorization": {
+    "reply": "維持兩次／US$0.10／20分鐘",
+    "scope": "P1 finite UI/tests; storage/integration by Sol",
+    "requests": 2,
+    "cost_usd": 0.1,
+    "wall_seconds": 1200
+  },
+  "receipt": "verification/dsh-p1-route-store-20261105.json",
+  "next_live_request_authorized": false,
+  "raw_contract": "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-04/dsh-p1-route-store/contract.json",
+  "pricing": {
+    "source": "https://api-docs.deepseek.com/quick_start/pricing/",
+    "verified": "2026-11-04",
+    "peak_input_miss_per_million": 0.3,
+    "peak_output_per_million": 1.2
+  },
+  "estimated_peak_usd": 0.0114939,
+  "execution_priority": "functional camera/recording/cross-floor/obstacle/speech first; system tuning later"
+}

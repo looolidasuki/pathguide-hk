@@ -1,0 +1,38 @@
+{
+  "date": "2026-10-30",
+  "version": "1.4.3+8",
+  "appSourceCommit": "7f1d2701c742f21c8ebb770cabfe09dbdbdfaaf8",
+  "remoteBranch": "feature/cross-platform-navigation",
+  "tag": "v1.4.3+8",
+  "tagObject": "089f4687b50ce8b08b9d4da2a4c2fa1f26e974e5",
+  "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.4.3%2B8",
+  "prerelease": true,
+  "remoteCommitAndTagVerified": true,
+  "releaseHeadingTagAndCommitVerified": true,
+  "flutterTestsPassed": 328,
+  "nativeXCTestPassed": 14,
+  "nativeNumericalChecksPassed": 33,
+  "analyze": "No issues found",
+  "signedReleaseBuild": "passed",
+  "systemSignatureVerification": "passed",
+  "bundleVersion": "1.4.3+8",
+  "modelSha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+  "modelWeightsChanged": false,
+  "weightQualityFixed": false,
+  "deviceModel": "iPhone 15 Pro Max",
+  "deviceInstalled": true,
+  "deviceLaunched": true,
+  "installationBlocker": null,
+  "fieldFixVerified": false,
+  "jointClassAndDistanceAccuracyValidated": false,
+  "previousAppTag": "v1.4.2+7",
+  "installationHistory": [
+    "GitHub branch, immutable tag and prerelease verified before installation",
+    "First local-network connection reset (CoreDevice 4000 / NWError 54)",
+    "Device inventory refreshed; retry installation and launch both succeeded"
+  ],
+  "pending": [
+    "Weight repair candidate and independent model quality evaluation",
+    "Original user scene, ruler, VoiceOver and field camera validation"
+  ]
+}

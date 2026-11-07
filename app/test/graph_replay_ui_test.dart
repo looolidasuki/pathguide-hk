@@ -228,7 +228,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
   testWidgets(
-    'the sample entry replaces outdoor navigation and returns without starting the camera',
+    'the developer sample entry opens replay and returns without starting the camera',
     (tester) async {
       final messenger =
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
@@ -255,19 +255,25 @@ void main() {
       await tester.pumpWidget(
         PathGuideApp(
           settings: AppSettings.memory(),
-          initialSection: AppSection.navigation,
+          initialSection: AppSection.developer,
         ),
       );
       await tester.pumpAndSettle();
-      await tester.ensureVisible(find.text('室內路標回放（樣例）'));
+      await tester.scrollUntilVisible(find.text('室內路標回放（樣例）'), 150);
+      await tester.ensureVisible(
+        find.widgetWithText(OutlinedButton, '室內路標回放（樣例）'),
+      );
+      await tester.pumpAndSettle();
       await tester.tap(find.text('室內路標回放（樣例）'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('略過說明'));
       await tester.pumpAndSettle();
       expect(find.byType(GraphReplayPage), findsOneWidget);
       expect(find.byKey(const ValueKey('navigation-home')), findsNothing);
-      await tester.tap(find.byTooltip('返回導航'));
+      await tester.tap(find.byTooltip('返回測試列表'));
       await tester.pumpAndSettle();
       expect(find.byType(GraphReplayPage), findsNothing);
-      expect(find.byKey(const ValueKey('navigation-home')), findsOneWidget);
+      expect(find.text('開發測試'), findsOneWidget);
       expect(
         calls.where((value) => value.startsWith('hk.pathguide/vision:')),
         isEmpty,

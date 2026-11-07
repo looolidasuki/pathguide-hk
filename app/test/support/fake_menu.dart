@@ -13,6 +13,7 @@ class FakeMenuReader implements MenuReader {
   bool notifyRecognizing = true;
   Future<MenuDocument?>? readFuture;
   Future<String?>? speechFuture;
+  MenuSpeechOutcome? speechOutcome;
   @override
   Future<MenuDocument?> read(
     MenuImageSource source, {
@@ -37,9 +38,10 @@ class FakeMenuReader implements MenuReader {
     final text = await (speechFuture ?? Future.value(phrase));
     onPhase(MenuSpeechPhase.finishing);
     return MenuSpeechResult(
-      text == null || text.isEmpty
-          ? MenuSpeechOutcome.noSpeech
-          : MenuSpeechOutcome.finalText,
+      speechOutcome ??
+          (text == null || text.isEmpty
+              ? MenuSpeechOutcome.noSpeech
+              : MenuSpeechOutcome.finalText),
       text: text ?? '',
     );
   }

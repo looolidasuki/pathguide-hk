@@ -1,0 +1,53 @@
+{
+  "issue": 9,
+  "baseline_commit": "7b3e43e51b7f79c3c6bd34ee47da16ce07362dd2",
+  "scope": "P3-C capture/Vision/encrypted store and recorded checkpoint replay UI; transit/taxi excluded",
+  "checks": {
+    "flutter_tests": 490,
+    "native_simulator_tests": 53,
+    "analyze_issues": 0,
+    "diff_check": "passed",
+    "logs": [
+      "dataset_pipeline/review_artifacts/p3c-full-reviewed.log",
+      "dataset_pipeline/review_artifacts/p3c-native-final.log",
+      "dataset_pipeline/review_artifacts/p3c-reviewed-analyze2.log"
+    ],
+    "initial_native_failure": "Depth tests depended on simulator application foreground; introduced injectable OS foreground boundary with unchanged production default; 53 tests then passed"
+  },
+  "review": {
+    "standards": "re-reviewed e76b2a7...0cc3f9e: no remaining documented blockers; optional status enum deferred",
+    "spec": "re-reviewed e76b2a7...0cc3f9e: no remaining blockers; corruption label regression passed",
+    "additional_fix": "bounded analysis-cancel acknowledgement to 500ms; camera stop starts immediately without waiting for cancellation reply",
+    "baseline": "7b3e43e...e76b2a7"
+  },
+  "release": {
+    "version": "1.7.0+13",
+    "tag": "v1.7.0+13",
+    "source_commit": "2582c1864d3da539a29dc0289d41ca4504bf90c1",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.7.0%2B13",
+    "remote_branch_and_peeled_tag": "verified before install",
+    "status": "prerelease published; iPhone installed and launched normally"
+  },
+  "human_navigation_acceptance": "pending, not claimed",
+  "limits": "checkpoint replay only; distance threshold engineering, no live obstacle avoidance/continuous spoken turns, no GPS trace recording, no inferred reverse route",
+  "private_data": "no private photos, GPS records, keys or user screenshots included",
+  "phone_build": {
+    "status": "final_signed_release_build_codesign_models_verified",
+    "version": "1.7.0",
+    "build": "13",
+    "executable_sha256": "24290659807a6a884e49923786528d30945e8f9e0b4cd2982a503e872f81427f",
+    "log": "dataset_pipeline/review_artifacts/p3c-iphone-reviewed-build.log"
+  },
+  "model_sha256": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "phone_install": {
+    "install": "success",
+    "normal_launch": "success",
+    "camera_auto_start": "not requested; default home launch",
+    "human_new_flow_acceptance": "pending"
+  }
+}

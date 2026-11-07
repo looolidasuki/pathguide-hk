@@ -7,6 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CE6600012FA1000000000001 /* RouteLandmarkPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE6600022FA1000000000001 /* RouteLandmarkPlugin.swift */; };
+		CE5500012FA1000000000001 /* RouteLandmarkProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE5500022FA1000000000001 /* RouteLandmarkProbe.swift */; };
+		CE4400012FA1000000000001 /* RouteLandmarkAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE4400022FA1000000000001 /* RouteLandmarkAnalyzer.swift */; };
+		CE3300012FA1000000000001 /* RouteStoragePlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE3300022FA1000000000001 /* RouteStoragePlugin.swift */; };
+		CE2200012FA1000000000001 /* RouteCameraPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE2200022FA1000000000001 /* RouteCameraPlugin.swift */; };
+		CE1100012FA1000000000001 /* CameraCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE1100022FA1000000000001 /* CameraCoordinator.swift */; };
 		DE0000022F8A000100000003 /* CameraImageMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0000012F8A000100000003 /* CameraImageMath.swift */; };
 		DE0000022F8A000100000002 /* DepthSampling.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0000012F8A000100000002 /* DepthSampling.swift */; };
 		DE0000022F8A000100000001 /* DepthPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE0000012F8A000100000001 /* DepthPlugin.swift */; };
@@ -51,6 +57,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CE6600022FA1000000000001 /* RouteLandmarkPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteLandmarkPlugin.swift; sourceTree = "<group>"; };
+		CE5500022FA1000000000001 /* RouteLandmarkProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteLandmarkProbe.swift; sourceTree = "<group>"; };
+		CE4400022FA1000000000001 /* RouteLandmarkAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteLandmarkAnalyzer.swift; sourceTree = "<group>"; };
+		CE3300022FA1000000000001 /* RouteStoragePlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteStoragePlugin.swift; sourceTree = "<group>"; };
+		CE2200022FA1000000000001 /* RouteCameraPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RouteCameraPlugin.swift; sourceTree = "<group>"; };
+		CE1100022FA1000000000001 /* CameraCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCoordinator.swift; sourceTree = "<group>"; };
 		DE0000012F8A000100000003 /* CameraImageMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraImageMath.swift; sourceTree = "<group>"; };
 		DE0000012F8A000100000002 /* DepthSampling.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthSampling.swift; sourceTree = "<group>"; };
 		DE0000012F8A000100000001 /* DepthPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DepthPlugin.swift; sourceTree = "<group>"; };
@@ -173,6 +185,12 @@
 		97C146F01CF9000F007C117D /* Runner */ = {
 			isa = PBXGroup;
 			children = (
+				CE6600022FA1000000000001 /* RouteLandmarkPlugin.swift */,
+				CE5500022FA1000000000001 /* RouteLandmarkProbe.swift */,
+				CE4400022FA1000000000001 /* RouteLandmarkAnalyzer.swift */,
+				CE3300022FA1000000000001 /* RouteStoragePlugin.swift */,
+				CE2200022FA1000000000001 /* RouteCameraPlugin.swift */,
+				CE1100022FA1000000000001 /* CameraCoordinator.swift */,
 				DE0000012F8A000100000003 /* CameraImageMath.swift */,
 				DE0000012F8A000100000001 /* DepthPlugin.swift */,
 				DE0000012F8A000100000002 /* DepthSampling.swift */,
@@ -411,6 +429,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE6600012FA1000000000001 /* RouteLandmarkPlugin.swift in Sources */,
+				CE5500012FA1000000000001 /* RouteLandmarkProbe.swift in Sources */,
+				CE4400012FA1000000000001 /* RouteLandmarkAnalyzer.swift in Sources */,
+				CE3300012FA1000000000001 /* RouteStoragePlugin.swift in Sources */,
+				CE2200012FA1000000000001 /* RouteCameraPlugin.swift in Sources */,
+				CE1100012FA1000000000001 /* CameraCoordinator.swift in Sources */,
 				DE0000022F8A000100000003 /* CameraImageMath.swift in Sources */,
 				DE0000022F8A000100000001 /* DepthPlugin.swift in Sources */,
 				DE0000022F8A000100000002 /* DepthSampling.swift in Sources */,

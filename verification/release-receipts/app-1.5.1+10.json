@@ -1,0 +1,44 @@
+{
+  "date_hk": "2026-11-05",
+  "version": "1.5.1+10",
+  "tag": "v1.5.1+10",
+  "source_commit": "a00a2fbea41d3f6eb0ddbcf63b83af8dc15fbaa9",
+  "release_url": "https://github.com/actiondarr/pathguide/releases/tag/v1.5.1%2B10",
+  "prerelease": true,
+  "remote_tag_and_branch_verified_before_install": true,
+  "bundle_id": "hk.pathguide.pathguide",
+  "signed_release_build": {
+    "status": "signed_release_build_passed",
+    "version": "1.5.1",
+    "build": "10",
+    "bundle_id": "hk.pathguide.pathguide",
+    "codesign_verify_exit": 0,
+    "executable_sha256": "4d7e36af7bbc9f0e8e01c7bd2a706671fe94debb68c50939e61bc3c464e9f048",
+    "log": "dataset_pipeline/review_artifacts/ui-1.5.1-iphone-release.log"
+  },
+  "model_sha256": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "checks": {
+    "Flutter_tests": 442,
+    "analyze_issues": 0,
+    "independent_review_axes": "Standards and Spec: no remaining findings",
+    "native_tests": "No native source change; previous 45-test run retained, not rerun for UI release"
+  },
+  "installation": "success",
+  "launch": "success",
+  "device_family": "iPhone",
+  "human_ui_acceptance": "pending",
+  "raw_device_receipts": "retained locally outside repository; device identifiers omitted",
+  "evidence": "verification/codex-ui-cleanup-20261105.json",
+  "next_phone_check": [
+    "home task purposes",
+    "first-use cancel/skip/start and return",
+    "settings -> developer testing purpose/limits and return",
+    "VoiceOver on revised controls"
+  ],
+  "next_development": "P3-A encrypted route media/store; current camera trial still has no real route save/localization/navigation"
+}

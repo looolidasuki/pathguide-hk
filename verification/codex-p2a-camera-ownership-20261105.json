@@ -1,0 +1,72 @@
+{
+  "date_hk": "2026-11-05",
+  "implementer": "Codex",
+  "status": "P2-A_engineering_passed_P2-B_local_integration_passed",
+  "source_sha256": {
+    "app/ios/Runner/CameraCoordinator.swift": "01bb64d64e02cfc8e7e94ec98e94e248f8cd56d12750fe69bb158ae61c729778",
+    "scripts/verify_camera_coordinator.swift": "77504d7772ecd12d14e514d7cbe4c48ab9907eee91f22f43d0dfefd064f297fa",
+    "app/ios/Runner.xcodeproj/project.pbxproj": "ad30f07dffe145c2e29cbcf65d067af60026d1858592c91bbf3d1b0f7e9a878b"
+  },
+  "observed_checks": [
+    {
+      "command": [
+        "xcrun",
+        "swiftc",
+        "-swift-version",
+        "5",
+        "-warnings-as-errors",
+        "-parse-as-library",
+        "app/ios/Runner/CameraCoordinator.swift",
+        "scripts/verify_camera_coordinator.swift",
+        "-o",
+        "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-05/codex-p2/camera-checks"
+      ],
+      "exit": 0,
+      "output": ""
+    },
+    {
+      "command": [
+        "/Users/darr/Desktop/development/pathguide-iphone-demo-source/dataset_pipeline/review_artifacts/2026-11-05/codex-p2/camera-checks"
+      ],
+      "exit": 0,
+      "output": "PASS: initial acquisition and exact currentness\nPASS: handoff waits for exact physical stop\nPASS: supersession preserves one physical stop\nPASS: stale request and lease cannot affect new owner\nPASS: foreign coordinator identities remain distinct\nPASS: timeout retains gate and late ack does not resume\nPASS: failed stop can later be positively acknowledged\nPASS: release closes gate until acknowledgment\nPASS: cancel granted request invalidates its exact lease\nPASS: cancel pending request retains gate\nPASS: background stops active owner without auto-resume\nPASS: background cancels waiting request\nPASS: duplicate old acknowledgments preserve newer lease\nPASS: cancelled timer cannot affect later stop\nPASS: supersession completion reentry preserves newest request\nPASS: cancel completion reentry preserves new waiter\nPASS: timeout completion can acknowledge then request\nPASS: synchronous adapter ack and request reentry\nPASS: grant callback can release synchronously\nPASS: all owners use their own granted stop adapter\nPASS: lease client cancellation waits for hardware and replies once\nPASS: released client retains stop reply until physical acknowledgment\nPASS: dropped hardware callback still delivers timeout after client release\nPASS: late permission cannot start a cancelled client\nPASS: cancel queued client without inventing hardware stop\nPASS: client revoked by another owner awaits the same stop\nPASS: client stop timeout reports unconfirmed without freeing gate\nPASS: client physical failure and late positive ack\nPASS: one-shot native reply is safe under reentry\nPASS: ready callback can immediately cancel its acquisition\nPASS 30 camera ownership scenarios\n"
+    },
+    {
+      "command": [
+        "plutil",
+        "-lint",
+        "app/ios/Runner.xcodeproj/project.pbxproj"
+      ],
+      "exit": 0,
+      "output": "app/ios/Runner.xcodeproj/project.pbxproj: OK\n"
+    }
+  ],
+  "coverage": [
+    "exact physical-stop acknowledgment",
+    "supersession and pending cancellation",
+    "cross-coordinator UUID value isolation",
+    "timeout and late ack",
+    "background and explicit foreground restart",
+    "stale release/ack/timer",
+    "synchronous completion and stop-adapter reentry"
+  ],
+  "device_acceptance": "not_run",
+  "camera_adapters": "Vision/Depth/Menu integrated; 26 native simulator tests and 415 Flutter tests passed; physical-device acceptance pending",
+  "next": "P2-C #5: model/LiDAR-independent route camera; preview/latest frame/on-demand bounded JPEG and native clock metadata; then P2-D #6 Flutter entry",
+  "scenario_count": 30,
+  "helper_status": "Lease clients integrated; release waiters retained through hardware ack or bounded timeout; 30 core scenarios passed",
+  "native_build": {
+    "status": "succeeded_historically_followed_by_P2-B_native_test_build_pass",
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2/native-build.log",
+    "command": "xcodebuild -workspace app/ios/Runner.xcworkspace -scheme Runner -configuration Debug -sdk iphonesimulator -destination generic/platform=iOS Simulator CODE_SIGNING_ALLOWED=NO build"
+  },
+  "changed_native_sources": {
+    "app/ios/Runner/CameraCoordinator.swift": "01bb64d64e02cfc8e7e94ec98e94e248f8cd56d12750fe69bb158ae61c729778",
+    "scripts/verify_camera_coordinator.swift": "77504d7772ecd12d14e514d7cbe4c48ab9907eee91f22f43d0dfefd064f297fa",
+    "app/ios/Runner/VisionPlugin.swift": "70e45136f04f219a2e56c85b35f76f3114a483efb42e358e8f60a9be51e5f13f",
+    "app/ios/Runner/DepthPlugin.swift": "8b65e6ec6f0e182d122d44f705059c410a8c3696deb5e8408e71dcfbe743dbbb",
+    "app/ios/Runner/MenuPlugin.swift": "16dad19f9d736f47a15603b1689fdc604867b9c6109af1b0fbb96473d8a54802",
+    "app/ios/RunnerTests/RunnerTests.swift": "f66b5a9be59783412941e7d7939d63ca842b62600b8bab628e9c646bb47e1dea"
+  },
+  "integration_evidence": "verification/codex-p2b-camera-adapters-20261105.json"
+}

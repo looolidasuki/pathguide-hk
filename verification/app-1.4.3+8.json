@@ -1,0 +1,451 @@
+{
+  "date": "2026-10-30",
+  "timezone": "Asia/Hong_Kong",
+  "appVersion": "1.4.3+8",
+  "tag": "v1.4.3+8",
+  "type": "prerelease",
+  "previousAppTag": "v1.4.2+7",
+  "scope": [
+    "Shared iOS Vision/ARKit RGB bilinear half-pixel resize instead of nearest-neighbour sampling",
+    "Rounded letterbox dimensions with ties to even instead of truncation",
+    "Reject unsupported rotation; preserve model mapping, colour-range/matrix conversion and RGB packing"
+  ],
+  "verification": {
+    "flutterTestsPassed": 328,
+    "flutterAnalyze": "No issues found",
+    "nativeXCTestPassed": 14,
+    "nativeXCTestNewRegressions": [
+      "Bilinear expected pixels for full/video range and rotations 0/90/180/270 with padding",
+      "Rounded 10x8 to 6x5 letterbox and unsupported rotation rejection"
+    ],
+    "nativeNumericalChecksPassed": 33,
+    "iosSignedReleaseBuild": "passed",
+    "systemSignatureVerification": "passed outside sandbox using normal system trust store",
+    "bundleVersionChecked": "1.4.3+8",
+    "modelManifestMatchesSource": true,
+    "deviceInstalled": true,
+    "fieldFixVerified": false,
+    "deviceLaunched": true
+  },
+  "model": {
+    "format": 1,
+    "version": "2026-10-27.mixed10.experimental.1",
+    "file": "detector.tflite",
+    "bytes": 10695172,
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "inputSize": 640,
+    "modelClassCount": 10,
+    "modelClassIds": [
+      6,
+      11,
+      7,
+      8,
+      9,
+      24,
+      1,
+      49,
+      26,
+      18
+    ],
+    "trainedAt": "2026-10-26",
+    "experimental": true,
+    "map50": 0.7825363278727946,
+    "validationGatePassed": false,
+    "userRequestedTrial": true,
+    "limitations": [
+      "Door precision 28.6%, recall 11.1% at conf0.30 on small foreign validation set.",
+      "No independent fence validation; not an HKDI field benchmark."
+    ],
+    "changed": false,
+    "weightQualityFixed": false
+  },
+  "naturalImageProbe": {
+    "scope": "14 existing OID validation images, 18 annotated doors; two simulated NV12 variants per image; not 28 independent scenes, not phone capture, no test inference. Other classes are incompletely annotated and have no reported P/R.",
+    "settings": {
+      "thresholds": [
+        0.3,
+        0.7
+      ],
+      "nms_iou": 0.45,
+      "max_detections": 100,
+      "match_iou": 0.5
+    },
+    "pixel_parity": {
+      "before": {
+        "max_absolute": 0.953758716583252,
+        "mean_absolute": 0.015123004043873931
+      },
+      "after": {
+        "max_absolute": 2.4437904357910156e-05,
+        "mean_absolute": 1.946873037387117e-07
+      }
+    },
+    "door_metrics": {
+      "before-video601-conf0.3": {
+        "tp": 3,
+        "fp": 4,
+        "fn": 15,
+        "precision": 0.42857142857142855,
+        "recall": 0.16666666666666666,
+        "median_preprocess_ms_simulator": 3.6045312881469727
+      },
+      "before-video601-conf0.7": {
+        "tp": 2,
+        "fp": 2,
+        "fn": 16,
+        "precision": 0.5,
+        "recall": 0.1111111111111111,
+        "median_preprocess_ms_simulator": 3.6045312881469727
+      },
+      "before-full709-conf0.3": {
+        "tp": 3,
+        "fp": 4,
+        "fn": 15,
+        "precision": 0.42857142857142855,
+        "recall": 0.16666666666666666,
+        "median_preprocess_ms_simulator": 3.9980411529541016
+      },
+      "before-full709-conf0.7": {
+        "tp": 2,
+        "fp": 2,
+        "fn": 16,
+        "precision": 0.5,
+        "recall": 0.1111111111111111,
+        "median_preprocess_ms_simulator": 3.9980411529541016
+      },
+      "after-video601-conf0.3": {
+        "tp": 3,
+        "fp": 4,
+        "fn": 15,
+        "precision": 0.42857142857142855,
+        "recall": 0.16666666666666666,
+        "median_preprocess_ms_simulator": 7.476985454559326
+      },
+      "after-video601-conf0.7": {
+        "tp": 2,
+        "fp": 1,
+        "fn": 16,
+        "precision": 0.6666666666666666,
+        "recall": 0.1111111111111111,
+        "median_preprocess_ms_simulator": 7.476985454559326
+      },
+      "after-full709-conf0.3": {
+        "tp": 3,
+        "fp": 4,
+        "fn": 15,
+        "precision": 0.42857142857142855,
+        "recall": 0.16666666666666666,
+        "median_preprocess_ms_simulator": 6.6359639167785645
+      },
+      "after-full709-conf0.7": {
+        "tp": 2,
+        "fp": 1,
+        "fn": 16,
+        "precision": 0.6666666666666666,
+        "recall": 0.1111111111111111,
+        "median_preprocess_ms_simulator": 6.6359639167785645
+      }
+    },
+    "examples": [
+      {
+        "id": "oid-96b573942e14da60-video601",
+        "mode": "before",
+        "person_detections": []
+      },
+      {
+        "id": "oid-96b573942e14da60-full709",
+        "mode": "before",
+        "person_detections": [
+          {
+            "score": 0.7014673948287964,
+            "xyxy": [
+              0.6928409576416016,
+              0.6217379782183109,
+              0.9964385032653809,
+              0.9976993891338554
+            ]
+          }
+        ]
+      },
+      {
+        "id": "oid-96b573942e14da60-video601",
+        "mode": "after",
+        "person_detections": [
+          {
+            "score": 0.7263743877410889,
+            "xyxy": [
+              0.6912263870239258,
+              0.6198572176639164,
+              0.9973793029785156,
+              0.9972655394366968
+            ]
+          }
+        ]
+      },
+      {
+        "id": "oid-96b573942e14da60-full709",
+        "mode": "after",
+        "person_detections": [
+          {
+            "score": 0.7224972248077393,
+            "xyxy": [
+              0.6912589550018311,
+              0.6201878485278548,
+              0.9970166206359863,
+              0.9972859320239486
+            ]
+          }
+        ]
+      }
+    ],
+    "nativePostProcessing": {
+      "cases": 56,
+      "usesProductionIOSYoloDecoder": true,
+      "pythonMirrorCountsMatchNative": true,
+      "doorCounts": {
+        "before-video601-conf0.3-max100": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "before-video601-conf0.3-max20": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "before-video601-conf0.3-visible5": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "before-video601-conf0.7-max100": {
+          "tp": 2,
+          "fp": 2,
+          "fn": 16
+        },
+        "before-video601-conf0.7-max20": {
+          "tp": 2,
+          "fp": 2,
+          "fn": 16
+        },
+        "before-video601-conf0.7-visible5": {
+          "tp": 2,
+          "fp": 2,
+          "fn": 16
+        },
+        "before-full709-conf0.3-max100": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "before-full709-conf0.3-max20": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "before-full709-conf0.3-visible5": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "before-full709-conf0.7-max100": {
+          "tp": 2,
+          "fp": 2,
+          "fn": 16
+        },
+        "before-full709-conf0.7-max20": {
+          "tp": 2,
+          "fp": 2,
+          "fn": 16
+        },
+        "before-full709-conf0.7-visible5": {
+          "tp": 2,
+          "fp": 2,
+          "fn": 16
+        },
+        "after-video601-conf0.3-max100": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "after-video601-conf0.3-max20": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "after-video601-conf0.3-visible5": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "after-video601-conf0.7-max100": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 16
+        },
+        "after-video601-conf0.7-max20": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 16
+        },
+        "after-video601-conf0.7-visible5": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 16
+        },
+        "after-full709-conf0.3-max100": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "after-full709-conf0.3-max20": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "after-full709-conf0.3-visible5": {
+          "tp": 3,
+          "fp": 4,
+          "fn": 15
+        },
+        "after-full709-conf0.7-max100": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 16
+        },
+        "after-full709-conf0.7-max20": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 16
+        },
+        "after-full709-conf0.7-visible5": {
+          "tp": 2,
+          "fp": 1,
+          "fn": 16
+        }
+      }
+    },
+    "baseSourceCommit": "d3215ab",
+    "uniqueImages": 14,
+    "sourceDoorAnnotations": 18,
+    "nv12Variants": 2,
+    "beforeAfterNativeInferences": 56,
+    "matrixVariants": [
+      "video range BT.601",
+      "full range BT.709"
+    ],
+    "rotationDegrees": 90,
+    "reference": "Quantized synthetic NV12 decoded independently with NumPy, RGB clamp to [0,1], OpenCV INTER_LINEAR float32 half-pixel resize, nearest-integer dimensions (ties to even), 114/255 padding. Not exact uint8-rounded OpenCV pixels, not camera captures.",
+    "inputShape": [
+      1,
+      3,
+      640,
+      640
+    ],
+    "outputShape": [
+      1,
+      14,
+      8400
+    ],
+    "images": [
+      {
+        "file": "0c3567f0d4d650eb.jpg",
+        "sha256": "65d267bb7665b46acd19a1ab9c2b7fe851c76a9bbd900e163c1ab61ea9706c1b",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "34366cc10d904e94.jpg",
+        "sha256": "6aa49b8e7118affa40cc4a86d169cae4d10c9588d4ba98db2ef1f9239e8ae88c",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "5a330274338e4ac5.jpg",
+        "sha256": "3f6def4af0143d7fa61bdceaeca91c218ae14ddc1646f4cd9ffba0ebf76f4027",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "731c46b4150a73ab.jpg",
+        "sha256": "056cbe88c446a47087f0fc0e085b7c6950121cd444bf15c00140ea9241b6d0a0",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "784e87eb95e08847.jpg",
+        "sha256": "8f616311e5ed5dd17760b36732e30b99922804664fcf153c3424c6adf395f46b",
+        "doorAnnotations": 2
+      },
+      {
+        "file": "86558b4f454ee7e3.jpg",
+        "sha256": "a8d4315e2eec55f536fd7301d929555e2ae1bd6ae75b535a2e29014c33aa25b0",
+        "doorAnnotations": 2
+      },
+      {
+        "file": "96b573942e14da60.jpg",
+        "sha256": "4dbceab0cebb0b2ceac515d32b2a57bbc98f4fee97e0b543f2f8ca0c9f7b7311",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "9dba9c1e70302873.jpg",
+        "sha256": "632ea79984da5f1526eb54d25c6bdc9f5532075d62614ff56b103b3e3226719b",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "be445decf3070749.jpg",
+        "sha256": "4cdc3adcf37778aa091081ba40bd982e445ea7c087c50a04f992cdb152d30853",
+        "doorAnnotations": 2
+      },
+      {
+        "file": "d5616e7411a58099.jpg",
+        "sha256": "fcc700b84b3cb0a0cbbe3d85c02be3cb5a7a903d821d23726e6ffeea078d9090",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "dca77c13036ee7b8.jpg",
+        "sha256": "56c41059ee80aa037171ee677c0b8cb13deabe7f350c7d38a8e1f27b2371d507",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "e5c8d21e5260fdee.jpg",
+        "sha256": "c869907de50c92199a9c28a996d274902612c1f18dac9b6c51581d79dd1fa189",
+        "doorAnnotations": 2
+      },
+      {
+        "file": "ef40e3891a5b52a2.jpg",
+        "sha256": "ae6c2934758277a456955b9a7d70484b6354248102d6208abfe721dafce5ac68",
+        "doorAnnotations": 1
+      },
+      {
+        "file": "fbd2f16697562dd1.jpg",
+        "sha256": "b2459a1f41133c2686dffba7fd5c24ff57a1d0665ec856cb812b2e45f4d763ec",
+        "doorAnnotations": 1
+      }
+    ],
+    "inputPlanSha256": "734e769cdfdf0c7d87b9c460e452d79494d048c6c503d4aec7636524a2069538",
+    "fixtureGeneratorSha256": "80a1deff30a3b551d3cdaf585b4a334036656a5d38bd9dc8e904bd21ae658f92",
+    "nativeProbeSha256": "9410eac9a754a40734bf2b68e96d3080c083133473b6efbe94a61ebb0bf076a2",
+    "nativeDecodeProbeSha256": "d06b72d156efa98e8ba17bc4e11fe7cb1b4b83c7a92e5428ca32fc677bf76bcc",
+    "localArtifactDirectory": "dataset_pipeline/review_artifacts/2026-10-30/ios-preprocessing",
+    "limitations": [
+      "Only existing OID validation door annotations, not independent HKDI task acceptance",
+      "Other classes incompletely annotated; no aggregate person/fence precision or recall",
+      "Bed false-person example is visibly checked public validation image, not user original scene",
+      "No test split inference, training, source annotation changes or model replacement",
+      "Simulated NV12 round-trip and simulator timing do not measure actual camera colour/performance",
+      "Tiny evaluation set does not establish generalization or statistical improvement"
+    ]
+  },
+  "privacy": {
+    "appImageStorageChanged": false,
+    "appImageUploadChanged": false,
+    "localPublicEvaluationFixturesOnly": true,
+    "cloudDeployment": false,
+    "paidGPUEnabled": false,
+    "B11Touched": false
+  },
+  "pending": [
+    "Reviewed hard negatives, controlled candidate training, and new quality evaluation; source PT/TFLite natural-image parity now verified",
+    "New candidate weight training and independent old-class/door/fence evaluation",
+    "Original user door scene and real iPhone recognition/range/VoiceOver validation"
+  ],
+  "deliveryReceipt": "verification/release-receipts/app-1.4.3+8.json",
+  "sourceFollowUp": "verification/mixed10-natural-parity-20261030.json"
+}

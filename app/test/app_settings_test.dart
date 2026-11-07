@@ -36,4 +36,13 @@ void main() {
     await restored.setSpeakThreshold(double.nan);
     expect(restored.speakThreshold, 0.45);
   });
+  test('completed task help persists independently for each task', () async {
+    final settings = await AppSettings.load();
+    expect(settings.hasTaskIntroduction(AppTask.menu), isFalse);
+    await settings.completeTaskIntroduction(AppTask.menu);
+    final restored = await AppSettings.load();
+    expect(restored.hasTaskIntroduction(AppTask.menu), isTrue);
+    expect(restored.hasTaskIntroduction(AppTask.recognition), isFalse);
+    expect(restored.speechSpeed, SpeechSpeed.normal);
+  });
 }

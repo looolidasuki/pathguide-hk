@@ -1,0 +1,963 @@
+Resolving dependencies...
+Downloading packages...
+  _flutterfire_internals 1.3.77 (1.3.79 available)
+  cloud_firestore 6.10.0 (7.1.0 available)
+  cloud_firestore_platform_interface 8.0.7 (8.1.0 available)
+  cloud_firestore_web 5.7.3 (5.8.0 available)
+  cloud_functions 6.5.0 (7.0.1 available)
+  cloud_functions_platform_interface 6.0.7 (6.1.1 available)
+  cloud_functions_web 5.1.13 (5.1.15 available)
+  code_assets 1.2.1 (2.2.0 available)
+  crypto 3.0.7 (3.0.8 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  firebase_app_check 0.4.8 (0.5.1 available)
+  firebase_app_check_platform_interface 0.4.2+1 (0.5.1+3 available)
+  firebase_app_check_web 0.2.6+1 (0.3.1+3 available)
+  firebase_auth 6.7.0 (7.0.1 available)
+  firebase_auth_platform_interface 9.1.0 (9.1.2 available)
+  firebase_auth_web 6.3.0 (6.3.2 available)
+  firebase_core 4.15.0 (5.1.0 available)
+  firebase_core_web 3.12.0 (4.1.0 available)
+  google_sign_in_ios 6.3.8 (6.4.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  jni 1.1.0 (1.1.2 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.3 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  shared_preferences_android 2.4.28 (2.5.4 available)
+  shared_preferences_foundation 2.5.7 (2.6.1 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.4 available)
+  vm_service 15.3.0 (15.4.0 available)
+  web 1.1.1 (1.1.2 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+33 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading P:/app/test/account_controller_test.dart
+00:00 +0: P:/app/test/account_controller_test.dart: phone normalization preserves E164 and rejects dial URI injection
+00:00 +1: P:/app/test/account_controller_test.dart: guest stays signed out and sign-in requires agreement
+00:00 +2: P:/app/test/account_controller_test.dart: cancelled Google sign-in creates no profile
+00:00 +3: P:/app/test/account_controller_test.dart: account initialization retries with the same UID
+00:00 +4: P:/app/test/account_controller_test.dart: contact can be skipped, saved, changed and removed
+00:00 +5: P:/app/test/account_controller_test.dart: sign-out clears contact and account information
+00:00 +6: P:/app/test/account_controller_test.dart: old account delayed save cannot populate new account or cache
+00:00 +7: P:/app/test/account_controller_test.dart: restored same account can call secure cached contact when offline
+00:00 +8: P:/app/test/account_controller_test.dart: offline contact stays callable while profile refresh is pending
+00:00 +9: P:/app/test/account_controller_test.dart: dialer failure is explicit
+00:00 +10: P:/app/test/account_controller_test.dart: cancelled reauthentication does not delete contact
+00:00 +11: P:/app/test/account_controller_test.dart: interrupted identity deletion leaves guard and is retryable
+00:00 +12: P:/app/test/account_controller_test.dart: secure cache is owner scoped, validates data, and clears on logout
+00:00 +13: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +14: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +15: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +16: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +17: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +18: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +19: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +20: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +21: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +22: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +23: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +24: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +25: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +26: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +27: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +28: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +29: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +30: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +31: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +32: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +33: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +34: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +35: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +36: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +37: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +38: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +39: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +40: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +40: P:/app/test/captured_route_store_test.dart: captured route store 需要 iOS Keychain
+  Skip: 需要 macOS/iOS Keychain（本機：windows）
+00:00 +40 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +41 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +42 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +43 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +44 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +45 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +46 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +47 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +48 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +49 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +50 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +51 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +52 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +53 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +54 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +55 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +56 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +57 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +58 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +59 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +60 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +61 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +62 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +63 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +64 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +65 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +66 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +67 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +68 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +69 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +70 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +71 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +72 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +73 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +74 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +75 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +76 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +77 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +78 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +79 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +80 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +81 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +82 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +83 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +84 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +85 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +86 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +87 ~1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:02 +88 ~1: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +88 ~1 -1: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +88 ~1 -1: P:/app/test/encrypted_route_store_test.dart: late closing owner cannot cancel another owner write [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +88 ~1 -2: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +88 ~1 -2: P:/app/test/encrypted_route_store_test.dart: device adapter stores explicit synthetic draft then complete structure [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +88 ~1 -3: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +88 ~1 -3: P:/app/test/encrypted_route_store_test.dart: reopen decrypts stable immutable version with scoped floors and SHA [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +88 ~1 -4: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +88 ~1 -4: P:/app/test/encrypted_route_store_test.dart: disk files hide route names/nodes; revisions use different nonces [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +89 ~1 -4: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +89 ~1 -5: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +89 ~1 -5: P:/app/test/encrypted_route_store_test.dart: draft with unknown floor never replaces stable pointer or activates [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +89 ~1 -6: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +89 ~1 -6: P:/app/test/encrypted_route_store_test.dart: incompatible feature draft retained, activation/rollback refused [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +89 ~1 -7: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +89 ~1 -7: P:/app/test/encrypted_route_store_test.dart: immutable rollback changes pointer and CAS revision, not content versions [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +90 ~1 -7: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +90 ~1 -8: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +90 ~1 -8: P:/app/test/encrypted_route_store_test.dart: corrupt active version preserved; explicit verified older rollback works [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +90 ~1 -9: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +90 ~1 -9: P:/app/test/encrypted_route_store_test.dart: failure before catalog switch leaves stable active version and orphan ignored [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +91 ~1 -9: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +91 ~1 -10: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +91 ~1 -10: P:/app/test/encrypted_route_store_test.dart: failure after commit is unknown outcome; refresh resolves without duplicate save [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +91 ~1 -11: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +91 ~1 -11: P:/app/test/encrypted_route_store_test.dart: document quota and library quota preserve stable content [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +91 ~1 -12: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +91 ~1 -12: P:/app/test/encrypted_route_store_test.dart: version limit prevents unlimited growth instead of deleting stable history [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +91 ~1 -13: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +91 ~1 -13: P:/app/test/encrypted_route_store_test.dart: missing key never regenerates over existing route data [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +92 ~1 -13: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +93 ~1 -13: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +93 ~1 -14: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +93 ~1 -14: P:/app/test/encrypted_route_store_test.dart: wrong key/catalog tamper fail closed; no fallback resurrects deleted route [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +93 ~1 -15: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +93 ~1 -15: P:/app/test/encrypted_route_store_test.dart: two instances serialize; stale expected revision prevents lost update [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +94 ~1 -15: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +94 ~1 -15: P:/app/test/encrypted_route_store_test.dart: two instances serialize; stale expected revision prevents lost update [E]
+  Expected: throws <Instance of 'RouteStoreFailure'> with `problem`: RouteProblem:<RouteProblem.conflict>
+    Actual: <Instance of 'Future<RouteSnapshot>'>
+     Which: threw RouteStoreFailure:<RouteStoreFailure(keyUnavailable)>
+            stack package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+                  ===== asynchronous gap ===========================
+                  package:matcher                                                  expectLater
+                  package:flutter_test/src/widget_tester.dart 507:8                expectLater
+                  test\encrypted_route_store_test.dart 348:25                      main.<fn>
+                  ===== asynchronous gap ===========================
+                  dart:async                                                       _CustomZone.registerUnaryCallback
+                  test\encrypted_route_store_test.dart 346:22                      main.<fn>
+                  
+            which has `problem` with value RouteProblem:<RouteProblem.keyUnavailable>
+  
+  package:matcher                                    expectLater
+  package:flutter_test/src/widget_tester.dart 507:8  expectLater
+  test\encrypted_route_store_test.dart 348:25        main.<fn>
+  ===== asynchronous gap ===========================
+  dart:async                                         _CustomZone.registerUnaryCallback
+  test\encrypted_route_store_test.dart 346:22        main.<fn>
+  
+00:02 +95 ~1 -15: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +95 ~1 -16: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +95 ~1 -16: P:/app/test/encrypted_route_store_test.dart: pause invalidates a write waiting before pointer commit [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +96 ~1 -16: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +97 ~1 -16: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +97 ~1 -17: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +98 ~1 -17: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +98 ~1 -17: P:/app/test/encrypted_route_store_test.dart: delete invalidates a write waiting before pointer commit [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +99 ~1 -17: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +99 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +99 ~1 -18: P:/app/test/encrypted_route_store_test.dart: durable tombstone precedes cleanup; restart cannot revive route [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +100 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +101 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +102 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +103 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +104 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +105 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +106 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +107 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +108 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +109 ~1 -18: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +109 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +109 ~1 -19: P:/app/test/encrypted_route_store_test.dart: route namespace and key do not touch photo queue or another library [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +110 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +111 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +112 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +113 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +114 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +115 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +116 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +117 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +118 ~1 -19: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +118 ~1 -20: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +118 ~1 -20: P:/app/test/encrypted_route_store_test.dart: unconfirmed/cross-floor walking edges cannot publish [E]
+  Expected: throws <Instance of 'RouteStoreFailure'> with `problem`: RouteProblem:<RouteProblem.invalid>
+    Actual: <Instance of 'Future<RouteSnapshot>'>
+     Which: threw RouteStoreFailure:<RouteStoreFailure(keyUnavailable)>
+            stack package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+                  ===== asynchronous gap ===========================
+                  package:matcher                                                  expectLater
+                  package:flutter_test/src/widget_tester.dart 507:8                expectLater
+                  test\encrypted_route_store_test.dart 445:11                      main.<fn>
+                  
+            which has `problem` with value RouteProblem:<RouteProblem.keyUnavailable>
+  
+  package:matcher                                    expectLater
+  package:flutter_test/src/widget_tester.dart 507:8  expectLater
+  test\encrypted_route_store_test.dart 445:11        main.<fn>
+  
+00:02 +119 ~1 -20: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +120 ~1 -20: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +120 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +120 ~1 -21: P:/app/test/encrypted_route_store_test.dart: explicit pruning retains active, verified fallback and draft, with monotonic versions [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:02 +121 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +122 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +123 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +124 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +125 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:02 +126 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +127 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +128 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +129 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +130 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +131 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +132 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +133 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +134 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +135 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +136 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +137 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +138 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +139 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +140 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +141 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +142 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +143 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +144 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +145 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +146 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +147 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +148 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +149 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +150 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +151 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +152 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +153 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +154 ~1 -21: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:03 +155 ~1 -21: P:/app/test/depth_ui_test.dart: empty and stale observations can be read and recovered chinese
+00:03 +156 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +157 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +158 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +159 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +160 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +161 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +162 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +163 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +164 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +165 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +166 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +167 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +168 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +169 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +170 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +171 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +172 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +173 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +174 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +175 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +176 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +177 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +178 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +179 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +180 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +181 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +182 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +183 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +184 ~1 -21: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +185 ~1 -21: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:04 +186 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +187 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +188 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +189 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +190 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +191 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +192 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +193 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +194 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +195 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +196 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +197 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +198 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +199 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +200 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +201 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +202 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +203 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +204 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +205 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +206 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +207 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +208 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +209 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +210 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +211 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +212 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +213 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +214 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +215 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +216 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +217 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:04 +218 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:05 +219 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:05 +220 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:05 +221 ~1 -21: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:05 +222 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +223 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +224 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +225 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +226 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +227 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +228 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +229 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +230 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +231 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +232 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +233 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +234 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +235 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +236 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +237 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +238 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +239 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +240 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +241 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +242 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +243 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +244 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +245 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +246 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +247 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +248 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +249 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +250 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +251 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +252 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +253 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +254 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +255 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +256 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +257 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +258 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +259 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +260 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +261 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +262 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +263 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +264 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +265 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +266 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +267 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +268 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:05 +269 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +270 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +271 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +272 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +273 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +274 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +275 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +276 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +277 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +278 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +279 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +280 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +281 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +282 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +283 ~1 -21: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:06 +284 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +285 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +286 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +287 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +288 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +289 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +290 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +291 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +292 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +293 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:06 +294 ~1 -21: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +294 ~1 -21: P:/app/test/menu_ui_test.dart: online speech fallback asks first and can be refused
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+The value of a foundation debug variable was changed by the test.
+
+When the exception was thrown, this was the stack:
+#0      debugAssertAllFoundationVarsUnset.<anonymous closure> (package:flutter/src/foundation/debug.dart:45:7)
+#1      debugAssertAllFoundationVarsUnset (package:flutter/src/foundation/debug.dart:48:4)
+#2      TestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:1996:7)
+#3      AutomatedTestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:2525:11)
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1974:7)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  online speech fallback asks first and can be refused
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:07 +294 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +294 ~1 -22: P:/app/test/menu_ui_test.dart: online speech fallback asks first and can be refused [E]
+  Test failed. See exception logs above.
+  The test description was: online speech fallback asks first and can be refused
+  
+00:07 +295 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +296 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +297 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +298 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +299 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +300 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +301 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +302 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +303 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +304 ~1 -22: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:07 +305 ~1 -22: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +306 ~1 -22: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +306 ~1 -22: P:/app/test/menu_ui_test.dart: ★ Android 的線上語音說明點的是 Google，不是 Apple
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following assertion was thrown running a test:
+The value of a foundation debug variable was changed by the test.
+
+When the exception was thrown, this was the stack:
+#0      debugAssertAllFoundationVarsUnset.<anonymous closure> (package:flutter/src/foundation/debug.dart:45:7)
+#1      debugAssertAllFoundationVarsUnset (package:flutter/src/foundation/debug.dart:48:4)
+#2      TestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:1996:7)
+#3      AutomatedTestWidgetsFlutterBinding._verifyInvariants (package:flutter_test/src/binding.dart:2525:11)
+#4      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1974:7)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  ★ Android 的線上語音說明點的是 Google，不是 Apple
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:07 +306 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +306 ~1 -23: P:/app/test/menu_ui_test.dart: ★ Android 的線上語音說明點的是 Google，不是 Apple [E]
+  Test failed. See exception logs above.
+  The test description was: ★ Android 的線上語音說明點的是 Google，不是 Apple
+  
+00:07 +307 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +308 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +309 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +310 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +311 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +312 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +313 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +314 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +315 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +316 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +317 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +318 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:07 +319 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +320 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +321 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +322 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +322 ~1 -23: P:/app/test/ios_demo_test.dart: daily recognition hides model and diagnostic controls
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:08 +323 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +324 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +325 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +326 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +327 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +328 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +329 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +330 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +331 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +332 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +333 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +334 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +335 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +336 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +337 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +338 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +339 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +340 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +341 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +342 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +343 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +344 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +345 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +346 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +347 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +348 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +349 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +350 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +351 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +352 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +353 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +354 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +355 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +356 ~1 -23: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:08 +357 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:08 +358 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +358 ~1 -23: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:09 +359 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +360 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +361 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +362 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +363 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +364 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +365 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +366 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:09 +367 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +368 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +369 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +370 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +371 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +372 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +373 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +374 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +375 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +376 ~1 -23: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +376 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +377 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +377 ~1 -24: P:/app/test/route_record_replay_test.dart: confirmed anchor is inherited, reviewed once and preserved as schema3 [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:10 +378 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +379 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +380 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +381 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +382 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +383 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +384 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +385 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +386 ~1 -24: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +386 ~1 -25: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +386 ~1 -25: P:/app/test/route_record_replay_test.dart: manual blank floor inherits valid context and later automatic draft remains saveable [E]
+  Expected: 'saved'
+    Actual: 'error'
+     Which: is different.
+            Expected: saved
+              Actual: error
+                      ^
+             Differ at offset 0
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\route_record_replay_test.dart 249:5            main.<fn>
+  
+00:10 +387 ~1 -25: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +388 ~1 -25: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +389 ~1 -25: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +389 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +389 ~1 -26: P:/app/test/route_record_replay_test.dart: manual non-walk checkpoint breaks context and following draft remains valid [E]
+  Expected: 'saved'
+    Actual: 'error'
+     Which: is different.
+            Expected: saved
+              Actual: error
+                      ^
+             Differ at offset 0
+  
+  package:matcher                                     expect
+  package:flutter_test/src/widget_tester.dart 473:18  expect
+  test\route_record_replay_test.dart 282:5            main.<fn>
+  
+00:10 +390 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +391 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +392 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +393 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +394 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +395 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +396 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +397 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +398 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +399 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +400 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +401 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +402 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +403 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +404 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +405 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +406 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +407 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +408 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +409 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +410 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +411 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +411 ~1 -26: P:/app/test/ios_demo_test.dart: iPhone boots into the native camera and keeps mock mode available
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:10 +412 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +412 ~1 -26: P:/app/test/ios_demo_test.dart: iPhone boots into the native camera and keeps mock mode available
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:10 +413 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:10 +414 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +415 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +416 ~1 -26: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +416 ~1 -27: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +416 ~1 -27: P:/app/test/route_record_replay_test.dart: automatic recording adds numbered unknown drafts without a landmark form [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:11 +417 ~1 -27: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +417 ~1 -28: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +417 ~1 -28: P:/app/test/route_record_replay_test.dart: empty library records G lift 3F room, saves and reopens for confirmed replay [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:11 +417 ~1 -29: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +417 ~1 -29: P:/app/test/route_record_replay_test.dart: unknown floor or unconfirmed segment stays draft and cannot start replay [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:11 +417 ~1 -30: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +417 ~1 -30: P:/app/test/route_record_replay_test.dart: wrong floor, wrong direction, ambiguous match and wrong requested node hold position [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:11 +418 ~1 -30: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +418 ~1 -31: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +418 ~1 -31: P:/app/test/route_record_replay_test.dart: floor transition is bound to recorded exit and cannot certify another node [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:11 +419 ~1 -31: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +420 ~1 -31: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +421 ~1 -31: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +421 ~1 -32: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +421 ~1 -32: P:/app/test/route_record_replay_test.dart: replay writes no photos or versions, delete removes all route media [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:11 +421 ~1 -33: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +421 ~1 -33: P:/app/test/route_record_replay_test.dart: failed open clears prior route so it cannot replay the wrong selection [E]
+  RouteStoreFailure(keyUnavailable)
+  package:pathguide/route_memory/encrypted_route_store.dart 228:7  EncryptedRouteStore._key
+  
+00:11 +422 ~1 -33: P:/app/test/route_journey_page_test.dart: chinese: floor and lift choices are accessible at double text size
+00:11 +423 ~1 -33: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:11 +424 ~1 -33: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:11 +425 ~1 -33: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:11 +426 ~1 -33: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:11 +427 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:11 +428 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:11 +429 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:11 +430 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:11 +431 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:12 +432 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:12 +433 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:12 +434 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:12 +435 ~1 -33: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:12 +436 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +437 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +438 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +439 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +440 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +441 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +442 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +443 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +444 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +445 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +446 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +447 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:12 +448 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:13 +449 ~1 -33: P:/app/test/route_journey_page_test.dart: english: floor and lift choices are accessible at double text size
+00:13 +450 ~1 -33: P:/app/test/ios_demo_test.dart: slow speech initialization does not block demo or restart it in background
+00:13 +451 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:13 +452 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:13 +453 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:14 +454 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:14 +455 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:14 +455 ~1 -33: P:/app/test/ios_demo_test.dart: silent camera withdraws old boxes and replay never reads the old object
+HUD fps=7.8 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.8 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.8 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.8 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.8 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.8 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:15 +456 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:15 +457 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:16 +458 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:16 +459 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:16 +460 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:17 +461 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:17 +462 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:17 +463 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:18 +464 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:18 +465 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:18 +466 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+00:19 +467 ~1 -33: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: 'saved'
+  Actual: 'error'
+   Which: is different.
+          Expected: saved
+            Actual: error
+                    ^
+           Differ at offset 0
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///P:/app/test/route_journey_page_test.dart:233:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///P:/app/test/route_journey_page_test.dart line 233
+The test description was:
+  automatic entry needs no point form, finish names and reopens a real draft
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:20 +467 ~1 -34: P:/app/test/route_journey_page_test.dart: automatic entry needs no point form, finish names and reopens a real draft [E]
+  Test failed. See exception logs above.
+  The test description was: automatic entry needs no point form, finish names and reopens a real draft
+  
+00:20 +467 ~1 -34: P:/app/test/route_journey_page_test.dart: landmark dialog submits typed floor and closes safely while capture is pending
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: 'saved'
+  Actual: 'error'
+   Which: is different.
+          Expected: saved
+            Actual: error
+                    ^
+           Differ at offset 0
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///P:/app/test/route_journey_page_test.dart:380:7)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///P:/app/test/route_journey_page_test.dart line 380
+The test description was:
+  landmark dialog submits typed floor and closes safely while capture is pending
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:22 +467 ~1 -35: P:/app/test/route_journey_page_test.dart: landmark dialog submits typed floor and closes safely while capture is pending [E]
+  Test failed. See exception logs above.
+  The test description was: landmark dialog submits typed floor and closes safely while capture is pending
+  
+00:22 +467 ~1 -35: P:/app/test/route_journey_page_test.dart: corrupt captured route never advertises replay availability
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following RouteStoreFailure was thrown while running async test code:
+RouteStoreFailure(keyUnavailable)
+
+When the exception was thrown, this was the stack:
+#0      EncryptedRouteStore._key (package:pathguide/route_memory/encrypted_route_store.dart:228:7)
+<asynchronous suspension>
+#1      EncryptedRouteStore._locked.<anonymous closure> (package:pathguide/route_memory/encrypted_route_store.dart:198:31)
+<asynchronous suspension>
+#2      main.<anonymous closure>.<anonymous closure> (file:///P:/app/test/route_journey_page_test.dart:405:7)
+<asynchronous suspension>
+<asynchronous suspension>
+#4      main.<anonymous closure> (file:///P:/app/test/route_journey_page_test.dart:401:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 2 frames from dart:async and package:stack_trace)
+
+The exception was caught asynchronously.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: No element
+
+When the exception was thrown, this was the stack:
+#0      Iterable.single (dart:core/iterable.dart:694:25)
+#1      WidgetController.element (package:flutter_test/src/controller.dart:888:30)
+#2      WidgetController.dragUntilVisible.<anonymous closure> (package:flutter_test/src/controller.dart:2489:38)
+<asynchronous suspension>
+#3      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#4      WidgetController.scrollUntilVisible.<anonymous closure> (package:flutter_test/src/controller.dart:2439:7)
+<asynchronous suspension>
+#5      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///P:/app/test/route_journey_page_test.dart:450:5)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  corrupt captured route never advertises replay availability
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following message was thrown:
+Multiple exceptions (2) were detected during the running of the current test, and at least one was
+unexpected.
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:26 +467 ~1 -36: P:/app/test/route_journey_page_test.dart: corrupt captured route never advertises replay availability [E]
+  Test failed. See exception logs above.
+  The test description was: corrupt captured route never advertises replay availability
+  
+00:26 +467 ~1 -36: P:/app/test/route_journey_page_test.dart: chinese hub has three clear actions at double text size
+00:26 +468 ~1 -36: P:/app/test/route_journey_page_test.dart: chinese empty library and record form never auto-start camera
+00:26 +469 ~1 -36: P:/app/test/route_journey_page_test.dart: english hub has three clear actions at double text size
+00:26 +470 ~1 -36: P:/app/test/route_journey_page_test.dart: english empty library and record form never auto-start camera
+
+Warning: A call to tap() with finder "Found 1 widget with text "Record new route": [
+  Text("Record new route", dependencies: [DefaultSelectionStyle, DefaultTextStyle, MediaQuery, _ScrollableScope]),
+]" derived an Offset (Offset(160.0, 616.0)) that would not hit test on the specified widget.
+Maybe the widget is actually off-screen, or another widget is obscuring it, or the widget cannot receive pointer events.
+Indeed, Offset(160.0, 616.0) is outside the bounds of the root of the render tree, Size(320.0, 568.0).
+The finder corresponds to this RenderBox: RenderParagraph#225de relayoutBoundary=up18
+The hit test result at that offset is: HitTestResult(HitTestEntry<HitTestTarget>#79625(_ReusableRenderView#772d9), HitTestEntry<HitTestTarget>#702a1(<AutomatedTestWidgetsFlutterBinding>))
+#0      WidgetController._getElementPoint (package:flutter_test/src/controller.dart:2165:25)
+#1      WidgetController.getCenter (package:flutter_test/src/controller.dart:1947:12)
+#2      WidgetController.tap (package:flutter_test/src/controller.dart:1080:7)
+#3      main.<anonymous closure> (file:///P:/app/test/route_journey_page_test.dart:554:17)
+<asynchronous suspension>
+#4      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#5      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+#6      StackZoneSpecification._registerCallback.<anonymous closure> (package:stack_trace/src/stack_zone_specification.dart:114:42)
+<asynchronous suspension>
+To silence this warning, pass "warnIfMissed: false" to "tap()".
+To make this warning fatal, set WidgetController.hitTestWarningShouldBeFatal to true.
+
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following StateError was thrown running a test:
+Bad state: No element
+
+When the exception was thrown, this was the stack:
+#0      Iterable.single (dart:core/iterable.dart:694:25)
+#1      WidgetController.element (package:flutter_test/src/controller.dart:888:30)
+#2      WidgetController.dragUntilVisible.<anonymous closure> (package:flutter_test/src/controller.dart:2489:38)
+<asynchronous suspension>
+#3      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#4      WidgetController.scrollUntilVisible.<anonymous closure> (package:flutter_test/src/controller.dart:2439:7)
+<asynchronous suspension>
+#5      TestAsyncUtils.guard.<anonymous closure> (package:flutter_test/src/test_async_utils.dart:130:27)
+<asynchronous suspension>
+#6      main.<anonymous closure> (file:///P:/app/test/route_journey_page_test.dart:559:9)
+<asynchronous suspension>
+#7      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#8      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+The test description was:
+  english empty library and record form never auto-start camera
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:27 +470 ~1 -37: P:/app/test/route_journey_page_test.dart: english empty library and record form never auto-start camera [E]
+  Test failed. See exception logs above.
+  The test description was: english empty library and record form never auto-start camera
+  
+00:27 +470 ~1 -37: Some tests failed.
+
+Failing tests:
+  P:/app/test/encrypted_route_store_test.dart: corrupt active version preserved; explicit verified older rollback works
+  P:/app/test/encrypted_route_store_test.dart: delete invalidates a write waiting before pointer commit
+  P:/app/test/encrypted_route_store_test.dart: device adapter stores explicit synthetic draft then complete structure
+  P:/app/test/encrypted_route_store_test.dart: disk files hide route names/nodes; revisions use different nonces
+  ... and 33 more

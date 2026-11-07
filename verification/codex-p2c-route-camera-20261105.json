@@ -1,0 +1,138 @@
+{
+  "date_hk": "2026-11-05",
+  "implementer": "Codex",
+  "status": "P2-C_native_local_engineering_passed_Flutter_and_device_pending",
+  "source_sha256": {
+    "app/ios/Runner/RouteCameraPlugin.swift": "39df77f74eb1c846a71574cab878ee9da0f065ad4a1d54dd9475a7e6ee4dcf70",
+    "app/ios/Runner/AppDelegate.swift": "d1685ab4945647991d525af184394f4cdb7b67ccb94b11456d4a280bc788240d",
+    "app/ios/Runner.xcodeproj/project.pbxproj": "bb53370a9fbe5f916c1c0784c37749df2672abefa0cd734ee6e70c169ec4db92",
+    "app/ios/RunnerTests/RunnerTests.swift": "62c8d9571734192bf76408c574c4e16ba4206e8583b29a387044177b59eda198",
+    "app/ios/Runner/CameraCoordinator.swift": "01bb64d64e02cfc8e7e94ec98e94e248f8cd56d12750fe69bb158ae61c729778"
+  },
+  "native": {
+    "command": [
+      "xcodebuild",
+      "-workspace",
+      "app/ios/Runner.xcworkspace",
+      "-scheme",
+      "Runner",
+      "-configuration",
+      "Debug",
+      "-sdk",
+      "iphonesimulator",
+      "-destination",
+      "platform=iOS Simulator,id=A7A79D18-5CBC-4F82-85EC-366C8B8B1B63",
+      "-parallel-testing-enabled",
+      "NO",
+      "CODE_SIGNING_ALLOWED=NO",
+      "test"
+    ],
+    "exit": 0,
+    "tests": 43,
+    "new_route_tests": 17,
+    "failures": 0,
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2c/native-tests-r3.log"
+  },
+  "flutter": {
+    "tests": 415,
+    "exit": 0,
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2c/flutter-tests.log"
+  },
+  "analyze": {
+    "issues": 0,
+    "exit": 0,
+    "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2c/flutter-analyze.log"
+  },
+  "checks": {
+    "project_source_membership": "exactly_one_Runner_source_entry",
+    "plutil_lint": "passed",
+    "git_diff_check": "passed",
+    "prior_vision_depth_menu_coordinator_hashes": "unchanged"
+  },
+  "regression": {
+    "description": "Reentrant event/cancellation callbacks cancelled newer generation and relabeled old stop replies",
+    "before": {
+      "command": [
+        "xcodebuild",
+        "-workspace",
+        "app/ios/Runner.xcworkspace",
+        "-scheme",
+        "Runner",
+        "-configuration",
+        "Debug",
+        "-sdk",
+        "iphonesimulator",
+        "-destination",
+        "platform=iOS Simulator,id=A7A79D18-5CBC-4F82-85EC-366C8B8B1B63",
+        "-parallel-testing-enabled",
+        "NO",
+        "CODE_SIGNING_ALLOWED=NO",
+        "-only-testing:RunnerTests/RunnerTests/testRouteStartingEventReentryPreservesNewerGeneration",
+        "-only-testing:RunnerTests/RunnerTests/testRouteStopCaptureReplyReentryCannotCancelNewStart",
+        "test"
+      ],
+      "exit": -15,
+      "tests": 2,
+      "assertion_failures": 5,
+      "log": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2c/reentry-before.log",
+      "termination_reason": "Test suite completed with 5 assertion failures; xcodebuild hung finalizing its failed result for over 7 minutes and was terminated; exit -15 is termination, not a normal test exit."
+    },
+    "after": "Both pass in the 43-test final suite",
+    "snapshot": "dataset_pipeline/review_artifacts/2026-11-05/codex-p2c/RouteCameraPlugin-before-reentry-fix.swift"
+  },
+  "contract": {
+    "methods_channel": "hk.pathguide/route_camera",
+    "events_channel": "hk.pathguide/route_camera/events",
+    "preview_type": "hk.pathguide/route_camera/preview",
+    "methods": [
+      "capabilities",
+      "start",
+      "status",
+      "latestObservation",
+      "captureKeyframe",
+      "cancelKeyframe",
+      "stop"
+    ],
+    "start_fields": [
+      "requestId",
+      "session",
+      "generation",
+      "routeId",
+      "routeVersion"
+    ],
+    "profile": "route-camera-engineering-v1",
+    "max_frame_age_ms": 1000,
+    "walking_validated": false,
+    "max_keyframe_side": 1280,
+    "max_keyframe_bytes": 524288,
+    "max_pending_keyframes": 1,
+    "retained_latest_frames": 1,
+    "clock": "AVCaptureSession synchronizationClock (masterClock on iOS 15.0-15.3) mapped via CMSyncConvertTime to CMClockGetHostTimeClock; unknown mapping rejected",
+    "output": "On-demand upright JPEG; actual byte SHA256, scaled dimensions and original frame/clock header"
+  },
+  "coverage": [
+    "No model/AR dependency with injected driver",
+    "Queued cancellation and late/denied permission",
+    "Latest mailbox replaces 50 buffers without encoding",
+    "Unknown/invalid/future/stale timestamp rejection",
+    "Real synthetic JPEG, dimensions/byte cap and SHA",
+    "All four rotations verified using corner colors",
+    "Cancelled encoder stays busy until actual drain",
+    "Handoff waits for session/delegate/JPEG barriers",
+    "Expiry rechecked after encoding",
+    "Stale frame and stop cannot affect next generation",
+    "Background has no foreground auto-resume",
+    "Reentrant events/cancellation preserve new generation",
+    "Stop timeout keeps hardware gate closed"
+  ],
+  "limitations": [
+    "No physical-camera, general-iPhone, iPad-preview or VoiceOver acceptance",
+    "P2-D Flutter entry and P3 persistent media/localization remain unimplemented",
+    "Engineering candidate, not a released version or device installation",
+    "No file/video/upload path in native route source"
+  ],
+  "api_reference": "https://developer.apple.com/documentation/avfoundation/avcapturesession/synchronizationclock",
+  "next": "P2-D #6: Flutter native adapter, capture controller/page, retry/background/stop behavior and existing route-library entry",
+  "base_commit": "7de2f4fd83c7096abe83b4eb6552846629f107ea",
+  "branch": "feature/cross-platform-navigation"
+}

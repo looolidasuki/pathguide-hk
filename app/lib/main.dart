@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 
 import 'ui/app_shell.dart';
+import 'route_memory/route_storage_probe.dart';
 import 'l10n/app_language.dart';
 import 'ui/app_theme.dart';
 import 'ui/demo_page.dart';
@@ -21,6 +22,7 @@ import 'photos/photo_ui.dart';
 /// 切換三類模擬框，並共用繁體中文閾值、標籤及粵語播報控制。
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await runRequestedRouteStorageProbe();
 
   // Preferences are loaded before the first UI frame, so the selected speech
   // speed applies to the very first Cantonese announcement after a relaunch.

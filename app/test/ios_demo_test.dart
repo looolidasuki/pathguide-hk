@@ -133,7 +133,7 @@ void main() {
   Future<void> start(
     WidgetTester tester, {
     SourceMode initialMode = SourceMode.camera,
-    AppSection initialSection = AppSection.explore,
+    AppSection initialSection = AppSection.visionDiagnostics,
     AppSettings? settings,
     bool automatic = true,
   }) async {
@@ -192,7 +192,9 @@ void main() {
     await tester.pump();
     await flushAsync(tester);
     await tester.pump(const Duration(milliseconds: 240));
-    if (!automatic && initialSection == AppSection.explore) {
+    if (!automatic &&
+        (initialSection == AppSection.explore ||
+            initialSection == AppSection.visionDiagnostics)) {
       await tester.tap(find.byKey(const ValueKey('vision-settings-button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 400));
@@ -236,10 +238,26 @@ void main() {
     debugDefaultTargetPlatformOverride = null;
   }
 
+  Future<void> capture(WidgetTester tester, String name) async {
+    const dir = String.fromEnvironment('PATHGUIDE_SCREENSHOTS');
+    if (dir.isEmpty) return;
+    await tester.pump();
+    final boundary = tester.renderObject<RenderRepaintBoundary>(
+      find.byKey(const ValueKey('test-preview')),
+    );
+    await tester.runAsync(() async {
+      final image = await boundary.toImage(pixelRatio: 1);
+      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+      await Directory(dir).create(recursive: true);
+      await File('$dir/$name.png').writeAsBytes(bytes!.buffer.asUint8List());
+      image.dispose();
+    });
+  }
+
   testWidgets(
     'navigation entry exposes search without starting camera or location',
     (tester) async {
-      await start(tester, initialSection: AppSection.navigation);
+      await start(tester, initialSection: AppSection.outdoor);
       expect(find.text('路線導航'), findsOneWidget);
       expect(find.text('搜尋目的地'), findsOneWidget);
       expect(find.text('此手機收藏'), findsOneWidget);
@@ -249,21 +267,24 @@ void main() {
     },
   );
 
-  testWidgets('bottom navigation leaves camera view and opens settings', (
+  testWidgets('returning home disposes camera before choosing another task', (
     tester,
   ) async {
-    await start(tester);
+    await start(tester, initialSection: AppSection.explore);
     expect(visionCalls, contains('startPreview'));
-
-    await tester.tap(find.text('導航'));
+    await tester.tap(find.byTooltip('返回首頁'));
     await tester.pumpAndSettle();
-    expect(find.text('路線導航'), findsOneWidget);
     expect(find.byType(VisionPreview), findsNothing);
-
-    await tester.tap(find.text('設定'));
+    await tester.tap(find.text('路線導航'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('略過說明'));
+    await tester.pumpAndSettle();
+    expect(find.text('搜尋目的地'), findsOneWidget);
+    await tester.tap(find.byTooltip('返回首頁'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('設定與使用教學'));
     await tester.pumpAndSettle();
     expect(find.text('播報速度'), findsOneWidget);
-    expect(find.text('1 倍速'), findsOneWidget);
     await close(tester);
   });
 
@@ -291,7 +312,11 @@ void main() {
     expect(settings.speechSpeed, SpeechSpeed.slow);
     expect(find.text('0.8 倍速'), findsOneWidget);
 
-    await tester.tap(find.text('即時辨識設定'));
+    await tester.tap(find.byTooltip('返回首頁'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('即時辨識'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('略過說明'));
     await tester.pump();
     await flushAsync(tester);
     expect(
@@ -304,34 +329,57 @@ void main() {
     await close(tester);
   });
 
-  testWidgets(
-    'future settings only explain requirements without starting a service',
-    (tester) async {
-      await start(tester, initialSection: AppSection.settings);
-      expect(find.text('懸空障礙物偵測'), findsOneWidget);
+  testWidgets('developer model details load without opening camera', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(390, 844);
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await start(tester, initialSection: AppSection.developer);
+    await capture(tester, 'developer-testing');
+    await tester.scrollUntilVisible(find.text('模型資料'), 180);
+    await tester.tap(find.text('模型資料'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('10 類 · 10.70 MB'), findsOneWidget);
+    expect(visionCalls, isNot(contains('startPreview')));
+    await tester.scrollUntilVisible(find.text('返回設定'), -180);
+    await tester.tap(find.text('返回設定'));
+    await tester.pumpAndSettle();
+    await capture(tester, 'settings');
+    await close(tester);
+  });
 
-      await tester.tap(find.text('懸空障礙物偵測'));
-      await tester.pumpAndSettle();
-      expect(find.textContaining('不會要求新的系統權限'), findsOneWidget);
-      expect(visionCalls, isNot(contains('startPreview')));
-      await tester.tap(find.text('知道了'));
-      await tester.pumpAndSettle();
+  testWidgets('daily recognition hides model and diagnostic controls', (
+    tester,
+  ) async {
+    await start(tester, initialSection: AppSection.explore);
+    await openControls(tester);
+    expect(find.text('辨識模型'), findsNothing);
+    expect(find.text('模擬資料'), findsNothing);
+    expect(find.text('技術資料'), findsNothing);
+    expect(find.byKey(const ValueKey('speech-threshold')), findsNothing);
+    expect(find.byKey(const ValueKey('detection-threshold')), findsNothing);
+    expect(find.text('自動播報'), findsOneWidget);
+    await close(tester);
+  });
 
-      await tester.scrollUntilVisible(find.text('即時物件辨識模型'), 180);
-      await tester.pump();
-      await flushAsync(tester);
-      expect(
-        find.text('10 類 · 10.70 MB'),
-        findsOneWidget,
-        reason: tester
-            .widgetList<Text>(find.byType(Text))
-            .map((t) => t.data)
-            .join('|'),
-      );
-      expect(find.text('未提供'), findsOneWidget);
-      await close(tester);
-    },
-  );
+  testWidgets('cancelling first-use help does not start camera', (
+    tester,
+  ) async {
+    await start(tester, initialSection: AppSection.home);
+    await tester.tap(find.text('即時辨識'));
+    await tester.pumpAndSettle();
+    expect(find.text('開始前'), findsOneWidget);
+    expect(visionCalls, isEmpty);
+    await tester.tap(find.text('返回'));
+    await tester.pumpAndSettle();
+    expect(visionCalls, isEmpty);
+    await tester.tap(find.text('即時辨識'));
+    await tester.pumpAndSettle();
+    expect(find.text('開始前'), findsOneWidget);
+    await close(tester);
+  });
 
   testWidgets('model selector reloads matching model and class mapping', (
     tester,
@@ -651,29 +699,12 @@ void main() {
 
       await start(tester, initialSection: AppSection.settings);
       expect(find.text('播報速度'), findsOneWidget);
-      await tester.scrollUntilVisible(find.text('即時物件辨識模型'), 180);
-      await flushAsync(tester);
-      expect(find.text('10 類 · 10.70 MB'), findsOneWidget);
+      await tester.scrollUntilVisible(find.text('開發測試'), 180);
+      expect(find.text('未來功能'), findsNothing);
       expect(tester.takeException(), isNull);
       await close(tester);
     },
   );
-
-  Future<void> capture(WidgetTester tester, String name) async {
-    const dir = String.fromEnvironment('PATHGUIDE_SCREENSHOTS');
-    if (dir.isEmpty) return;
-    await tester.pump();
-    final boundary = tester.renderObject<RenderRepaintBoundary>(
-      find.byKey(const ValueKey('test-preview')),
-    );
-    await tester.runAsync(() async {
-      final image = await boundary.toImage(pixelRatio: 1);
-      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      await Directory(dir).create(recursive: true);
-      await File('$dir/$name.png').writeAsBytes(bytes!.buffer.asUint8List());
-      image.dispose();
-    });
-  }
 
   testWidgets('task home is accessible and never starts camera', (
     tester,
@@ -699,12 +730,55 @@ void main() {
     await capture(tester, 'task-home');
     await tester.tap(find.text('菜單閱讀與語音搜尋'));
     await tester.pumpAndSettle();
+    await tester.tap(find.text('略過說明'));
+    await tester.pumpAndSettle();
     expect(find.text('菜單閱讀'), findsOneWidget);
     await tester.tap(find.byTooltip('返回'));
     await tester.pumpAndSettle();
     expect(visionCalls, isEmpty);
     await close(tester);
   });
+
+  testWidgets(
+    'silent camera withdraws old boxes and replay never reads the old object',
+    (tester) async {
+      await start(tester);
+      Future<void> frame() async {
+        ServicesBinding.instance.channelBuffers.push(
+          'hk.pathguide/vision/frame',
+          const StandardMethodCodec().encodeSuccessEnvelope({
+            'detections': [
+              {'id': 7, 'score': .95, 'cx': .5, 'cy': .5, 'w': .2, 'h': .2},
+            ],
+            'frameWidth': 1280,
+            'frameHeight': 720,
+          }),
+          (_) {},
+        );
+        await tester.pump();
+        await flushAsync(tester);
+      }
+
+      await frame();
+      expect(painter(tester).mapped, hasLength(1));
+      await tester.pump(const Duration(seconds: 3));
+      expect(painter(tester).mapped, isEmpty);
+      expect(find.textContaining('結果已過期'), findsOneWidget);
+      speechCalls.clear();
+      await openControls(tester);
+      await tester.tap(find.text('重播目前結果'));
+      await flushAsync(tester);
+      expect(
+        speechCalls.where(
+          (c) => c.method == 'speak' && c.arguments.toString().contains('垃圾桶'),
+        ),
+        isEmpty,
+      );
+      await frame();
+      expect(painter(tester).mapped, hasLength(1));
+      await close(tester);
+    },
+  );
 
   testWidgets('automatic entry stays compact and replay is optional', (
     tester,
@@ -984,7 +1058,11 @@ void main() {
         tester.view.resetDevicePixelRatio();
         tester.platformDispatcher.clearTextScaleFactorTestValue();
       });
-      await start(tester, initialMode: SourceMode.mock);
+      await start(
+        tester,
+        initialMode: SourceMode.mock,
+        initialSection: AppSection.explore,
+      );
       for (final key in ['recognition-start-pause', 'vision-settings-button']) {
         final size = tester.getSize(find.byKey(ValueKey(key)));
         expect(size.width, greaterThanOrEqualTo(56));
@@ -995,7 +1073,9 @@ void main() {
       await tester.tap(find.byTooltip('返回首頁'));
       await tester.pumpAndSettle();
       await tester.scrollUntilVisible(find.text('設定與使用教學'), 120);
-      await tester.ensureVisible(find.widgetWithText(FilledButton, '設定與使用教學'));
+      await tester.ensureVisible(
+        find.widgetWithText(OutlinedButton, '設定與使用教學'),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('設定與使用教學'));
       await tester.pumpAndSettle();

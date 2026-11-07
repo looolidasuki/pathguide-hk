@@ -1,0 +1,156 @@
+{
+  "date_hk": "2026-11-05",
+  "issue": 7,
+  "baseline_commit": "df99475b76c402384b4d0c0e2344eb49c0d2647f",
+  "version": "1.6.0+11",
+  "scope": "captured schema2 and bounded encrypted media storage; v1 synthetic preserved; no real recording UI/localization yet",
+  "limits_config": "configs/planning/codex-p3a-storage-20261105.json",
+  "checks": {
+    "Flutter_tests": 454,
+    "native_Simulator_tests": 49,
+    "analyze_issues": 0,
+    "native_caveat": "Simulator protectionClasses=unavailable; backup exclusion/path safety tested; device class verification pending",
+    "red_tests": [
+      "p3a-schema-red.log",
+      "p3a-media-red.log",
+      "p3a-native-red.log"
+    ],
+    "test_log": "dataset_pipeline/review_artifacts/p3a-full-tests.log",
+    "native_log": "dataset_pipeline/review_artifacts/p3a-native-accepted.log",
+    "analyze_log": "dataset_pipeline/review_artifacts/p3a-final-analyze.log"
+  },
+  "review": {
+    "fixed_point": "df99475...faa8d32",
+    "standards": "no documented-standard violations; one nonblocking Primitive Obsession/Duplicated Code heuristic for capture provenance Map validation, deferred until P3-B integration",
+    "spec": "no actionable findings; focused JPEG probe found no confirmed defect",
+    "resource_tradeoff": "full-version media verification is currently intentional; batch/caching profiling deferred until functional integration",
+    "independent_agents": "read-only; unrelated backend/dataset work excluded"
+  },
+  "phone_build": {
+    "status": "signed_release_build_passed",
+    "version": "1.6.0",
+    "build": "11",
+    "bundle_id": "hk.pathguide.pathguide",
+    "codesign_verify_exit": 0,
+    "executable_sha256": "c5732b9a1ddfe86f5ed5185b2a77d6e8df383f29ec3f11fedd17e08b30a0a55b",
+    "log": "dataset_pipeline/review_artifacts/p3a-1.6.0-iphone-release.log"
+  },
+  "device_storage_probe": {
+    "status": "passed",
+    "device_family": "iPhone",
+    "separate_processes": [
+      "write",
+      "read",
+      "delete"
+    ],
+    "results": [
+      {
+        "filePolicy": {
+          "allExcludedFromBackup": true,
+          "allProtected": true,
+          "bytes": 4948,
+          "files": 5,
+          "protectionClasses": [
+            "NSFileProtectionComplete"
+          ]
+        },
+        "fixtureOnly": true,
+        "keyPolicy": {
+          "found": true,
+          "synchronizable": false,
+          "thisDeviceOnlyWhenUnlocked": true
+        },
+        "passed": true,
+        "phase": "write",
+        "reopenedAndVerified": true
+      },
+      {
+        "filePolicy": {
+          "allExcludedFromBackup": true,
+          "allProtected": true,
+          "bytes": 4948,
+          "files": 5,
+          "protectionClasses": [
+            "NSFileProtectionComplete"
+          ]
+        },
+        "fixtureOnly": true,
+        "keyPolicy": {
+          "found": true,
+          "synchronizable": false,
+          "thisDeviceOnlyWhenUnlocked": true
+        },
+        "passed": true,
+        "phase": "read",
+        "reopenedAndVerified": true
+      },
+      {
+        "afterDelete": {
+          "allExcludedFromBackup": true,
+          "allProtected": true,
+          "bytes": 195,
+          "files": 2,
+          "protectionClasses": [
+            "NSFileProtectionComplete"
+          ]
+        },
+        "filePolicy": {
+          "allExcludedFromBackup": true,
+          "allProtected": true,
+          "bytes": 4948,
+          "files": 5,
+          "protectionClasses": [
+            "NSFileProtectionComplete"
+          ]
+        },
+        "fixtureOnly": true,
+        "keyPolicy": {
+          "found": true,
+          "synchronizable": false,
+          "thisDeviceOnlyWhenUnlocked": true
+        },
+        "passed": true,
+        "phase": "delete",
+        "probeDirectoryRemoved": true,
+        "probeKeyRemoved": true,
+        "reopenedAndVerified": true
+      }
+    ],
+    "scope": "artificial fixtures and independent probe directory/key; no private route/camera media",
+    "not_tested": [
+      "locked-device interaction",
+      "iCloud backup/restore",
+      "real Vision feature extraction",
+      "actual route recording/localization/walking"
+    ]
+  },
+  "release": {
+    "tag": "v1.6.0+11",
+    "source_commit": "85a58cc2988c2656180f1bb0ddf6f579725dedde",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.6.0%2B11",
+    "remote_verified_before_install": true
+  },
+  "human_acceptance": "not claimed",
+  "private_media": "no private/reference screenshots or camera photos copied into repository",
+  "ui_reference_scope": {
+    "accepted_navigation_entries": [
+      "search destination",
+      "my routes",
+      "record new route"
+    ],
+    "excluded": [
+      "public transit",
+      "ride hailing"
+    ],
+    "delivery": "planned P3-C/P5; current UI not claimed implemented"
+  },
+  "model_sha256": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "installation": "success",
+  "normal_launch": "success",
+  "engineering_status": "accepted_engineering"
+}

@@ -1,0 +1,33 @@
+{
+  "date": "2026-10-28",
+  "version": "1.4.1+6",
+  "appSourceCommit": "79681b9af1c023322e522ef4744ee6ceca94aaa2",
+  "remoteBranch": "feature/cross-platform-navigation",
+  "tag": "v1.4.1+6",
+  "tagObject": "93a5df588a664b697389abd7acd9cd1a83b81c7c",
+  "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.4.1%2B6",
+  "prerelease": true,
+  "remoteCommitAndTagVerified": true,
+  "releaseHeadingTagAndCommitVerified": true,
+  "flutterTestsPassed": 318,
+  "nativeNumericalChecksPassed": 33,
+  "analyze": "No issues found",
+  "signedReleaseBuild": "passed",
+  "systemSignatureVerification": "passed",
+  "bundleVersion": "1.4.1+6",
+  "modelSha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+  "deviceModel": "iPhone 15 Pro Max",
+  "deviceInstalled": true,
+  "deviceLaunched": true,
+  "installationBlocker": null,
+  "fieldFixVerified": false,
+  "jointClassAndDistanceAccuracyValidated": false,
+  "previousAppTag": "v1.4.0+5",
+  "installationHistory": [
+    "GitHub branch/tag/prerelease verified before installation",
+    "Initial transient connection reset; device inventory confirmed paired device available",
+    "Installation retry and process launch succeeded"
+  ],
+  "proof": "verification/ui/app-1.4.1+6-github-release.jpg",
+  "buildCheckpoint": "verification/app-1.4.1+6.json is a pre-delivery snapshot; this receipt records latest delivery status."
+}

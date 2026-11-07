@@ -25,8 +25,37 @@ final class DepthPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, ARSessio
   private var objectsEnabled = false
   private var busy = false
   private var epoch = 0
+  private let cameraCoordinator: CameraCoordinator
+  private var cameraAccess: CameraLeaseClient?
+  private let isApplicationActive: () -> Bool
+  private let supportsDepth: () -> Bool
+  private let cameraAuthorizationStatus: () -> AVAuthorizationStatus
+  private let requestCameraAccess: (@escaping (Bool) -> Void) -> Void
+  private let runSession: ((ARWorldTrackingConfiguration) -> Void)?
+  private let pauseSession: (() -> Void)?
 
-  init(messenger: FlutterBinaryMessenger) {
+  init(messenger: FlutterBinaryMessenger,
+       cameraCoordinator: CameraCoordinator = .shared,
+       isApplicationActive: @escaping () -> Bool = { UIApplication.shared.applicationState == .active },
+       supportsDepth: @escaping () -> Bool = {
+         ARWorldTrackingConfiguration.isSupported &&
+           ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth)
+       },
+       cameraAuthorizationStatus: @escaping () -> AVAuthorizationStatus = {
+         AVCaptureDevice.authorizationStatus(for: .video)
+       },
+       requestCameraAccess: @escaping (@escaping (Bool) -> Void) -> Void = {
+         AVCaptureDevice.requestAccess(for: .video, completionHandler: $0)
+       },
+       runSession: ((ARWorldTrackingConfiguration) -> Void)? = nil,
+       pauseSession: (() -> Void)? = nil) {
+    self.cameraCoordinator = cameraCoordinator
+    self.isApplicationActive = isApplicationActive
+    self.supportsDepth = supportsDepth
+    self.cameraAuthorizationStatus = cameraAuthorizationStatus
+    self.requestCameraAccess = requestCameraAccess
+    self.runSession = runSession
+    self.pauseSession = pauseSession
     methods = FlutterMethodChannel(name: "hk.pathguide/depth", binaryMessenger: messenger)
     events = FlutterEventChannel(name: "hk.pathguide/depth/frames", binaryMessenger: messenger)
     super.init()
@@ -71,22 +100,42 @@ final class DepthPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, ARSessio
     stop()
   }
 
-  /// Also called before the other native camera stacks start.
-  func stop() {
+  private func invalidateCamera() {
     if running { emit("paused") }
     generation += 1
     running = false
     previousPose = nil
     epoch += 1
-    work.async { [weak self] in self?.detector = nil }
-    session.pause()
   }
 
-  private func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
+  func stop(completion: @escaping (Bool) -> Void = { _ in }) {
+    invalidateCamera()
+    if let access = cameraAccess { access.cancel(completion: completion) }
+    else { completion(true) }
+  }
+
+  private func stopCaptureHardware(_ acknowledge: @escaping (Bool) -> Void) {
+    if let pauseSession { pauseSession() } else { session.pause() }
+    // AR starts and delegate state live on main. Drain any model work before
+    // granting another owner; an old model load cannot reach the next lease.
+    work.async { [weak self] in
+      self?.detector = nil
+      DispatchQueue.main.async { acknowledge(true) }
+    }
+  }
+
+  func handle(_ call: FlutterMethodCall, _ result: @escaping FlutterResult) {
     switch call.method {
+    case "openSettings":
+      guard let url = URL(string: UIApplication.openSettingsURLString) else {
+        result(false); return
+      }
+      UIApplication.shared.open(url, options: [:]) { opened in result(opened) }
     case "stop":
-      stop()
-      result(nil)
+      stop { confirmed in
+        result(confirmed ? nil : FlutterError(code: "camera_stop_unconfirmed",
+          message: "相機停止尚未確認", details: nil))
+      }
     case "start":
       guard let args = call.arguments as? [String: Any], let id = args["session"] as? String,
         !id.isEmpty else {
@@ -95,60 +144,68 @@ final class DepthPlugin: NSObject, FlutterPlugin, FlutterStreamHandler, ARSessio
       stop()
       token = id
       objectsEnabled = args["objects"] as? Bool == true
-      guard ARWorldTrackingConfiguration.isSupported,
-        ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) else {
+      guard supportsDepth() else {
         result(["status": "unsupported"]); return
       }
       let expected = generation
+      let reply = CameraOnceReply<Any?>(result)
+      let access = CameraLeaseClient(owner: .depth, coordinator: cameraCoordinator) { [weak self] in
+        self?.invalidateCamera()
+        reply.finish(["status": "paused"])
+      }
+      cameraAccess = access
       func begin(_ granted: Bool) {
-        guard expected == self.generation,
-          UIApplication.shared.applicationState == .active else {
-          result(["status": "paused"]); return
+        guard expected == self.generation, access.isCurrent,
+          self.isApplicationActive() else {
+          reply.finish(["status": "paused"]); access.cancel(); return
         }
-        guard granted else { result(["status": "permission"]); return }
-        func run() {
-          guard expected == self.generation,
-            UIApplication.shared.applicationState == .active else {
-            result(["status": "paused"]); return
-          }
-          let config = ARWorldTrackingConfiguration()
-          config.frameSemantics = .sceneDepth
-          config.worldAlignment = .gravity
-          self.running = true
-          self.lastSent = -Double.infinity
-          self.startedAt = ProcessInfo.processInfo.systemUptime
-          self.session.run(config, options: [.resetTracking, .removeExistingAnchors])
-          result(["status": "running"])
+        guard granted else {
+          reply.finish(["status": "permission"]); access.cancel(); return
         }
-        // Await AVCapture shutdown before ARKit takes the rear camera.
-        if let vision = VisionPlugin.active { vision.release { _ in run() } }
-        else { run() }
+        let config = ARWorldTrackingConfiguration()
+        config.frameSemantics = .sceneDepth
+        config.worldAlignment = .gravity
+        self.running = true
+        self.lastSent = -Double.infinity
+        self.startedAt = ProcessInfo.processInfo.systemUptime
+        if let runSession = self.runSession { runSession(config) }
+        else { self.session.run(config, options: [.resetTracking, .removeExistingAnchors]) }
+        reply.finish(["status": "running"])
       }
       func authorize() {
-        guard expected == self.generation else { result(["status": "paused"]); return }
-        switch AVCaptureDevice.authorizationStatus(for: .video) {
+        guard expected == self.generation, access.isCurrent else {
+          reply.finish(["status": "paused"]); return
+        }
+        switch self.cameraAuthorizationStatus() {
         case .authorized: begin(true)
         case .notDetermined:
-          AVCaptureDevice.requestAccess(for: .video) { granted in
+          self.requestCameraAccess { granted in
             DispatchQueue.main.async { begin(granted) }
           }
         default: begin(false)
         }
       }
-      if objectsEnabled {
-        work.async { [weak self] in
-          guard let self else { return }
-          do {
-            self.detector = try DepthDetector(arguments: args)
-            DispatchQueue.main.async { authorize() }
-          } catch {
-            self.detector = nil
-            DispatchQueue.main.async {
-              result(["status": expected == self.generation ? "model" : "paused"])
+      access.acquire(stop: { [weak self] acknowledge in
+        guard let self else { acknowledge(true); return }
+        self.stopCaptureHardware(acknowledge)
+      }) { [weak self] acquired in
+        guard let self, acquired, access.isCurrent else { return }
+        if self.objectsEnabled {
+          work.async { [weak self] in
+            guard let self else { return }
+            do {
+              self.detector = try DepthDetector(arguments: args)
+              DispatchQueue.main.async { authorize() }
+            } catch {
+              self.detector = nil
+              DispatchQueue.main.async {
+                reply.finish(["status": expected == self.generation && access.isCurrent ? "model" : "paused"])
+                access.cancel()
+              }
             }
           }
-        }
-      } else { authorize() }
+        } else { authorize() }
+      }
     default: result(FlutterMethodNotImplemented)
     }
   }

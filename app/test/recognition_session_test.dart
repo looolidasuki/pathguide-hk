@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pathguide/tts/announcer.dart';
 import 'package:pathguide/vision/recognition_session.dart';
 import 'package:pathguide/vision/vision_source.dart';
+import 'package:pathguide/vision/detection.dart';
 
 class Camera implements VisionSource {
   final ready = Completer<VisionSourceStatus>();
@@ -31,6 +32,44 @@ class Camera implements VisionSource {
 }
 
 void main() {
+  testWidgets(
+    'expired navigation recognition withdraws speech and recovers on a new frame',
+    (tester) async {
+      final camera = Camera()
+        ..ready.complete(const VisionSourceStatus(ok: true, message: 'ready'));
+      final speaker = _Speaker();
+      final announcer = Announcer(speaker: speaker);
+      final session = RecognitionSession(
+        createSource: () => camera,
+        announcer: announcer,
+      );
+      await session.setRunning(true);
+      const frame = VisionFrame(
+        detections: [
+          Detection(id: 7, score: .95, cx: .5, cy: .5, w: .2, h: .2),
+        ],
+        inferenceMs: 2,
+        frameWidth: 100,
+        frameHeight: 100,
+      );
+      camera.events.add(frame);
+      await tester.pump();
+      expect(session.frame, isNotNull);
+      final stops = speaker.stops;
+      await tester.pump(const Duration(seconds: 3));
+      expect(session.frame, isNull);
+      expect(announcer.enabled, isFalse);
+      expect(speaker.stops, greaterThan(stops));
+      expect(session.status, contains('結果已過期'));
+      camera.events.add(frame);
+      await tester.pump();
+      expect(session.frame, isNotNull);
+      expect(announcer.enabled, isTrue);
+      session.dispose();
+      await tester.pump();
+      await camera.events.close();
+    },
+  );
   test(
     'late camera permission after stop cannot restart or retain frames',
     () async {
@@ -42,6 +81,11 @@ void main() {
       final start = session.setRunning(true);
       await Future<void>.delayed(Duration.zero);
       final stop = session.setRunning(false);
+      expect(
+        camera.disposed,
+        1,
+        reason: 'Release must reach native before permission returns',
+      );
       camera.ready.complete(
         const VisionSourceStatus(ok: true, message: 'ready'),
       );
@@ -109,4 +153,12 @@ void main() {
       session.dispose();
     },
   );
+}
+
+class _Speaker extends NullSpeaker {
+  int stops = 0;
+  @override
+  Future<void> stop() async {
+    stops++;
+  }
 }
