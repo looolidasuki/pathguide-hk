@@ -1,0 +1,565 @@
+Resolving dependencies...
+Downloading packages...
+  _flutterfire_internals 1.3.77 (1.3.79 available)
+  cloud_firestore 6.10.0 (7.1.0 available)
+  cloud_firestore_platform_interface 8.0.7 (8.1.0 available)
+  cloud_firestore_web 5.7.3 (5.8.0 available)
+  cloud_functions 6.5.0 (7.0.1 available)
+  cloud_functions_platform_interface 6.0.7 (6.1.1 available)
+  cloud_functions_web 5.1.13 (5.1.15 available)
+  code_assets 1.2.1 (2.2.0 available)
+  crypto 3.0.7 (3.0.8 available)
+  cupertino_icons 1.0.9 (2.0.0 available)
+  firebase_app_check 0.4.8 (0.5.1 available)
+  firebase_app_check_platform_interface 0.4.2+1 (0.5.1+3 available)
+  firebase_app_check_web 0.2.6+1 (0.3.1+3 available)
+  firebase_auth 6.7.0 (7.0.1 available)
+  firebase_auth_platform_interface 9.1.0 (9.1.2 available)
+  firebase_auth_web 6.3.0 (6.3.2 available)
+  firebase_core 4.15.0 (5.1.0 available)
+  firebase_core_web 3.12.0 (4.1.0 available)
+  google_sign_in_ios 6.3.8 (6.4.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  jni 1.1.0 (1.1.2 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  meta 1.18.3 (1.19.0 available)
+  objective_c 9.5.0 (9.6.3 available)
+  petitparser 7.0.2 (7.1.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  shared_preferences_android 2.4.28 (2.5.4 available)
+  shared_preferences_foundation 2.5.7 (2.6.1 available)
+  test_api 0.7.12 (0.7.15 available)
+  vector_math 2.4.0 (2.4.4 available)
+  vm_service 15.3.0 (15.4.0 available)
+  web 1.1.1 (1.1.2 available)
+  xml 7.0.1 (7.1.0 available)
+Got dependencies!
+33 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading P:/app/test/account_controller_test.dart
+00:00 +0: P:/app/test/account_controller_test.dart: phone normalization preserves E164 and rejects dial URI injection
+00:00 +1: P:/app/test/account_controller_test.dart: guest stays signed out and sign-in requires agreement
+00:00 +2: P:/app/test/account_controller_test.dart: cancelled Google sign-in creates no profile
+00:00 +3: P:/app/test/account_controller_test.dart: account initialization retries with the same UID
+00:00 +4: P:/app/test/account_controller_test.dart: contact can be skipped, saved, changed and removed
+00:00 +5: P:/app/test/account_controller_test.dart: sign-out clears contact and account information
+00:00 +6: P:/app/test/account_controller_test.dart: old account delayed save cannot populate new account or cache
+00:00 +7: P:/app/test/account_controller_test.dart: restored same account can call secure cached contact when offline
+00:00 +8: P:/app/test/account_controller_test.dart: offline contact stays callable while profile refresh is pending
+00:00 +9: P:/app/test/account_controller_test.dart: dialer failure is explicit
+00:00 +10: P:/app/test/account_controller_test.dart: cancelled reauthentication does not delete contact
+00:00 +11: P:/app/test/account_controller_test.dart: interrupted identity deletion leaves guard and is retryable
+00:00 +12: P:/app/test/account_controller_test.dart: secure cache is owner scoped, validates data, and clears on logout
+test/captured_route_store_test.dart:115:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+    testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                     ^
+00:00 +13: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +13 -1: loading P:/app/test/captured_route_store_test.dart [E]
+  Failed to load "P:/app/test/captured_route_store_test.dart":
+  Compilation failed for testPath=P:/app/test/captured_route_store_test.dart: test/captured_route_store_test.dart:115:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+      testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                       ^
+  .
+00:00 +14 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +15 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +16 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +17 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +18 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +19 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +20 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +21 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +22 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +23 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +24 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +25 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +26 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +27 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +28 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +29 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +30 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +31 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +32 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +33 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +34 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +35 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +36 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +37 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +38 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +39 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:00 +40 -1: P:/app/test/account_ui_test.dart: unconfigured account explains status and keeps visitor usable
+00:01 +41 -1: P:/app/test/app_language_test.dart: switching language updates menus and retains the current task page
+00:02 +42 -1: P:/app/test/account_ui_test.dart: Google login can skip optional contact and returns to original task
+00:02 +43 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +44 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +45 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +46 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +47 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +48 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +49 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +50 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +51 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +52 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +53 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +54 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +55 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +56 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +57 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +58 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +59 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +60 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +61 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:02 +62 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+test/encrypted_route_store_test.dart:74:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+    testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                     ^
+00:03 +63 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +64 -1: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +64 -2: loading P:/app/test/encrypted_route_store_test.dart [E]
+  Failed to load "P:/app/test/encrypted_route_store_test.dart":
+  Compilation failed for testPath=P:/app/test/encrypted_route_store_test.dart: test/encrypted_route_store_test.dart:74:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+      testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                       ^
+  .
+00:03 +65 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +66 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +67 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +68 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +69 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +70 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +71 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +72 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +73 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +74 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +75 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +76 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +77 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +78 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +79 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +80 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +81 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +82 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +83 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +84 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +85 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +86 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +87 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +88 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +89 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +90 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:03 +91 -2: P:/app/test/account_ui_test.dart: contact editor saves, calls only on user action, and hides old UID
+00:04 +92 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +93 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +94 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +95 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +96 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +97 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +98 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +99 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +100 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:04 +101 -2: P:/app/test/cross_floor_integration_test.dart: home opens cross-floor preset; leaving pauses both mocks without hardware
+00:05 +102 -2: P:/app/test/depth_ui_test.dart: empty and stale observations can be read and recovered chinese
+00:05 +103 -2: P:/app/test/cross_floor_mock_page_test.dart: journey chinese narrow 2x
+00:05 +104 -2: P:/app/test/depth_ui_test.dart: empty and stale observations can be read and recovered english
+00:05 +105 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +106 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +107 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +108 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +109 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +110 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +111 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +112 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +113 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +114 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +115 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:05 +116 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +117 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +118 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +119 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +120 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +121 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +122 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +123 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +124 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +125 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +126 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +127 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +128 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +129 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +130 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +131 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +132 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +133 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +134 -2: P:/app/test/cross_floor_mock_page_test.dart: journey english narrow 2x
+00:06 +135 -2: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts english
+00:06 +136 -2: P:/app/test/depth_ui_test.dart: shows refusal cause and depth point counts english
+00:06 +137 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +138 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +139 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +140 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +141 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +142 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +143 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +144 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +145 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +146 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +147 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +148 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +149 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +150 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +151 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +152 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +153 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +154 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +155 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +156 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +157 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +158 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +159 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +160 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +161 -2: P:/app/test/cross_floor_mock_page_test.dart: critical clears readback
+00:06 +162 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +163 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +164 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +165 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +166 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +167 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +168 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +169 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +170 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:06 +171 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +172 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +173 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +174 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +175 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +176 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +177 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +178 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +179 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +180 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +181 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +182 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +183 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +184 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +185 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +186 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +187 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +188 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +189 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +190 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +191 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +192 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +193 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +194 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +195 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +196 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +197 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +198 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +199 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +200 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +201 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +202 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +203 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +204 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +205 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +206 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +207 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +208 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +209 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +210 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +211 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +212 -2: P:/app/test/graph_replay_ui_test.dart: large text fixed replay controls remain usable in chinese
+00:07 +213 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +214 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +215 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +216 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +217 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +218 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +219 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +220 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +221 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +222 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +223 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +224 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +225 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +226 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +227 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +228 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:07 +229 -2: P:/app/test/ios_demo_test.dart: navigation entry exposes search without starting camera or location
+00:08 +230 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +231 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +232 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +233 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +234 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +235 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +236 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +237 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +238 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +239 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +240 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +241 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +242 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +243 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +244 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +245 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +246 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +247 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +248 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +249 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +250 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +251 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +252 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +253 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +254 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +255 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +256 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +257 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +258 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +259 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +260 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +261 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +262 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +263 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +264 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +265 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +266 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +267 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +268 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +269 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +270 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +271 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:08 +272 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+test/captured_route_store_test.dart:115:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+    testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                     ^
+00:09 +273 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +274 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +275 -2: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +275 -3: loading P:/app/test/route_floor_evidence_test.dart [E]
+  Failed to load "P:/app/test/route_floor_evidence_test.dart":
+  Compilation failed for testPath=P:/app/test/route_floor_evidence_test.dart: test/captured_route_store_test.dart:115:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+      testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                       ^
+  .
+00:09 +276 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +277 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +278 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +279 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +280 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +281 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +282 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +283 -3: P:/app/test/menu_ui_test.dart: spoken dish automatically searches and reads price without another confirmation
+00:09 +284 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +285 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +286 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +287 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +288 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +289 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +290 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +291 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +292 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +293 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:09 +294 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:10 +295 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:10 +296 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:10 +297 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:10 +298 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:10 +299 -3: P:/app/test/navigation_phase_b_test.dart: large text keeps navigation controls visible while content scrolls
+00:10 +300 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +301 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +302 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +303 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +304 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +305 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +306 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +306 -3: P:/app/test/ios_demo_test.dart: daily recognition hides model and diagnostic controls
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:10 +307 -3: P:/app/test/route_capture_page_test.dart: stop removes the captured photo from the image cache
+00:10 +308 -3: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:10 +309 -3: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:11 +310 -3: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+test/captured_route_store_test.dart:115:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+    testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                     ^
+00:11 +311 -3: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:11 +311 -4: loading P:/app/test/route_journey_page_test.dart [E]
+  Failed to load "P:/app/test/route_journey_page_test.dart":
+  Compilation failed for testPath=P:/app/test/route_journey_page_test.dart: test/captured_route_store_test.dart:115:54: Error: The argument type 'String?' can't be assigned to the parameter type 'bool?'.
+      testWidgets(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+                                                       ^
+  .
+00:11 +312 -4: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:11 +313 -4: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:11 +314 -4: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:11 +315 -4: P:/app/test/navigation_test.dart: navigation session lifecycle accessible flow searches, previews and pauses on actual background
+00:11 +316 -4: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:11 +317 -4: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:11 +318 -4: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:11 +319 -4: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:12 +320 -4: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:12 +321 -4: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:12 +322 -4: P:/app/test/ios_demo_test.dart: model selector reloads matching model and class mapping
+00:12 +323 -4: P:/app/test/menu_ui_test.dart: user tea menu voice query automatically reads variant prices
+00:12 +324 -4: P:/app/test/ios_demo_test.dart: technical diagnostics stay collapsed until requested
+00:12 +325 -4: P:/app/test/menu_ui_test.dart: raw OCR dialog copies local diagnostics including geometry
+00:12 +326 -4: P:/app/test/ios_demo_test.dart: slow speech stop does not block mock startup
+00:12 +327 -4: P:/app/test/menu_ui_test.dart: phone OCR geometry automatically reads the queried dish price
+00:12 +328 -4: P:/app/test/ios_demo_test.dart: iPhone boots into the native camera and keeps mock mode available
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:13 +329 -4: P:/app/test/ios_demo_test.dart: threshold and label controls affect the real overlay
+00:13 +330 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +331 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +332 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +333 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +334 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +335 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +336 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +337 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +338 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +339 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:13 +340 -4: P:/app/test/ios_demo_test.dart: speech threshold changes announcements without hiding boxes
+00:14 +341 -4: P:/app/test/route_landmark_client_test.dart: cancel acknowledgement cannot block lifecycle shutdown indefinitely
+00:14 +342 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +343 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +344 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +345 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +346 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +347 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +348 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +349 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +350 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +351 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +352 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +353 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +354 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +355 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +356 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +357 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +358 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +359 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +360 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +361 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +362 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +363 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +364 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +365 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +366 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +367 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +368 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +369 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:14 +370 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +371 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +372 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +373 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +374 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +375 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +376 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +377 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +378 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +379 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +380 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +381 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +382 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +383 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +384 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +385 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +386 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +387 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +388 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +389 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +390 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:15 +391 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:16 +392 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:16 +393 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:16 +394 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:16 +395 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:16 +396 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:16 +397 -4: P:/app/test/route_library_page_test.dart: layout: zh/en 320x568 textScale2 keyboard insets
+00:16 +398 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +399 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +400 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +401 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +402 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +403 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +404 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +405 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +406 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +407 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +408 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +409 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +410 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +411 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +412 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +413 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +414 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +415 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +416 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +417 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +418 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +419 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +420 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +421 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +422 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +423 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +424 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:16 +425 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:17 +426 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:17 +427 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:17 +428 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:17 +429 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:17 +429 -4: P:/app/test/ios_demo_test.dart: silent camera withdraws old boxes and replay never reads the old object
+HUD fps=7.4 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:17 +430 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:17 +431 -4: P:/app/test/route_memory_integration_test.dart: chinese: developer entry preserves mock routes across leave and section switches without hardware
+00:17 +431 -4: P:/app/test/ios_demo_test.dart: silent camera withdraws old boxes and replay never reads the old object
+HUD fps=7.4 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.4 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.4 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.4 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=7.4 inf=0.0ms det=1 paint=1 speakMin=0.70 boxes=[(375,174,49x87)] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+HUD fps=0.0 inf=0.0ms det=0 paint=0 speakMin=0.70 boxes=[] analyzed=0 nativeDet=0 maxScore=0.000 invalid=0 reasons=- fit=0.341 frame=0x0 rot=90 src=720x1280 decode= skip=- err=-
+00:17 +432 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +433 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +434 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +435 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +436 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +437 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +438 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +439 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +440 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +441 -4: P:/app/test/route_memory_mock_page_test.dart: record, save, replay, confirm arrival, delete
+00:17 +442 -4: P:/app/test/ios_demo_test.dart: silent camera withdraws old boxes and replay never reads the old object
+00:17 +443 -4: P:/app/test/ios_demo_test.dart: silent camera withdraws old boxes and replay never reads the old object
+00:17 +444 -4: P:/app/test/ios_demo_test.dart: silent camera withdraws old boxes and replay never reads the old object
+00:17 +445 -4: P:/app/test/route_library_page_test.dart: dialog invalidated by lifecycle; refresh resumes
+00:18 +446 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +447 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +448 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +449 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +450 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +451 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +452 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +453 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +454 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +455 -4: P:/app/test/route_memory_integration_test.dart: english: developer entry preserves mock routes across leave and section switches without hardware
+00:18 +456 -4: P:/app/test/ios_demo_test.dart: automatic entry stays compact and replay is optional
+00:18 +457 -4: P:/app/test/ios_demo_test.dart: automatic entry stays compact and replay is optional
+00:18 +458 -4: P:/app/test/ios_demo_test.dart: automatic entry stays compact and replay is optional
+00:18 +459 -4: P:/app/test/ios_demo_test.dart: screen reader reads requested results without duplicate TTS
+00:19 +460 -4: P:/app/test/ios_demo_test.dart: screen reader automatically announces objects without TTS
+00:19 +461 -4: P:/app/test/ios_demo_test.dart: enabling screen reader keeps automatic announcements enabled
+00:19 +462 -4: P:/app/test/ios_demo_test.dart: settings modal suspends automatic environment speech
+00:19 +463 -4: P:/app/test/ios_demo_test.dart: camera permission failure exposes explicit retry
+00:20 +464 -4: P:/app/test/ios_demo_test.dart: pausing during native startup discards the delayed result
+00:20 +465 -4: P:/app/test/ios_demo_test.dart: manual pause remains paused after interruption
+00:21 +466 -4: P:/app/test/ios_demo_test.dart: permission dialog returns to the same pending startup
+00:21 +467 -4: P:/app/test/ios_demo_test.dart: recognition controls have labels and minimum touch targets
+00:21 +468 -4: P:/app/test/ios_demo_test.dart: two times text retains fixed task controls and scrollable teaching
+00:21 +469 -4: Some tests failed.
+
+Failing tests:
+  P:/app/test/captured_route_store_test.dart: loading P:/app/test/captured_route_store_test.dart
+  P:/app/test/encrypted_route_store_test.dart: loading P:/app/test/encrypted_route_store_test.dart
+  P:/app/test/route_floor_evidence_test.dart: loading P:/app/test/route_floor_evidence_test.dart
+  P:/app/test/route_journey_page_test.dart: loading P:/app/test/route_journey_page_test.dart

@@ -334,48 +334,97 @@ Patch-Overlay $uiTest 'menu_ui_test: 廠商名三分支測試' `
     '線上語音的廠商名：iOS=Apple' `
     ('void main() {' + $LF) `
     $vendorTest
+# ================================================================ 8. route_memory 的 Windows 相容
+#
+# 兩件事，都是「上游在 macOS／POSIX 看不到、Windows 上必炸」的類型：
+#
+# (a) `_key()` 用 `f.path.endsWith('/.lock')` 判斷鎖檔，但 Windows 的 File.path 用反斜線，
+#     於是鎖檔被當成「已有資料但沒有金鑰」→ 每次開檔都 RouteStoreFailure(keyUnavailable)。
+#     這是**真 bug**（POSIX 掩蓋了它），所以修程式，不跳測試。
+#
+# (b) 有幾條測試刻意在 store 仍持有 .lock 時刪檔／模擬崩潰。POSIX 允許刪除已打開的檔案，
+#     Windows 回 PathAccessException(errno 32)。那是平台語義差異、不是產品缺陷，
+#     所以只在 Windows 跳過那幾條，並寫明真正的原因（不要用假理由蓋掉真 bug）。
+$storeFile = 'app/lib/route_memory/encrypted_route_store.dart'
+Patch-Overlay $storeFile 'route_store: .lock 用路徑末段判斷' `
+    "name != '.lock'" `
+    "          if (f is File && !f.path.endsWith('/.lock')) {" `
+    (@(
+        '          // ★ 用路徑的**最後一段**判斷，不要比對 ''/.lock''：',
+        '          //   Windows 的 File.path 用反斜線，''...\.lock''.endsWith(''/.lock'') 恆為 false，',
+        '          //   於是鎖檔會被當成「已有資料但沒有金鑰」，每次開檔都丟 keyUnavailable。',
+        '          //   這個 bug 只在非 POSIX 平台出現，Android／iOS 都看不到。',
+        '          final name = f.uri.pathSegments.isEmpty',
+        '              ? ""',
+        '              : f.uri.pathSegments.last;',
+        '          if (f is File && name != ''.lock'') {'
+    ) -join $LF)
 
-# ================================================================ 8. Keychain 平台守衛
-$keychainGuards = @(
-    @{ File = 'app/test/captured_route_store_test.dart'; Label = 'captured route store' },
-    @{ File = 'app/test/encrypted_route_store_test.dart'; Label = 'encrypted route store' },
-    @{ File = 'app/test/route_journey_page_test.dart'; Label = 'route journey page' },
-    @{ File = 'app/test/route_record_replay_test.dart'; Label = 'route record replay' }
-)
-foreach ($g in $keychainGuards) {
-    $rel = $g.File
-    $full = Join-Path $repo $rel
-    if (-not (Test-Path $full)) { Add-Err "缺少檔案：$rel（Keychain 守衛）"; continue }
-    $text = [System.IO.File]::ReadAllText($full)
-    if ($text.Contains('Platform.isMacOS')) { $script:skipped++; continue }
+$winHelper = @(
+    '// Windows 允許「刪除已打開的檔案」嗎？不可以（POSIX 可以）。',
+    '// 下面這些測試刻意在 store 仍持有 `.lock` 時刪檔／模擬崩潰，',
+    '// 在 Windows 上必然得到 PathAccessException(errno 32) → RouteStoreFailure(io)。',
+    '// Android/iOS 是 POSIX，行為正確；所以只在 Windows 跳過，並寫明真正的原因，',
+    '// 不要用「需要 Keychain」之類的假理由（會蓋掉真 bug）。',
+    'const _winLockSkip =',
+    "    'Windows 無法刪除已打開的 .lock（POSIX 允許；Android/iOS 不受影響）';",
+    '',
+    'void destructiveTest(String name, Future<void> Function() body) =>',
+    '    test(name, body, skip: Platform.isWindows ? _winLockSkip : null);',
+    '',
+    '// testWidgets 的 skip 只收 bool，帶不上原因字串；真正的原因寫在 _winLockSkip 的註解裡。',
+    'void destructiveWidgetTest(String name, WidgetTesterCallback body) =>',
+    '    testWidgets(name, body, skip: Platform.isWindows);',
+    '',
+    'void main() {'
+) -join $LF
 
-    $needsImport = -not $text.Contains("import 'dart:io';")
-    $guardLines = @(
-        'void main() {',
-        '  // ★ 平台守衛：路線記憶的加密儲存用 iOS Keychain 保管金鑰；',
-        '  //   非 macOS 的開發機拿不到金鑰，全部案例會以 RouteStoreFailure(keyUnavailable)',
-        '  //   失敗 —— 那是環境限制，不是產品缺陷：整檔跳過並寫明原因。',
-        '  if (!Platform.isMacOS) {',
-        ("    test('" + $g.Label + " 需要 iOS Keychain', () {},"),
-        ("        skip: '需要 macOS/iOS Keychain（本機：" + '${Platform.operatingSystem}' + "）');"),
-        '    return;',
-        '  }',
-        ''
-    )
-    $guard = $guardLines -join $LF
-    $a = Match-Eol $text ('void main() {' + $LF)
-    $gu = Match-Eol $text $guard
-    if (-not $text.Contains($a)) { Add-Err "錨點找不到：$rel 的 void main()"; continue }
-    if ($Check) { $script:changed++; Write-Host "PENDING  guard    $rel$(if ($needsImport) { '（另需 dart:io import）' })"; continue }
-    $new = $text.Replace($a, $gu)
-    if ($needsImport) {
-        $imp = "import 'package:flutter_test/flutter_test.dart';"
-        $new = $new.Replace($imp, "import 'dart:io';" + $LF + $LF + $imp)
-    }
-    [System.IO.File]::WriteAllText($full, $new, $utf8)
-    $script:changed++
-    Write-Host "PATCHED  guard    $rel"
-}
+$captured = 'app/test/captured_route_store_test.dart'
+Patch-Overlay $captured 'captured_store_test: Windows 鎖語義 helper' `
+    'void destructiveTest(String name' `
+    ('void main() {' + $LF) `
+    $winHelper
+
+Patch-Overlay $captured 'captured_store_test: 包裝 for 迴圈的兩條' `
+    'destructiveTest(''$cancel cancels media waiting' `
+    '    test(''$cancel cancels media waiting before catalog publication'', () async {' `
+    '    destructiveTest(''$cancel cancels media waiting before catalog publication'', () async {'
+
+Patch-Overlay $captured 'captured_store_test: 包裝 crash 那條' `
+    'destructiveTest(''a crash after media write' `
+    'test(''a crash after media write preserves old pointer; explicit cleanup removes orphans'',' `
+    'destructiveTest(''a crash after media write preserves old pointer; explicit cleanup removes orphans'','
+
+Patch-Overlay $captured 'captured_store_test: 包裝 tampered 那條' `
+    'destructiveTest(''tampered image blocks latest version' `
+    'test(''tampered image blocks latest version; explicit rollback recovers and delete removes all media'',' `
+    'destructiveTest(''tampered image blocks latest version; explicit rollback recovers and delete removes all media'','
+
+$encrypted = 'app/test/encrypted_route_store_test.dart'
+Patch-Overlay $encrypted 'encrypted_store_test: Windows 鎖語義 helper' `
+    'void destructiveTest(String name' `
+    ('void main() {' + $LF) `
+    $winHelper
+
+Patch-Overlay $encrypted 'encrypted_store_test: 包裝 corrupt active 那條' `
+    ('destructiveTest(' + $LF + '    ''corrupt active version preserved') `
+    ('test(' + $LF + '    ''corrupt active version preserved; explicit verified older rollback works'',') `
+    ('destructiveTest(' + $LF + '    ''corrupt active version preserved; explicit verified older rollback works'',')
+
+Patch-Overlay $encrypted 'encrypted_store_test: 包裝 failure before catalog 那條' `
+    'destructiveTest(''failure before catalog switch' `
+    'test(''failure before catalog switch leaves stable active version and orphan ignored'', () async {' `
+    'destructiveTest(''failure before catalog switch leaves stable active version and orphan ignored'', () async {'
+
+Patch-Overlay $encrypted 'encrypted_store_test: 包裝 route namespace 那條' `
+    ('destructiveTest(' + $LF + '    ''route namespace and key') `
+    ('test(' + $LF + '    ''route namespace and key do not touch photo queue or another library'',') `
+    ('destructiveTest(' + $LF + '    ''route namespace and key do not touch photo queue or another library'',')
+
+Patch-Overlay $encrypted 'encrypted_store_test: 包裝 explicit pruning 那條' `
+    'destructiveTest(''explicit pruning retains active' `
+    '  test(''explicit pruning retains active, verified fallback and draft, with monotonic versions'', () async {' `
+    '  destructiveTest(''explicit pruning retains active, verified fallback and draft, with monotonic versions'', () async {'
 
 # ================================================================ 結果
 Write-Host ''

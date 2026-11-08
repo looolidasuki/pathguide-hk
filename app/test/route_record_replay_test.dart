@@ -23,13 +23,6 @@ class Vault implements RouteKeyVault {
 }
 
 void main() {
-  // ★ 平台守衛（同 captured_route_store_test）：路線記憶的加密儲存需要
-  //   iOS Keychain 保管金鑰；非 macOS 開發機會以 keyUnavailable 全數失敗。
-  if (!Platform.isMacOS) {
-    test('route memory 需要 iOS Keychain', () {},
-        skip: '需要 macOS/iOS Keychain（本機：）');
-    return;
-  }
   TestWidgetsFlutterBinding.ensureInitialized();
   late Directory root;
   late RecordedRouteController c;

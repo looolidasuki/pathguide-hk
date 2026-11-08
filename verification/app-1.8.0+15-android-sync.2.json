@@ -1,0 +1,50 @@
+{
+  "date": "2026-10-23",
+  "appVersion": "1.8.0+15",
+  "tag": "v1.8.0+15-android-sync.2",
+  "type": "defect-fix-and-test-hygiene",
+  "previousCheckpoint": {
+    "tag": "v1.8.0+15-android-sync.1",
+    "appVersion": "1.8.0+15"
+  },
+  "change": {
+    "realDefectFixed": {
+      "file": "app/lib/route_memory/encrypted_route_store.dart",
+      "problem": "_key() compared the lock file with f.path.endsWith('/.lock'); Windows File.path uses backslashes, so the lock file was treated as 'existing data without a key' and every open threw RouteStoreFailure(keyUnavailable).",
+      "fix": "compare the last path segment via f.uri.pathSegments.last instead of a POSIX suffix",
+      "platformsAffected": "Windows only; Android/iOS (POSIX) were never affected",
+      "whyItMattered": "This line was raising a false signal that looked like a Keychain requirement"
+    },
+    "wrongDiagnosisCorrected": {
+      "earlierClaim": "4 route-memory test files were skipped because they require iOS Keychain",
+      "actualCause": "one POSIX-only path comparison plus Windows refusing to delete an open file (errno 32 on .lock)",
+      "evidence": "tearDown/open produced PathAccessException 'Cannot delete file ...\\.lock (OS Error: 另一个程序正在使用此文件, errno = 32)'"
+    },
+    "testHygiene": {
+      "removed": "whole-file skips for captured_route_store_test / encrypted_route_store_test / route_journey_page_test / route_record_replay_test",
+      "added": "per-test Windows skips only for the 8 cases that delete/corrupt files while the store holds .lock, each labelled with the true cause",
+      "effect": "Flutter suite went from 457 passed / 4 files skipped to 512 passed / 8 tests skipped"
+    },
+    "overlayScriptUpdated": {
+      "file": "scripts/apply_android_overlay.ps1",
+      "section8": "now patches the .lock fix and the Windows lock-skip helpers/wrappers instead of Keychain whole-file guards",
+      "checkItems": 38
+    }
+  },
+  "verification": {
+    "flutterTestsPassed": 512,
+    "flutterTestsSkipped": 8,
+    "pythonTestsPassed": 475,
+    "pythonTestsSkipped": 1,
+    "flutterAnalyze": "No issues found",
+    "overlayCheck": "OVERLAY OK (38 items present)",
+    "androidDebugApkBuilt": true,
+    "deviceInstalled": false,
+    "androidManualTestRun": false
+  },
+  "knownLimitations": [
+    "The 8 skipped tests exercise deletion of a file the store holds open; Windows forbids it, POSIX allows it. They run in full on macOS/CI.",
+    "No Android device or iOS build was available, so no runtime verification of route memory was performed; the storage layer itself is Dart-level (path_provider + flutter_secure_storage) and platform-neutral by construction.",
+    "Android route-memory CAPTURE (camera/landmark plugins) is still iOS-only upstream and remains the next real parity gap."
+  ]
+}

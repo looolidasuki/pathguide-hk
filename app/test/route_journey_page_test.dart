@@ -20,13 +20,6 @@ import 'captured_route_store_test.dart' show capturedDocument, capturedMedia;
 import 'route_camera_fixture.dart';
 
 void main() {
-  // ★ 平台守衛（同 captured_route_store_test）：路線記憶的加密儲存需要
-  //   iOS Keychain 保管金鑰；非 macOS 開發機會以 keyUnavailable 全數失敗。
-  if (!Platform.isMacOS) {
-    test('route memory 需要 iOS Keychain', () {},
-        skip: '需要 macOS/iOS Keychain（本機：）');
-    return;
-  }
   for (final language in AppLanguage.values) {
     testWidgets(
       '${language.name}: floor and lift choices are accessible at double text size',

@@ -58,16 +58,22 @@ RouteDocument document({
 Matcher fails(RouteProblem problem) =>
     isA<RouteStoreFailure>().having((e) => e.problem, 'problem', problem);
 
+
+// Windows 允許「刪除已打開的檔案」嗎？不可以（POSIX 可以）。
+// 下面這些測試刻意在 store 仍持有 `.lock` 時刪檔／模擬崩潰，
+// 在 Windows 上必然得到 PathAccessException(errno 32) → RouteStoreFailure(io)。
+// Android/iOS 是 POSIX，行為正確；所以只在 Windows 跳過，並寫明真正的原因，
+// 不要用「需要 Keychain」之類的假理由（會蓋掉真 bug）。
+const _winLockSkip =
+    'Windows 無法刪除已打開的 .lock（POSIX 允許；Android/iOS 不受影響）';
+
+void destructiveTest(String name, Future<void> Function() body) =>
+    test(name, body, skip: Platform.isWindows ? _winLockSkip : null);
+
+void destructiveWidgetTest(String name, WidgetTesterCallback body) =>
+    testWidgets(name, body, skip: Platform.isWindows);
+
 void main() {
-  // ★ 平台守衛（同 captured_route_store_test）：加密路線儲存的金鑰來自
-  //   iOS Keychain。非 macOS 的開發機拿不到金鑰，全部案例會以
-  //   RouteStoreFailure(keyUnavailable) 失敗 —— 環境限制，不是產品缺陷。
-  //   整檔跳過並寫明原因；上游在 Mac 上照舊全跑。
-  if (!Platform.isMacOS) {
-    test('encrypted route store 需要 iOS Keychain', () {},
-        skip: '需要 macOS/iOS Keychain（本機：${Platform.operatingSystem}）');
-    return;
-  }
   late Directory root;
   late MemoryRouteVault vault;
   late EncryptedRouteStore store;
@@ -221,7 +227,7 @@ void main() {
       );
     },
   );
-  test(
+  destructiveTest(
     'corrupt active version preserved; explicit verified older rollback works',
     () async {
       await put();
@@ -249,7 +255,7 @@ void main() {
       expect((await store.read('route-a')).version, 1);
     },
   );
-  test('failure before catalog switch leaves stable active version and orphan ignored', () async {
+  destructiveTest('failure before catalog switch leaves stable active version and orphan ignored', () async {
     await put();
     final broken = await EncryptedRouteStore.open(
       root: root,
@@ -427,7 +433,7 @@ void main() {
       expect((await store.read('other')).version, 1);
     },
   );
-  test(
+  destructiveTest(
     'route namespace and key do not touch photo queue or another library',
     () async {
       final photo = File('${root.path}/private_photo_queue_v1/keep.enc');
@@ -454,7 +460,7 @@ void main() {
     await expectLater(put(doc: bad), throwsA(fails(RouteProblem.invalid)));
     expect((await store.list()).routes, isEmpty);
   });
-  test('explicit pruning retains active, verified fallback and draft, with monotonic versions', () async {
+  destructiveTest('explicit pruning retains active, verified fallback and draft, with monotonic versions', () async {
     for (var i = 0; i < 4; i++) {
       await put(revision: i);
     }

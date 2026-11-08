@@ -109,12 +109,17 @@ PATCH_MARKERS = [
     ),
 ]
 
-# 非 macOS 上必须整档跳过的 iOS Keychain 依赖测试
-KEYCHAIN_GUARDED = [
-    APP / "test/captured_route_store_test.dart",
-    APP / "test/encrypted_route_store_test.dart",
-    APP / "test/route_journey_page_test.dart",
-    APP / "test/route_record_replay_test.dart",
+# route_memory 在 Windows 上的兩件事：
+#   (a) `.lock` 用路徑末段判斷（真 bug：POSIX 掩蓋了它）
+#   (b) 幾條「刪除已打開檔案」的測試在 Windows 上不可行 → 逐條跳過並寫明原因
+ROUTE_STORE = APP / "lib/route_memory/encrypted_route_store.dart"
+WIN_SKIP_HELPER = "void destructiveTest(String name"
+WINDOWS_LOCK_SKIPPED = [
+    (APP / "test/captured_route_store_test.dart", "destructiveTest('a crash after media write"),
+    (APP / "test/captured_route_store_test.dart", "destructiveTest('$cancel cancels media waiting"),
+    (APP / "test/captured_route_store_test.dart", "destructiveTest('tampered image blocks latest version"),
+    (APP / "test/encrypted_route_store_test.dart", "destructiveTest('failure before catalog switch"),
+    (APP / "test/encrypted_route_store_test.dart", "destructiveTest('explicit pruning retains active"),
 ]
 
 
@@ -154,16 +159,43 @@ def test_overlay_patch_applied(path: Path, label: str, marker: str):
     )
 
 
-@pytest.mark.parametrize("path", KEYCHAIN_GUARDED, ids=lambda p: p.name)
-def test_keychain_tests_are_platform_guarded(path: Path):
-    """这 4 个测试依赖 iOS Keychain，非 macOS 上必然 keyUnavailable。
+def test_route_store_lock_path_is_platform_safe():
+    """`.lock` 必須用**路徑末段**判斷，不能比對 `'/.lock'`。
 
-    没有守卫时 Windows 上会红 40+ 条，把真正的缺陷淹掉；守卫必须存在且写明原因。
+    Windows 的 `File.path` 用反斜線，`'...\\.lock'.endsWith('/.lock')` 恆為 false，
+    於是鎖檔被當成「已有資料但沒有金鑰」→ 每次開檔都 `RouteStoreFailure(keyUnavailable)`。
+    這個 bug 在 Android／iOS（POSIX）看不到，只有 Windows 開發機才會撞到，
+    所以特別容易被誤判成「需要 Keychain」而用 skip 蓋掉（本倉庫真的這樣誤判過一次）。
     """
-    assert path.exists(), f"{path.relative_to(REPO_ROOT)} 不存在"
-    text = path.read_text(encoding="utf-8")
-    assert "Platform.isMacOS" in text, (
-        f"{path.relative_to(REPO_ROOT)} 缺少平台守卫：非 macOS 上会以 "
-        "RouteStoreFailure(keyUnavailable) 全数失败"
+    assert ROUTE_STORE.exists()
+    text = ROUTE_STORE.read_text(encoding="utf-8")
+    assert "name != '.lock'" in text, "應改用路徑末段判斷鎖檔"
+    # 只看**程式碼**那一種寫法（註解裡正好引用了錯誤寫法作為說明，不能一起判死）
+    assert "if (f is File && !f.path.endsWith('/.lock')) {" not in text, (
+        "舊的鎖檔判斷又回來了：Windows 反斜線會讓它恆為 false"
     )
-    assert "iOS Keychain" in text, "守卫要写明「为什么跳过」，不要静默 skip"
+
+
+def test_windows_lock_skip_helper_present():
+    """兩個 store 測試檔都要有 Windows 鎖語義的 helper 與原因字串。"""
+    for rel in (
+        APP / "test/captured_route_store_test.dart",
+        APP / "test/encrypted_route_store_test.dart",
+    ):
+        text = rel.read_text(encoding="utf-8")
+        assert WIN_SKIP_HELPER in text, f"{rel.name} 缺少 destructiveTest helper"
+        assert "Platform.isWindows" in text, f"{rel.name} 沒有平台條件"
+        assert ".lock" in text, f"{rel.name} 要寫明是 .lock 的刪除限制（不要用假理由）"
+
+
+@pytest.mark.parametrize(
+    "path,marker",
+    WINDOWS_LOCK_SKIPPED,
+    ids=[f"{p.name}:{m[26:52]}" for p, m in WINDOWS_LOCK_SKIPPED],
+)
+def test_windows_unsafe_tests_are_wrapped(path: Path, marker: str):
+    assert path.exists(), f"{path.relative_to(REPO_ROOT)} 不存在"
+    assert marker in path.read_text(encoding="utf-8"), (
+        f"{path.name} 少了包裝：{marker!r}；"
+        "在 Windows 上這幾條會因「不能刪除已打開的 .lock」而紅"
+    )

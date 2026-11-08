@@ -213,7 +213,14 @@ class EncryptedRouteStore {
           recursive: true,
           followLinks: false,
         )) {
-          if (f is File && !f.path.endsWith('/.lock')) {
+          // ★ 用路徑的**最後一段**判斷，不要比對 '/.lock'：
+          //   Windows 的 File.path 用反斜線，'...\.lock'.endsWith('/.lock') 恆為 false，
+          //   於是鎖檔會被當成「已有資料但沒有金鑰」，每次開檔都丟 keyUnavailable。
+          //   這個 bug 只在非 POSIX 平台出現，Android／iOS 都看不到。
+          final name = f.uri.pathSegments.isEmpty
+              ? ""
+              : f.uri.pathSegments.last;
+          if (f is File && name != '.lock') {
             throw const RouteStoreFailure(RouteProblem.keyUnavailable);
           }
         }
