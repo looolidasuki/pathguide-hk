@@ -19,6 +19,7 @@ import 'package:pathguide/vision/vision_preview.dart';
 void main() {
   final testerBinding = TestWidgetsFlutterBinding.ensureInitialized();
   final visionCalls = <String>[];
+  final thresholdPushes = <double>[];
   final loadedModels = <Map<Object?, Object?>>[];
   final speechCalls = <MethodCall>[];
   var failSpeechSetup = false;
@@ -33,6 +34,7 @@ void main() {
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     visionCalls.clear();
+    thresholdPushes.clear();
     loadedModels.clear();
     speechCalls.clear();
     failSpeechSetup = false;
@@ -85,6 +87,11 @@ void main() {
       const MethodChannel('hk.pathguide/vision'),
       (call) async {
         visionCalls.add(call.method);
+        if (call.method == 'setThreshold') {
+          thresholdPushes.add(
+            ((call.arguments as Map)['threshold'] as num).toDouble(),
+          );
+        }
         if (call.method == 'loadModel') {
           loadedModels.add(Map<Object?, Object?>.from(call.arguments as Map));
         }
@@ -732,6 +739,38 @@ void main() {
     expect(find.byKey(const ValueKey('detection-threshold')), findsNothing);
     expect(find.text('自動播報'), findsOneWidget);
     await close(tester);
+  });
+
+  testWidgets('daily recognition draws only boxes it will announce', (
+    tester,
+  ) async {
+    // 2026-11-23 真機：日常模式曾以 0.30 畫框、0.70 播報，空白暗畫面出現
+    // 不出聲的「樓梯 0.47」全屏框。日常模式的畫框門檻必須等於播報門檻。
+    final settings = AppSettings.memory();
+    await settings.setSpeakThreshold(0.65);
+    await start(tester, initialSection: AppSection.explore, settings: settings);
+    expect(thresholdPushes, isNotEmpty);
+    expect(thresholdPushes.last, closeTo(0.65, 1e-9));
+    await close(tester);
+  });
+
+  test('developer diagnostics keep an independent drawing threshold', () {
+    expect(
+      detectionDisplayThreshold(
+        developerControls: true,
+        developerThreshold: 0.30,
+        speakThreshold: 0.70,
+      ),
+      0.30,
+    );
+    expect(
+      detectionDisplayThreshold(
+        developerControls: false,
+        developerThreshold: 0.30,
+        speakThreshold: 0.70,
+      ),
+      0.70,
+    );
   });
 
   testWidgets('cancelling first-use help does not start camera', (

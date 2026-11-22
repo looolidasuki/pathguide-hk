@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.12.1+31-android-sync.4'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.5'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -1460,6 +1460,236 @@ Patch-Overlay 'app/pubspec.yaml' 'pubspec.yaml: 錄路／前處理 1' `
     '    # Android 路標特徵（MobileNetV3-small 嵌入，來源與雜湊見清單）。iOS 用 Apple Vision，不讀此檔。',
     '    - assets/models/route_landmark_embedder.tflite',
     '    - assets/models/route_landmark_embedder.json'
+) -join $LF)
+
+# ================================================================ 12. 2026-11-23 日常辨識畫框門檻＝播報門檻
+#
+# 日常模式畫框門檻改為播報門檻（舊版 0.30 畫、0.70 說，出現不出聲的低分框）；
+# 開發者診斷頁保留獨立的畫框門檻。測試見 ios_demo_test。
+# 補丁由 scripts/gen_overlay_section.py 產生並驗證逐字重現。
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 1' `
+    (@(
+    'import ''../vision/model_manifest.dart'';',
+    '',
+    '/// 日常辨識只顯示會被播報的框：畫框與播報用同一門檻。',
+    '///',
+    '/// 2026-11-23 真機：日常模式固定 0.30 畫框、0.70 播報，空白暗畫面出現',
+    '/// 「樓梯 0.47」全屏框卻不出聲。看得見的測試者會把這些當成誤認，而依賴',
+    '/// 讀屏的使用者聽不到，畫面與語音資訊不一致。開發者診斷頁保留兩個獨立門檻。',
+    '@visibleForTesting',
+    'double detectionDisplayThreshold({',
+    '  required bool developerControls,',
+    '  required double developerThreshold,',
+    '  required double speakThreshold,',
+    '}) => developerControls ? developerThreshold : speakThreshold;'
+) -join $LF) `
+    'import ''../vision/model_manifest.dart'';' `
+    (@(
+    'import ''../vision/model_manifest.dart'';',
+    '',
+    '/// 日常辨識只顯示會被播報的框：畫框與播報用同一門檻。',
+    '///',
+    '/// 2026-11-23 真機：日常模式固定 0.30 畫框、0.70 播報，空白暗畫面出現',
+    '/// 「樓梯 0.47」全屏框卻不出聲。看得見的測試者會把這些當成誤認，而依賴',
+    '/// 讀屏的使用者聽不到，畫面與語音資訊不一致。開發者診斷頁保留兩個獨立門檻。',
+    '@visibleForTesting',
+    'double detectionDisplayThreshold({',
+    '  required bool developerControls,',
+    '  required double developerThreshold,',
+    '  required double speakThreshold,',
+    '}) => developerControls ? developerThreshold : speakThreshold;'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 2' `
+    (@(
+    '',
+    '  /// 開發者診斷頁的「畫框」門檻（可與播報門檻分開調，供比較）。',
+    '  double _threshold = 0.30;',
+    '',
+    '  /// 實際推給檢測來源的門檻；見 [detectionDisplayThreshold]。',
+    '  double get _drawThreshold => detectionDisplayThreshold(',
+    '    developerControls: widget.developerControls,',
+    '    developerThreshold: _threshold,',
+    '    speakThreshold: widget.settings.speakThreshold,',
+    '  );'
+) -join $LF) `
+    (@(
+    '',
+    '  double _threshold = 0.30;'
+) -join $LF) `
+    (@(
+    '',
+    '  /// 開發者診斷頁的「畫框」門檻（可與播報門檻分開調，供比較）。',
+    '  double _threshold = 0.30;',
+    '',
+    '  /// 實際推給檢測來源的門檻；見 [detectionDisplayThreshold]。',
+    '  double get _drawThreshold => detectionDisplayThreshold(',
+    '    developerControls: widget.developerControls,',
+    '    developerThreshold: _threshold,',
+    '    speakThreshold: widget.settings.speakThreshold,',
+    '  );'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 3' `
+    (@(
+    '          rotationDegrees: 90,',
+    '          threshold: _drawThreshold,'
+) -join $LF) `
+    (@(
+    '          rotationDegrees: 90,',
+    '          threshold: _threshold,'
+) -join $LF) `
+    (@(
+    '          rotationDegrees: 90,',
+    '          threshold: _drawThreshold,'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 4' `
+    (@(
+    '      // 原生相機啟動後才推送閾值；模擬來源同樣由來源負責過濾。',
+    '      source.threshold = _drawThreshold;'
+) -join $LF) `
+    (@(
+    '      // 原生相機啟動後才推送閾值；模擬來源同樣由來源負責過濾。',
+    '      source.threshold = _threshold;'
+) -join $LF) `
+    (@(
+    '      // 原生相機啟動後才推送閾值；模擬來源同樣由來源負責過濾。',
+    '      source.threshold = _drawThreshold;'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 5' `
+    (@(
+    '                    ? Colors.redAccent',
+    '                    : (_diagnostics!.frameMaxScore >= _drawThreshold'
+) -join $LF) `
+    (@(
+    '                    ? Colors.redAccent',
+    '                    : (_diagnostics!.frameMaxScore >= _threshold'
+) -join $LF) `
+    (@(
+    '                    ? Colors.redAccent',
+    '                    : (_diagnostics!.frameMaxScore >= _drawThreshold'
+) -join $LF)
+
+Patch-Overlay 'app/test/ios_demo_test.dart' 'ios_demo_test.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 1' `
+    (@(
+    '  final visionCalls = <String>[];',
+    '  final thresholdPushes = <double>[];'
+) -join $LF) `
+    '  final visionCalls = <String>[];' `
+    (@(
+    '  final visionCalls = <String>[];',
+    '  final thresholdPushes = <double>[];'
+) -join $LF)
+
+Patch-Overlay 'app/test/ios_demo_test.dart' 'ios_demo_test.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 2' `
+    (@(
+    '    visionCalls.clear();',
+    '    thresholdPushes.clear();'
+) -join $LF) `
+    '    visionCalls.clear();' `
+    (@(
+    '    visionCalls.clear();',
+    '    thresholdPushes.clear();'
+) -join $LF)
+
+Patch-Overlay 'app/test/ios_demo_test.dart' 'ios_demo_test.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 3' `
+    (@(
+    '        visionCalls.add(call.method);',
+    '        if (call.method == ''setThreshold'') {',
+    '          thresholdPushes.add(',
+    '            ((call.arguments as Map)[''threshold''] as num).toDouble(),',
+    '          );',
+    '        }'
+) -join $LF) `
+    '        visionCalls.add(call.method);' `
+    (@(
+    '        visionCalls.add(call.method);',
+    '        if (call.method == ''setThreshold'') {',
+    '          thresholdPushes.add(',
+    '            ((call.arguments as Map)[''threshold''] as num).toDouble(),',
+    '          );',
+    '        }'
+) -join $LF)
+
+Patch-Overlay 'app/test/ios_demo_test.dart' 'ios_demo_test.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 4' `
+    (@(
+    '    expect(find.text(''自動播報''), findsOneWidget);',
+    '    await close(tester);',
+    '  });',
+    '',
+    '  testWidgets(''daily recognition draws only boxes it will announce'', (',
+    '    tester,',
+    '  ) async {',
+    '    // 2026-11-23 真機：日常模式曾以 0.30 畫框、0.70 播報，空白暗畫面出現',
+    '    // 不出聲的「樓梯 0.47」全屏框。日常模式的畫框門檻必須等於播報門檻。',
+    '    final settings = AppSettings.memory();',
+    '    await settings.setSpeakThreshold(0.65);',
+    '    await start(tester, initialSection: AppSection.explore, settings: settings);',
+    '    expect(thresholdPushes, isNotEmpty);',
+    '    expect(thresholdPushes.last, closeTo(0.65, 1e-9));',
+    '    await close(tester);',
+    '  });',
+    '',
+    '  test(''developer diagnostics keep an independent drawing threshold'', () {',
+    '    expect(',
+    '      detectionDisplayThreshold(',
+    '        developerControls: true,',
+    '        developerThreshold: 0.30,',
+    '        speakThreshold: 0.70,',
+    '      ),',
+    '      0.30,',
+    '    );',
+    '    expect(',
+    '      detectionDisplayThreshold(',
+    '        developerControls: false,',
+    '        developerThreshold: 0.30,',
+    '        speakThreshold: 0.70,',
+    '      ),',
+    '      0.70,',
+    '    );'
+) -join $LF) `
+    (@(
+    '    expect(find.text(''自動播報''), findsOneWidget);',
+    '    await close(tester);'
+) -join $LF) `
+    (@(
+    '    expect(find.text(''自動播報''), findsOneWidget);',
+    '    await close(tester);',
+    '  });',
+    '',
+    '  testWidgets(''daily recognition draws only boxes it will announce'', (',
+    '    tester,',
+    '  ) async {',
+    '    // 2026-11-23 真機：日常模式曾以 0.30 畫框、0.70 播報，空白暗畫面出現',
+    '    // 不出聲的「樓梯 0.47」全屏框。日常模式的畫框門檻必須等於播報門檻。',
+    '    final settings = AppSettings.memory();',
+    '    await settings.setSpeakThreshold(0.65);',
+    '    await start(tester, initialSection: AppSection.explore, settings: settings);',
+    '    expect(thresholdPushes, isNotEmpty);',
+    '    expect(thresholdPushes.last, closeTo(0.65, 1e-9));',
+    '    await close(tester);',
+    '  });',
+    '',
+    '  test(''developer diagnostics keep an independent drawing threshold'', () {',
+    '    expect(',
+    '      detectionDisplayThreshold(',
+    '        developerControls: true,',
+    '        developerThreshold: 0.30,',
+    '        speakThreshold: 0.70,',
+    '      ),',
+    '      0.30,',
+    '    );',
+    '    expect(',
+    '      detectionDisplayThreshold(',
+    '        developerControls: false,',
+    '        developerThreshold: 0.30,',
+    '        speakThreshold: 0.70,',
+    '      ),',
+    '      0.70,',
+    '    );'
 ) -join $LF)
 
 # ================================================================ 結果

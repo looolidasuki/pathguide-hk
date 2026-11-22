@@ -148,6 +148,11 @@ PATCH_MARKERS = [
         "RoutePlatform.feature.featureRevision",
     ),
     (
+        APP / "lib/ui/demo_page.dart",
+        "日常辨識畫框門檻等於播報門檻（不再出現不出聲的低分框）",
+        "}) => developerControls ? developerThreshold : speakThreshold;",
+    ),
+    (
         APP / "test/menu_ui_test.dart",
         "菜單測試斷言當前平台廠商名",
         "final vendor = onlineVoiceVendorFor(defaultTargetPlatform);",

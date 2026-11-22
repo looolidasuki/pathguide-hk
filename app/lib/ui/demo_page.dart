@@ -39,6 +39,18 @@ import '../photos/photo_controller.dart';
 import '../photos/firebase_photos.dart';
 import '../vision/model_manifest.dart';
 
+/// 日常辨識只顯示會被播報的框：畫框與播報用同一門檻。
+///
+/// 2026-11-23 真機：日常模式固定 0.30 畫框、0.70 播報，空白暗畫面出現
+/// 「樓梯 0.47」全屏框卻不出聲。看得見的測試者會把這些當成誤認，而依賴
+/// 讀屏的使用者聽不到，畫面與語音資訊不一致。開發者診斷頁保留兩個獨立門檻。
+@visibleForTesting
+double detectionDisplayThreshold({
+  required bool developerControls,
+  required double developerThreshold,
+  required double speakThreshold,
+}) => developerControls ? developerThreshold : speakThreshold;
+
 /// 界面可切换的检测来源种类。
 ///
 /// 这个枚举只用来渲染「相机 / 假数据」两个按钮，**不参与运行期分派**——
@@ -320,7 +332,15 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
     }, trigger: trigger);
   }
 
+  /// 開發者診斷頁的「畫框」門檻（可與播報門檻分開調，供比較）。
   double _threshold = 0.30;
+
+  /// 實際推給檢測來源的門檻；見 [detectionDisplayThreshold]。
+  double get _drawThreshold => detectionDisplayThreshold(
+    developerControls: widget.developerControls,
+    developerThreshold: _threshold,
+    speakThreshold: widget.settings.speakThreshold,
+  );
   bool _speakEnabled = true;
   bool _showLabels = true;
   bool _pilotModel = true;
@@ -576,7 +596,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
         return MockVisionSource(
           frameSize: const Size(1280, 720),
           rotationDegrees: 90,
-          threshold: _threshold,
+          threshold: _drawThreshold,
           classIds: _isIOS ? const <int>[6, 11, 7] : null,
         );
     }
@@ -669,7 +689,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
         return;
       }
       // 原生相機啟動後才推送閾值；模擬來源同樣由來源負責過濾。
-      source.threshold = _threshold;
+      source.threshold = _drawThreshold;
       setState(() {
         _sourceReady = status.ok;
         _status = status.message;
@@ -1536,7 +1556,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
                 // 模型最后一层是 sigmoid，分数必在 [0,1]。超过 1 就是解码错了。
                 color: _diagnostics!.frameMaxScore > 1.0
                     ? Colors.redAccent
-                    : (_diagnostics!.frameMaxScore >= _threshold
+                    : (_diagnostics!.frameMaxScore >= _drawThreshold
                           ? Colors.greenAccent
                           : Colors.orangeAccent),
               ),
