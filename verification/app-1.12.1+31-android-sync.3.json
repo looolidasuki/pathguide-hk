@@ -1,0 +1,45 @@
+{
+  "date": "2026-11-22",
+  "appVersion": "1.12.1+31",
+  "tag": "v1.12.1+31-android-sync.3",
+  "type": "android-device-fix",
+  "previousCheckpoint": {
+    "tag": "v1.12.1+31-android-sync.2",
+    "appVersion": "1.12.1+31"
+  },
+  "device": {
+    "model": "2609FRA74T (Redmi)",
+    "android": "16",
+    "install": "adb install -r (data preserved)"
+  },
+  "defectFixed": {
+    "id": "android-system-back-exits-app",
+    "symptom": "System back / back gesture on any task page returned to the launcher instead of the app home page",
+    "cause": "AppShell switches task pages by state (section + overlay flags) rather than routes, and nothing handled system back, so the root route popped and Android left the app. iOS has no system back, so this was not visible upstream",
+    "fix": "AppShell wraps its Scaffold in PopScope: only the home page with no overlay hands back to the platform; elsewhere system back performs the same step as the page's top-left back arrow (overlay first, then the parent section; outdoor navigation still asks before ending an active route via _select)"
+  },
+  "tests": {
+    "newFile": "app/test/android_back_test.dart (4 tests; 3 failed before the fix, home-leaves-app passed before and after)",
+    "flutterTestsPassed": 625,
+    "flutterTestsSkipped": 7,
+    "pythonTestsPassed": 481,
+    "pythonTestsSkipped": 1,
+    "flutterAnalyze": "No issues found",
+    "androidDebugApkBuilt": true
+  },
+  "deviceRetest": {
+    "liveRecognition": "back -> app home, same process, no crash",
+    "readText": "back -> app home",
+    "routeNavigationHub": "back -> app home",
+    "settings": "back -> app home",
+    "myRoutesPushedRoute": "back -> route navigation hub -> back -> app home",
+    "home": "back -> launcher (expected)",
+    "crashLogs": 0,
+    "notCovered": "outdoor navigation with an active route (exit confirmation dialog) was not exercised on device"
+  },
+  "overlayScript": "section 10 (two block patches on app_shell.dart) plus android_back_test.dart in the restored-file list; verified by applying to the pre-fix file and comparing byte-for-byte; default SourceRef -> v1.12.1+31-android-sync.3; -Check reports 45 items ready",
+  "stillOpen": [
+    "Live recognition runs at about 1.7 fps, far below the Initial Report NFR2 target",
+    "Android document scan (multi-page) uses the single-photo path"
+  ]
+}

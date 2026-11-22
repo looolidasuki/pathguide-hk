@@ -38,6 +38,7 @@ OVERLAY_FILES = [
     ANDROID / "res/values-zh-rHK/strings.xml",
     ANDROID / "res/values-zh-rTW/strings.xml",
     APP / "test/menu_platform_test.dart",
+    APP / "test/android_back_test.dart",
 ]
 
 # (档案, 说明, 该出现的「已套用」标记)
@@ -116,6 +117,11 @@ PATCH_MARKERS = [
         APP / "lib/menu/menu_page.dart",
         "回前景途中的 hidden 不當成離開",
         "_lastLifecycle == AppLifecycleState.paused;",
+    ),
+    (
+        APP / "lib/ui/app_shell.dart",
+        "系統返回鍵與左上角返回箭頭一致（只有首頁交還系統）",
+        "onPopInvokedWithResult: (didPop, _) {",
     ),
     (
         APP / "test/menu_ui_test.dart",

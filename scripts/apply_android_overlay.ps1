@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.12.1+31-android-sync.2'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.3'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -124,7 +124,8 @@ $overlayFiles = @(
     'app/android/app/src/main/res/values-zh-rCN/strings.xml',
     'app/android/app/src/main/res/values-zh-rHK/strings.xml',
     'app/android/app/src/main/res/values-zh-rTW/strings.xml',
-    'app/test/menu_platform_test.dart'
+    'app/test/menu_platform_test.dart',
+    'app/test/android_back_test.dart'
 )
 foreach ($f in $overlayFiles) { Restore-OverlayFile $f }
 
@@ -584,6 +585,174 @@ Patch-Overlay 'app/test/menu_ui_test.dart' 'menu_ui_test: 真機修正 1' `
     '      await tester.pumpWidget(const SizedBox());',
     '    },',
     '  );'
+) -join $LF)
+
+# ================================================================ 10. 2026-11-22 Android 系統返回鍵
+#
+# AppShell 以狀態切頁、未接住系統返回 → 任何任務頁按返回都直接離開 App（TalkBack 受影響）。
+# PopScope：只有首頁交還系統；其他頁與左上角返回箭頭做同一件事。測試見 test/android_back_test.dart（新增檔）。
+# 以整塊替換（返回邏輯方法、整個 build()），避免逐行縮排差異造成誤判。
+
+Patch-Overlay 'app/lib/ui/app_shell.dart' 'app_shell: 系統返回邏輯' `
+    'void _systemBack() {' `
+    (@(
+    '  void _openAccount() => setState(() => _accountVisible = true);',
+    '',
+    '  Widget _page() =>'
+) -join $LF) `
+    (@(
+    '  void _openAccount() => setState(() => _accountVisible = true);',
+    '',
+    '  bool get _overlayVisible =>',
+    '      _accountVisible ||',
+    '      _menuVisible ||',
+    '      _graphVisible ||',
+    '      _depthVisible ||',
+    '      _routeMemoryVisible;',
+    '',
+    '  /// 只有首頁（且沒有開著的覆蓋頁）才把系統返回交還系統、離開 App。',
+    '  bool get _atRoot => _section == AppSection.home && !_overlayVisible;',
+    '',
+    '  /// Android 系統返回／返回手勢：與頁面左上角返回箭頭做同一件事。',
+    '  ///',
+    '  /// 各頁以狀態切換、不在 Navigator 路由棧上，未接住時系統返回會直接離開 App',
+    '  /// （2026-11-22 真機實測；TalkBack 使用者常用返回手勢）。覆蓋頁先關，',
+    '  /// 再按頁面層級退一層；戶外導航進行中仍經 [_select] 先確認是否結束。',
+    '  void _systemBack() {',
+    '    if (_routeMemoryVisible) {',
+    '      setState(() => _routeMemoryVisible = false);',
+    '    } else if (_depthVisible) {',
+    '      setState(() => _depthVisible = false);',
+    '    } else if (_graphVisible) {',
+    '      setState(() => _graphVisible = false);',
+    '    } else if (_menuVisible) {',
+    '      setState(() => _menuVisible = false);',
+    '    } else if (_accountVisible) {',
+    '      setState(() => _accountVisible = false);',
+    '    } else {',
+    '      final parent = switch (_section) {',
+    '        AppSection.home => null,',
+    '        AppSection.explore => AppSection.home,',
+    '        AppSection.navigation => AppSection.home,',
+    '        AppSection.outdoor => AppSection.navigation,',
+    '        AppSection.settings => AppSection.home,',
+    '        AppSection.developer => AppSection.settings,',
+    '        AppSection.visionDiagnostics => AppSection.developer,',
+    '      };',
+    '      if (parent != null) _select(parent);',
+    '    }',
+    '  }',
+    '',
+    '  Widget _page() =>'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/app_shell.dart' 'app_shell: build 包 PopScope' `
+    'onPopInvokedWithResult: (didPop, _) {' `
+    (@(
+    '  @override',
+    '  Widget build(BuildContext context) {',
+    '    return Scaffold(',
+    '      // Dispose the outgoing camera immediately. An AnimatedSwitcher would',
+    '      // keep it alive (and potentially speaking) during its exit animation.',
+    '      body: KeyedSubtree(',
+    '        key: ValueKey(',
+    '          _routeMemoryVisible',
+    '              ? ''route-memory-mock''',
+    '              : _depthVisible',
+    '              ? ''depth''',
+    '              : _graphVisible',
+    '              ? ''graph-replay''',
+    '              : _menuVisible',
+    '              ? ''menu''',
+    '              : _accountVisible',
+    '              ? ''account''',
+    '              : _section,',
+    '        ),',
+    '        child: _routeMemoryVisible',
+    '            ? RouteMemoryMockPage(',
+    '                controller: _routeMemory,',
+    '                settings: widget.settings,',
+    '                onBack: () => setState(() => _routeMemoryVisible = false),',
+    '              )',
+    '            : _depthVisible',
+    '            ? DepthPage(',
+    '                settings: widget.settings,',
+    '                onBack: () => setState(() => _depthVisible = false),',
+    '              )',
+    '            : _graphVisible',
+    '            ? GraphReplayPage(',
+    '                settings: widget.settings,',
+    '                onBack: () => setState(() => _graphVisible = false),',
+    '              )',
+    '            : _menuVisible',
+    '            ? MenuPage(',
+    '                generalReading: true,',
+    '                settings: widget.settings,',
+    '                onBack: () => setState(() => _menuVisible = false),',
+    '              )',
+    '            : _accountVisible',
+    '            ? AccountPage(onBack: () => setState(() => _accountVisible = false))',
+    '            : _page(),',
+    '      ),',
+    '    );',
+    '  }'
+) -join $LF) `
+    (@(
+    '  @override',
+    '  Widget build(BuildContext context) {',
+    '    return PopScope(',
+    '      canPop: _atRoot,',
+    '      onPopInvokedWithResult: (didPop, _) {',
+    '        if (!didPop) _systemBack();',
+    '      },',
+    '      child: Scaffold(',
+    '        // Dispose the outgoing camera immediately. An AnimatedSwitcher would',
+    '        // keep it alive (and potentially speaking) during its exit animation.',
+    '        body: KeyedSubtree(',
+    '          key: ValueKey(',
+    '            _routeMemoryVisible',
+    '                ? ''route-memory-mock''',
+    '                : _depthVisible',
+    '                ? ''depth''',
+    '                : _graphVisible',
+    '                ? ''graph-replay''',
+    '                : _menuVisible',
+    '                ? ''menu''',
+    '                : _accountVisible',
+    '                ? ''account''',
+    '                : _section,',
+    '          ),',
+    '          child: _routeMemoryVisible',
+    '              ? RouteMemoryMockPage(',
+    '                  controller: _routeMemory,',
+    '                  settings: widget.settings,',
+    '                  onBack: () => setState(() => _routeMemoryVisible = false),',
+    '                )',
+    '              : _depthVisible',
+    '              ? DepthPage(',
+    '                  settings: widget.settings,',
+    '                  onBack: () => setState(() => _depthVisible = false),',
+    '                )',
+    '              : _graphVisible',
+    '              ? GraphReplayPage(',
+    '                  settings: widget.settings,',
+    '                  onBack: () => setState(() => _graphVisible = false),',
+    '                )',
+    '              : _menuVisible',
+    '              ? MenuPage(',
+    '                  generalReading: true,',
+    '                  settings: widget.settings,',
+    '                  onBack: () => setState(() => _menuVisible = false),',
+    '                )',
+    '              : _accountVisible',
+    '              ? AccountPage(',
+    '                  onBack: () => setState(() => _accountVisible = false),',
+    '                )',
+    '              : _page(),',
+    '        ),',
+    '      ),',
+    '    );',
+    '  }'
 ) -join $LF)
 
 # ================================================================ 結果

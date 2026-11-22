@@ -137,6 +137,46 @@ class _AppShellState extends State<AppShell> {
 
   void _openAccount() => setState(() => _accountVisible = true);
 
+  bool get _overlayVisible =>
+      _accountVisible ||
+      _menuVisible ||
+      _graphVisible ||
+      _depthVisible ||
+      _routeMemoryVisible;
+
+  /// 只有首頁（且沒有開著的覆蓋頁）才把系統返回交還系統、離開 App。
+  bool get _atRoot => _section == AppSection.home && !_overlayVisible;
+
+  /// Android 系統返回／返回手勢：與頁面左上角返回箭頭做同一件事。
+  ///
+  /// 各頁以狀態切換、不在 Navigator 路由棧上，未接住時系統返回會直接離開 App
+  /// （2026-11-22 真機實測；TalkBack 使用者常用返回手勢）。覆蓋頁先關，
+  /// 再按頁面層級退一層；戶外導航進行中仍經 [_select] 先確認是否結束。
+  void _systemBack() {
+    if (_routeMemoryVisible) {
+      setState(() => _routeMemoryVisible = false);
+    } else if (_depthVisible) {
+      setState(() => _depthVisible = false);
+    } else if (_graphVisible) {
+      setState(() => _graphVisible = false);
+    } else if (_menuVisible) {
+      setState(() => _menuVisible = false);
+    } else if (_accountVisible) {
+      setState(() => _accountVisible = false);
+    } else {
+      final parent = switch (_section) {
+        AppSection.home => null,
+        AppSection.explore => AppSection.home,
+        AppSection.navigation => AppSection.home,
+        AppSection.outdoor => AppSection.navigation,
+        AppSection.settings => AppSection.home,
+        AppSection.developer => AppSection.settings,
+        AppSection.visionDiagnostics => AppSection.developer,
+      };
+      if (parent != null) _select(parent);
+    }
+  }
+
   Widget _page() => switch (_section) {
     AppSection.home => TaskHomePage(
       onExplore: () =>
@@ -209,48 +249,56 @@ class _AppShellState extends State<AppShell> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // Dispose the outgoing camera immediately. An AnimatedSwitcher would
-      // keep it alive (and potentially speaking) during its exit animation.
-      body: KeyedSubtree(
-        key: ValueKey(
-          _routeMemoryVisible
-              ? 'route-memory-mock'
+    return PopScope(
+      canPop: _atRoot,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _systemBack();
+      },
+      child: Scaffold(
+        // Dispose the outgoing camera immediately. An AnimatedSwitcher would
+        // keep it alive (and potentially speaking) during its exit animation.
+        body: KeyedSubtree(
+          key: ValueKey(
+            _routeMemoryVisible
+                ? 'route-memory-mock'
+                : _depthVisible
+                ? 'depth'
+                : _graphVisible
+                ? 'graph-replay'
+                : _menuVisible
+                ? 'menu'
+                : _accountVisible
+                ? 'account'
+                : _section,
+          ),
+          child: _routeMemoryVisible
+              ? RouteMemoryMockPage(
+                  controller: _routeMemory,
+                  settings: widget.settings,
+                  onBack: () => setState(() => _routeMemoryVisible = false),
+                )
               : _depthVisible
-              ? 'depth'
+              ? DepthPage(
+                  settings: widget.settings,
+                  onBack: () => setState(() => _depthVisible = false),
+                )
               : _graphVisible
-              ? 'graph-replay'
+              ? GraphReplayPage(
+                  settings: widget.settings,
+                  onBack: () => setState(() => _graphVisible = false),
+                )
               : _menuVisible
-              ? 'menu'
+              ? MenuPage(
+                  generalReading: true,
+                  settings: widget.settings,
+                  onBack: () => setState(() => _menuVisible = false),
+                )
               : _accountVisible
-              ? 'account'
-              : _section,
+              ? AccountPage(
+                  onBack: () => setState(() => _accountVisible = false),
+                )
+              : _page(),
         ),
-        child: _routeMemoryVisible
-            ? RouteMemoryMockPage(
-                controller: _routeMemory,
-                settings: widget.settings,
-                onBack: () => setState(() => _routeMemoryVisible = false),
-              )
-            : _depthVisible
-            ? DepthPage(
-                settings: widget.settings,
-                onBack: () => setState(() => _depthVisible = false),
-              )
-            : _graphVisible
-            ? GraphReplayPage(
-                settings: widget.settings,
-                onBack: () => setState(() => _graphVisible = false),
-              )
-            : _menuVisible
-            ? MenuPage(
-                generalReading: true,
-                settings: widget.settings,
-                onBack: () => setState(() => _menuVisible = false),
-              )
-            : _accountVisible
-            ? AccountPage(onBack: () => setState(() => _accountVisible = false))
-            : _page(),
       ),
     );
   }
