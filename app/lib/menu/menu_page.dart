@@ -57,6 +57,7 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
   final _query = TextEditingController();
   final _searchFocus = FocusNode();
   bool _speaking = false, _outputBusy = false, _foreground = true;
+  AppLifecycleState? _lastLifecycle;
   int _speechGeneration = 0;
   String? _speechMessage;
   String? _pendingReadout;
@@ -78,6 +79,14 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Flutter 回前景時會依序經過 paused → hidden → inactive → resumed。
+    // 這個 hidden 是「正在回來」而不是「正在離開」。Android 系統相機返回時，
+    // 原生端在 Flutter 回前景前已開始辨識（狀態不再是 acquiring），
+    // 若把它當成離開而取消或清空待讀結果，辨識結果會被丟棄（2026-11-22 真機實測）。
+    final returning =
+        state == AppLifecycleState.hidden &&
+        _lastLifecycle == AppLifecycleState.paused;
+    _lastLifecycle = state;
     _foreground = state == AppLifecycleState.resumed;
     if (state == AppLifecycleState.resumed) {
       final pending = _pendingReadout;
@@ -86,9 +95,10 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     } else {
       unawaited(_stop());
       // An iOS permission sheet uses inactive. Keep its eventual response until resumed.
-      if (state == AppLifecycleState.paused ||
-          state == AppLifecycleState.detached ||
-          state == AppLifecycleState.hidden) {
+      if (!returning &&
+          (state == AppLifecycleState.paused ||
+              state == AppLifecycleState.detached ||
+              state == AppLifecycleState.hidden)) {
         _pendingReadout = null;
         ++_voiceGeneration;
         // Native camera/picker presentation can hide Flutter. iOS cancels a

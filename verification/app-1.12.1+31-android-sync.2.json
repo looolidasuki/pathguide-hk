@@ -1,0 +1,54 @@
+{
+  "date": "2026-11-22",
+  "appVersion": "1.12.1+31",
+  "tag": "v1.12.1+31-android-sync.2",
+  "type": "android-device-fix",
+  "previousCheckpoint": {
+    "tag": "v1.12.1+31-android-sync.1",
+    "appVersion": "1.12.1+31"
+  },
+  "device": {
+    "model": "2609FRA74T (Redmi)",
+    "android": "16",
+    "abi": "arm64-v8a",
+    "install": "adb install -r (data preserved; firstInstallTime 2026-09-22)"
+  },
+  "defectsFoundOnDevice": [
+    {
+      "id": "android-vision-close-during-inference",
+      "symptom": "Pressing back while live recognition is running kills the process with SIGSEGV (null pointer) in libLiteRt.so; reproduced 3/3",
+      "cause": "VisionPlugin release stops the camera then closes the LiteRT interpreter immediately; cameraExecutor.shutdown() does not wait for the in-flight frame (~550 ms), so Interpreter.run() reads freed native memory",
+      "predatesSync": true,
+      "fix": "YoloDetector: inference and close are mutually exclusive under a lock; close() during inference only marks closed and the finishing frame releases the interpreter (no main-thread wait)"
+    },
+    {
+      "id": "android-menu-double-reply",
+      "symptom": "After taking a photo in read text, the app crashes with IllegalStateException: Reply already submitted; the recognition result is never shown",
+      "cause": "On Android onActivityResult starts recognition before Flutter resumes; the upward paused->hidden lifecycle transition was treated as leaving, so Dart sent cancelMenu (cancelRead replied null), then the finished OCR replied again on the captured reply",
+      "predatesSync": true,
+      "fix": "MenuPlugin replies only if the request is still current (readReply === reply); menu_page treats hidden right after paused as returning and skips the leaving branch (no cancel, pending readout kept)",
+      "regressionTest": "app/test/menu_ui_test.dart 'Android camera return: recognizing starts before resume and is not cancelled' (fails before the Dart fix, passes after)"
+    }
+  ],
+  "deviceRetest": {
+    "backDuringRecognition": "5 runs; 4 valid (recognition frames logged before back): same pid before/after, 0 crash logs. Run 1 pressed back before recognition started and is not counted",
+    "readTextAfterPhoto": "user photo of printed text: no crash, recognition completed, general reading lines shown; same image switched to menu price view (1 category, 11 segments)",
+    "routeRecording": "shows '此裝置未支援路標相機' with controls disabled; non-fatal platform_views error for the unregistered native preview view"
+  },
+  "verification": {
+    "flutterTestsPassed": 621,
+    "flutterTestsSkipped": 7,
+    "pythonTestsPassed": 479,
+    "pythonTestsSkipped": 1,
+    "flutterAnalyze": "No issues found",
+    "androidDebugApkBuilt": true,
+    "deviceInstalled": true,
+    "iosBuildRun": false
+  },
+  "overlayScript": "section 9 added (10 patches: VisionPlugin, menu_page, fake_menu, menu_ui_test), verified by applying to pre-fix files and comparing byte-for-byte; default SourceRef -> v1.12.1+31-android-sync.2; -Check reports 42 items ready",
+  "openIssuesFoundOnDevice": [
+    "System back from any task page exits to the launcher instead of returning to the task home (app_shell switches sections by state without handling back); affects TalkBack users",
+    "Live recognition runs at about 550 ms per frame (about 1.7 fps), far below the Initial Report NFR2 target of 5-10 updates/s and p95 <= 500 ms",
+    "Document scan (multi-page) on Android uses the same single-photo path"
+  ]
+}

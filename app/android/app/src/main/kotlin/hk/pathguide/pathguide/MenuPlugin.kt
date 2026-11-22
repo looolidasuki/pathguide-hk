@@ -200,6 +200,11 @@ class MenuPlugin(private val activity: Activity) :
 
         channel?.invokeMethod("recognizing", mapOf("requestId" to readRequestId))
         recognize(uri, readIncludeGeneral) { payload, failure ->
+            // ★ 只回覆「仍是當前請求」的那一次。辨識期間 Dart 可能已 cancelMenu
+            //   （cancelRead 先以 null 回覆並清空 readReply），或已開始下一次讀取。
+            //   直接用捕獲的 reply 再回覆會丟 IllegalStateException("Reply already submitted")
+            //   並令主線程崩潰（2026-11-22 真機：拍照後必崩）。
+            if (readReply !== reply) return@recognize
             readReply = null
             cameraOutput?.delete()
             cameraOutput = null

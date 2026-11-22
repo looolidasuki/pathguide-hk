@@ -384,6 +384,37 @@ void main() {
       await tester.pumpWidget(const SizedBox());
     },
   );
+  testWidgets(
+    'Android camera return: recognizing starts before resume and is not cancelled',
+    (tester) async {
+      // 2026-11-22 真機：Android 在 Flutter 回前景前就回調 onActivityResult 並開始辨識；
+      // 回前景途中的 hidden 若被當成「離開」，會取消辨識並令原生端重複回覆而崩潰。
+      final gate = Completer<void>();
+      final wait = Completer<MenuDocument?>();
+      final reader = FakeMenuReader()
+        ..recognizingGate = gate.future
+        ..readFuture = wait.future;
+      final speaker = MenuTestSpeaker();
+      await open(tester, reader, speaker);
+      await tester.tap(find.byKey(const ValueKey('capture-menu')));
+      await tester.pump();
+      final before = reader.cancels;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      await tester.pump();
+      gate.complete();
+      await tester.pump();
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      wait.complete(sampleMenu());
+      await tester.pumpAndSettle();
+      expect(reader.cancels, before);
+      expect(find.byKey(const ValueKey('voice-menu-search')), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
   testWidgets('camera failure is audible and capture can be retried', (
     tester,
   ) async {

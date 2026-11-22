@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.12.1+31-android-sync.1'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.2'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -401,6 +401,190 @@ Patch-Overlay $storeFile 'route_store: 孤兒清理按平台分隔符比對' `
     'final keepNative = {' $orphanAnchor $orphanFix
 Patch-Overlay $learningFile 'learning_store: 孤兒清理按平台分隔符比對' `
     'final keepNative = {' $orphanAnchor $orphanFix
+
+# ================================================================ 9. 2026-11-22 真機崩潰修正
+#
+# (a) VisionPlugin：推理中 release → interpreter.close() → SIGSEGV；推理與釋放互斥。
+# (b) menu_page：Android 相機返回時回前景途中的 hidden 被當成離開 → 取消辨識，
+#     MenuPlugin 重複回覆而崩潰；回前景途中的 hidden 不再走「離開」分支。
+#     （MenuPlugin.kt 的「只回覆當前請求」守衛隨新增檔由 SourceRef 還原。）
+# 錨點自動含足夠上下文以保證唯一；marker 取舊檔不存在的最長新行。
+
+Patch-Overlay 'app/android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt' 'VisionPlugin: 真機修正 1' `
+    '* 離開辨識頁時 `release` 會先停相機再 [close]，但 `cameraExecutor.shutdown()`' `
+    (@(
+    '    val isBusy: Boolean get() = busy',
+    '',
+    '    /**'
+) -join $LF) `
+    (@(
+    '    val isBusy: Boolean get() = busy',
+    '',
+    '    /**',
+    '     * 推理與釋放互斥。',
+    '     *',
+    '     * 離開辨識頁時 `release` 會先停相機再 [close]，但 `cameraExecutor.shutdown()`',
+    '     * **不會等正在跑的那一幀**（每幀約 0.5 秒）。若此時直接 `interpreter.close()`，',
+    '     * 後台線程上的 `interpreter.run()` 會讀到已釋放的原生記憶體 → SIGSEGV',
+    '     * （2026-11-22 真機實測：辨識中按返回 3/3 崩潰）。',
+    '     *',
+    '     * 做法：[close] 只在沒有推理時立即釋放；否則標記 [closed]，',
+    '     * 由那一幀結束時負責釋放。不在主線程上等推理完成，避免卡頓。',
+    '     */',
+    '    private val lifecycleLock = Any()',
+    '    private var closed = false',
+    '',
+    '    /**'
+) -join $LF)
+
+Patch-Overlay 'app/android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt' 'VisionPlugin: 真機修正 2' `
+    'if (!busy) runCatching { interpreter.close() }' `
+    (@(
+    '    fun close() {',
+    '        runCatching { interpreter.close() }'
+) -join $LF) `
+    (@(
+    '    fun close() {',
+    '        synchronized(lifecycleLock) {',
+    '            if (closed) return',
+    '            closed = true',
+    '            if (!busy) runCatching { interpreter.close() }',
+    '        }'
+) -join $LF)
+
+Patch-Overlay 'app/android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt' 'VisionPlugin: 真機修正 3' `
+    'if (closed || busy) return emptyList()' `
+    (@(
+    '    ): List<Detection> {',
+    '        if (busy) return emptyList()',
+    '        busy = true'
+) -join $LF) `
+    (@(
+    '    ): List<Detection> {',
+    '        synchronized(lifecycleLock) {',
+    '            if (closed || busy) return emptyList()',
+    '            busy = true',
+    '        }'
+) -join $LF)
+
+Patch-Overlay 'app/android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt' 'VisionPlugin: 真機修正 4' `
+    'if (closed) runCatching { interpreter.close() }' `
+    (@(
+    '        } finally {',
+    '            busy = false'
+) -join $LF) `
+    (@(
+    '        } finally {',
+    '            synchronized(lifecycleLock) {',
+    '                busy = false',
+    '                // 推理途中被 close()：由最後一幀負責釋放原生資源。',
+    '                if (closed) runCatching { interpreter.close() }',
+    '            }'
+) -join $LF)
+
+Patch-Overlay 'app/lib/menu/menu_page.dart' 'menu_page: 真機修正 1' `
+    'AppLifecycleState? _lastLifecycle;' `
+    '  bool _speaking = false, _outputBusy = false, _foreground = true;' `
+    (@(
+    '  bool _speaking = false, _outputBusy = false, _foreground = true;',
+    '  AppLifecycleState? _lastLifecycle;'
+) -join $LF)
+
+Patch-Overlay 'app/lib/menu/menu_page.dart' 'menu_page: 真機修正 2' `
+    '// Flutter 回前景時會依序經過 paused → hidden → inactive → resumed。' `
+    '  void didChangeAppLifecycleState(AppLifecycleState state) {' `
+    (@(
+    '  void didChangeAppLifecycleState(AppLifecycleState state) {',
+    '    // Flutter 回前景時會依序經過 paused → hidden → inactive → resumed。',
+    '    // 這個 hidden 是「正在回來」而不是「正在離開」。Android 系統相機返回時，',
+    '    // 原生端在 Flutter 回前景前已開始辨識（狀態不再是 acquiring），',
+    '    // 若把它當成離開而取消或清空待讀結果，辨識結果會被丟棄（2026-11-22 真機實測）。',
+    '    final returning =',
+    '        state == AppLifecycleState.hidden &&',
+    '        _lastLifecycle == AppLifecycleState.paused;',
+    '    _lastLifecycle = state;'
+) -join $LF)
+
+Patch-Overlay 'app/lib/menu/menu_page.dart' 'menu_page: 真機修正 3' `
+    'state == AppLifecycleState.hidden)) {' `
+    (@(
+    '      // An iOS permission sheet uses inactive. Keep its eventual response until resumed.',
+    '      if (state == AppLifecycleState.paused ||',
+    '          state == AppLifecycleState.detached ||',
+    '          state == AppLifecycleState.hidden) {'
+) -join $LF) `
+    (@(
+    '      // An iOS permission sheet uses inactive. Keep its eventual response until resumed.',
+    '      if (!returning &&',
+    '          (state == AppLifecycleState.paused ||',
+    '              state == AppLifecycleState.detached ||',
+    '              state == AppLifecycleState.hidden)) {'
+) -join $LF)
+
+Patch-Overlay 'app/test/support/fake_menu.dart' 'fake_menu: 真機修正 1' `
+    '/// 原生端（onActivityResult）在 Flutter 回前景**之前**就開始辨識的時序。' `
+    '  bool notifyRecognizing = true;' `
+    (@(
+    '  bool notifyRecognizing = true;',
+    '',
+    '  /// 設定後，`onRecognizing` 要等它完成才觸發：模擬 Android 系統相機返回時',
+    '  /// 原生端（onActivityResult）在 Flutter 回前景**之前**就開始辨識的時序。',
+    '  Future<void>? recognizingGate;'
+) -join $LF)
+
+Patch-Overlay 'app/test/support/fake_menu.dart' 'fake_menu: 真機修正 2' `
+    'if (recognizingGate != null) await recognizingGate;' `
+    '    if (readError != null) throw readError!;' `
+    (@(
+    '    if (readError != null) throw readError!;',
+    '    if (recognizingGate != null) await recognizingGate;'
+) -join $LF)
+
+Patch-Overlay 'app/test/menu_ui_test.dart' 'menu_ui_test: 真機修正 1' `
+    '''Android camera return: recognizing starts before resume and is not cancelled'',' `
+    (@(
+    '      expect(find.byKey(const ValueKey(''voice-menu-search'')), findsOneWidget);',
+    '      await tester.pumpWidget(const SizedBox());',
+    '    },',
+    '  );'
+) -join $LF) `
+    (@(
+    '      expect(find.byKey(const ValueKey(''voice-menu-search'')), findsOneWidget);',
+    '      await tester.pumpWidget(const SizedBox());',
+    '    },',
+    '  );',
+    '  testWidgets(',
+    '    ''Android camera return: recognizing starts before resume and is not cancelled'',',
+    '    (tester) async {',
+    '      // 2026-11-22 真機：Android 在 Flutter 回前景前就回調 onActivityResult 並開始辨識；',
+    '      // 回前景途中的 hidden 若被當成「離開」，會取消辨識並令原生端重複回覆而崩潰。',
+    '      final gate = Completer<void>();',
+    '      final wait = Completer<MenuDocument?>();',
+    '      final reader = FakeMenuReader()',
+    '        ..recognizingGate = gate.future',
+    '        ..readFuture = wait.future;',
+    '      final speaker = MenuTestSpeaker();',
+    '      await open(tester, reader, speaker);',
+    '      await tester.tap(find.byKey(const ValueKey(''capture-menu'')));',
+    '      await tester.pump();',
+    '      final before = reader.cancels;',
+    '      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);',
+    '      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);',
+    '      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);',
+    '      await tester.pump();',
+    '      gate.complete();',
+    '      await tester.pump();',
+    '      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);',
+    '      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);',
+    '      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);',
+    '      wait.complete(sampleMenu());',
+    '      await tester.pumpAndSettle();',
+    '      expect(reader.cancels, before);',
+    '      expect(find.byKey(const ValueKey(''voice-menu-search'')), findsOneWidget);',
+    '      await tester.pumpWidget(const SizedBox());',
+    '    },',
+    '  );'
+) -join $LF)
 
 # ================================================================ 結果
 Write-Host ''

@@ -11,6 +11,10 @@ class FakeMenuReader implements MenuReader {
   MenuFailure? speechError;
   MenuFailure? readError;
   bool notifyRecognizing = true;
+
+  /// 設定後，`onRecognizing` 要等它完成才觸發：模擬 Android 系統相機返回時
+  /// 原生端（onActivityResult）在 Flutter 回前景**之前**就開始辨識的時序。
+  Future<void>? recognizingGate;
   Future<MenuDocument?>? readFuture;
   Future<String?>? speechFuture;
   MenuSpeechOutcome? speechOutcome;
@@ -21,6 +25,7 @@ class FakeMenuReader implements MenuReader {
   }) async {
     reads++;
     if (readError != null) throw readError!;
+    if (recognizingGate != null) await recognizingGate;
     if (notifyRecognizing) onRecognizing();
     return readFuture ?? Future.value(document);
   }

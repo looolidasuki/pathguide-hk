@@ -103,6 +103,21 @@ PATCH_MARKERS = [
         'payload["readingLines"] = lines',
     ),
     (
+        APP / "android/app/src/main/kotlin/hk/pathguide/pathguide/MenuPlugin.kt",
+        "菜單插件只回覆仍是當前的請求（防 Reply already submitted 崩潰）",
+        "if (readReply !== reply) return@recognize",
+    ),
+    (
+        APP / "android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt",
+        "推理與釋放互斥（防推理中 close 的 SIGSEGV）",
+        "if (closed) runCatching { interpreter.close() }",
+    ),
+    (
+        APP / "lib/menu/menu_page.dart",
+        "回前景途中的 hidden 不當成離開",
+        "_lastLifecycle == AppLifecycleState.paused;",
+    ),
+    (
         APP / "test/menu_ui_test.dart",
         "菜單測試斷言當前平台廠商名",
         "final vendor = onlineVoiceVendorFor(defaultTargetPlatform);",

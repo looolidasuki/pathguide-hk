@@ -881,6 +881,20 @@ class YoloDetector private constructor(
     val isBusy: Boolean get() = busy
 
     /**
+     * 推理與釋放互斥。
+     *
+     * 離開辨識頁時 `release` 會先停相機再 [close]，但 `cameraExecutor.shutdown()`
+     * **不會等正在跑的那一幀**（每幀約 0.5 秒）。若此時直接 `interpreter.close()`，
+     * 後台線程上的 `interpreter.run()` 會讀到已釋放的原生記憶體 → SIGSEGV
+     * （2026-11-22 真機實測：辨識中按返回 3/3 崩潰）。
+     *
+     * 做法：[close] 只在沒有推理時立即釋放；否則標記 [closed]，
+     * 由那一幀結束時負責釋放。不在主線程上等推理完成，避免卡頓。
+     */
+    private val lifecycleLock = Any()
+    private var closed = false
+
+    /**
      * 类别索引映射表：**下标 = 模型本地索引，值 = 项目类别表里的真实 id**。
      *
      * 用处：模型内部只能说 0..nc-1，而 `kLabels[0]` 是 `footbridge_entrance`。
@@ -1051,7 +1065,11 @@ class YoloDetector private constructor(
     }
 
     fun close() {
-        runCatching { interpreter.close() }
+        synchronized(lifecycleLock) {
+            if (closed) return
+            closed = true
+            if (!busy) runCatching { interpreter.close() }
+        }
     }
 
     /**
@@ -1083,8 +1101,10 @@ class YoloDetector private constructor(
         rotationDegrees: Int,
         threshold: Float,
     ): List<Detection> {
-        if (busy) return emptyList()
-        busy = true
+        synchronized(lifecycleLock) {
+            if (closed || busy) return emptyList()
+            busy = true
+        }
         try {
             val rot = ((rotationDegrees % 360) + 360) % 360
             val swap = rot == 90 || rot == 270
@@ -1222,7 +1242,11 @@ class YoloDetector private constructor(
             val raw = decode(threshold, srcW, srcH, newW, newH, padX, padY)
             return nms(raw, 0.45f, 100)
         } finally {
-            busy = false
+            synchronized(lifecycleLock) {
+                busy = false
+                // 推理途中被 close()：由最後一幀負責釋放原生資源。
+                if (closed) runCatching { interpreter.close() }
+            }
         }
     }
 
