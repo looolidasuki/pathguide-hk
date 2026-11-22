@@ -1,0 +1,388 @@
+{
+  "date": "2026-11-23",
+  "type": "android-pipeline-error-quantification",
+  "tool": "dataset_pipeline/android_pipeline_eval.py",
+  "model": {
+    "path": "app\\assets\\models\\detector.tflite",
+    "sha256": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "dataset": {
+    "images": "data/dataset_hk_stage2/images/val",
+    "count": 105,
+    "gtBoxes": {
+      "person": 242,
+      "bin": 19,
+      "bicycle": 2,
+      "door": 0,
+      "escalator": 0,
+      "fence": 0
+    },
+    "coveredClasses": [
+      "bicycle",
+      "bin",
+      "door",
+      "escalator",
+      "fence",
+      "person"
+    ],
+    "caveat": "local PoC validation split; overlap with A10 training sources is unknown, so absolute numbers may be optimistic; pipelines are compared on the same images. door/escalator/fence have no ground truth here, so only their false positives are observable. The frozen strict set (1,082 images) is not on this machine."
+  },
+  "method": {
+    "camera": "JFIF full-range BT.601 YUV420, 2x2 chroma mean",
+    "nms_iou": 0.45,
+    "max_det": 100,
+    "match_iou": 0.5,
+    "fp_counted_only_for_covered_classes": true
+  },
+  "rawOutputSha256": "91f990a01e74b4771e49ad996d1f9a5af2abf7b183445e4fb588186b27935647",
+  "rawOutputPath": "dataset_pipeline/review_artifacts/2026-11-23/android-pipeline-eval/hk_stage2_val.json (ignored review artifact; per-image detections)",
+  "allClasses": {
+    "0.3": {
+      "legacy": {
+        "tp": 168,
+        "fp": 42,
+        "fn": 95,
+        "precision": 0.8,
+        "recall": 0.639
+      },
+      "android": {
+        "tp": 142,
+        "fp": 35,
+        "fn": 121,
+        "precision": 0.802,
+        "recall": 0.54
+      },
+      "offline": {
+        "tp": 142,
+        "fp": 36,
+        "fn": 121,
+        "precision": 0.798,
+        "recall": 0.54
+      }
+    },
+    "0.5": {
+      "legacy": {
+        "tp": 120,
+        "fp": 15,
+        "fn": 143,
+        "precision": 0.889,
+        "recall": 0.456
+      },
+      "android": {
+        "tp": 99,
+        "fp": 11,
+        "fn": 164,
+        "precision": 0.9,
+        "recall": 0.376
+      },
+      "offline": {
+        "tp": 100,
+        "fp": 12,
+        "fn": 163,
+        "precision": 0.893,
+        "recall": 0.38
+      }
+    },
+    "0.7": {
+      "legacy": {
+        "tp": 72,
+        "fp": 7,
+        "fn": 191,
+        "precision": 0.911,
+        "recall": 0.274
+      },
+      "android": {
+        "tp": 54,
+        "fp": 7,
+        "fn": 209,
+        "precision": 0.885,
+        "recall": 0.205
+      },
+      "offline": {
+        "tp": 54,
+        "fp": 7,
+        "fn": 209,
+        "precision": 0.885,
+        "recall": 0.205
+      }
+    }
+  },
+  "androidPerClass": {
+    "0.3": {
+      "bicycle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "bin": {
+        "tp": 11,
+        "fp": 3,
+        "fn": 8,
+        "precision": 0.786,
+        "recall": 0.579
+      },
+      "door": {
+        "tp": 0,
+        "fp": 8,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "escalator": {
+        "tp": 0,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "fence": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "person": {
+        "tp": 131,
+        "fp": 21,
+        "fn": 111,
+        "precision": 0.862,
+        "recall": 0.541
+      }
+    },
+    "0.4": {
+      "bicycle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "bin": {
+        "tp": 11,
+        "fp": 2,
+        "fn": 8,
+        "precision": 0.846,
+        "recall": 0.579
+      },
+      "door": {
+        "tp": 0,
+        "fp": 7,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "escalator": {
+        "tp": 0,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "fence": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "person": {
+        "tp": 110,
+        "fp": 5,
+        "fn": 132,
+        "precision": 0.957,
+        "recall": 0.455
+      }
+    },
+    "0.5": {
+      "bicycle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "bin": {
+        "tp": 11,
+        "fp": 1,
+        "fn": 8,
+        "precision": 0.917,
+        "recall": 0.579
+      },
+      "door": {
+        "tp": 0,
+        "fp": 6,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "escalator": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "fence": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "person": {
+        "tp": 88,
+        "fp": 2,
+        "fn": 154,
+        "precision": 0.978,
+        "recall": 0.364
+      }
+    },
+    "0.6": {
+      "bicycle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "bin": {
+        "tp": 8,
+        "fp": 1,
+        "fn": 11,
+        "precision": 0.889,
+        "recall": 0.421
+      },
+      "door": {
+        "tp": 0,
+        "fp": 5,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "escalator": {
+        "tp": 0,
+        "fp": 2,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "fence": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "person": {
+        "tp": 68,
+        "fp": 1,
+        "fn": 174,
+        "precision": 0.986,
+        "recall": 0.281
+      }
+    },
+    "0.7": {
+      "bicycle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "bin": {
+        "tp": 8,
+        "fp": 1,
+        "fn": 11,
+        "precision": 0.889,
+        "recall": 0.421
+      },
+      "door": {
+        "tp": 0,
+        "fp": 4,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "escalator": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "fence": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "person": {
+        "tp": 46,
+        "fp": 1,
+        "fn": 196,
+        "precision": 0.979,
+        "recall": 0.19
+      }
+    },
+    "0.8": {
+      "bicycle": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "precision": null,
+        "recall": 0.0
+      },
+      "bin": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 14,
+        "precision": 1.0,
+        "recall": 0.263
+      },
+      "door": {
+        "tp": 0,
+        "fp": 4,
+        "fn": 0,
+        "precision": 0.0,
+        "recall": null
+      },
+      "escalator": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "fence": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "precision": null,
+        "recall": null
+      },
+      "person": {
+        "tp": 33,
+        "fp": 0,
+        "fn": 209,
+        "precision": 1.0,
+        "recall": 0.136
+      }
+    }
+  },
+  "findings": [
+    "android matches offline (same TP, FP within 1 at 0.3/0.5/0.7): preprocessing parity holds on real photos",
+    "the legacy Android pipeline did not lower precision materially; it raised recall on this set (person TP 108 vs 88 at 0.5), most likely from the ~16% contrast boost of the limited-range formula and sharper nearest sampling",
+    "raising the threshold from 0.5 to 0.7 did not raise precision (0.900 -> 0.885) but cut recall (0.376 -> 0.205); person precision is already 0.98 at 0.5",
+    "the most persistent false positives are class confusions, not low scores: Hong Kong three-colour recycling bins also produce 'door' boxes at 0.67-0.86 that overlap the correct 'bin' box (IoU 0.95-1.00); stairs with handrails produce 'escalator' at 0.68-0.76",
+    "class-agnostic NMS would not fix the bin/door case: in one image the wrong 'door' (0.86) outscores the correct 'bin' (0.79)"
+  ],
+  "notChanged": "no threshold or NMS change was made from this evidence; 105 mostly-person images are not enough to set per-class thresholds",
+  "nextEvidence": [
+    "rerun on the frozen strict set once its review artifacts are available",
+    "field frames from Android (HK recycling bins, doors, stairs) labelled per the dataset rules"
+  ]
+}
