@@ -114,6 +114,9 @@ flutter:
     - assets/models/detector.json
     - assets/models/detector-hk9.tflite
     - assets/models/detector-hk9.json
+    # Android 路標特徵（MobileNetV3-small 嵌入，來源與雜湊見清單）。iOS 用 Apple Vision，不讀此檔。
+    - assets/models/route_landmark_embedder.tflite
+    - assets/models/route_landmark_embedder.json
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

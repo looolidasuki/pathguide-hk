@@ -12,6 +12,7 @@ import 'route_landmark_client.dart';
 import 'route_localizer.dart';
 import 'route_frame_quality.dart';
 import 'route_learning_store.dart';
+import 'route_platform_profile.dart';
 
 enum RecordedRouteMode { library, record, replay }
 
@@ -685,7 +686,7 @@ class RecordedRouteController extends ChangeNotifier {
           if (last == null) throw const LandmarkFailure('invalid');
           final distances = await analyzer.compare(value.feature, [last]);
           if (!_current(op) || !_running) return false;
-          if (distances.single < 2) {
+          if (distances.single < RoutePlatform.feature.duplicateDistance) {
             notice = conflicting ? 'floorConflict' : 'automaticDuplicate';
             return false;
           }

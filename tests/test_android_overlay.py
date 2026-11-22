@@ -39,6 +39,15 @@ OVERLAY_FILES = [
     ANDROID / "res/values-zh-rTW/strings.xml",
     APP / "test/menu_platform_test.dart",
     APP / "test/android_back_test.dart",
+    ANDROID / "kotlin/hk/pathguide/pathguide/CameraPreprocess.kt",
+    ANDROID / "kotlin/hk/pathguide/pathguide/RouteCameraPlugin.kt",
+    ANDROID / "kotlin/hk/pathguide/pathguide/RouteLandmarkPlugin.kt",
+    APP / "android/app/src/test/kotlin/hk/pathguide/pathguide/CameraPreprocessTest.kt",
+    APP / "assets/models/route_landmark_embedder.tflite",
+    APP / "assets/models/route_landmark_embedder.json",
+    APP / "lib/route_memory/route_platform_profile.dart",
+    APP / "lib/route_memory/route_camera_preview.dart",
+    APP / "test/route_android_profile_test.dart",
 ]
 
 # (档案, 说明, 该出现的「已套用」标记)
@@ -122,6 +131,21 @@ PATCH_MARKERS = [
         APP / "lib/ui/app_shell.dart",
         "系統返回鍵與左上角返回箭頭一致（只有首頁交還系統）",
         "onPopInvokedWithResult: (didPop, _) {",
+    ),
+    (
+        APP / "android/app/src/main/kotlin/hk/pathguide/pathguide/VisionPlugin.kt",
+        "檢測前處理改用與離線評估一致的 CameraPreprocess",
+        "CameraPreprocess.letterbox(",
+    ),
+    (
+        APP / "android/app/src/main/kotlin/hk/pathguide/pathguide/MainActivity.kt",
+        "註冊 Android 錄路相機與路標特徵插件",
+        "flutterEngine.plugins.add(RouteLandmarkPlugin(this))",
+    ),
+    (
+        APP / "lib/route_memory/route_package.dart",
+        "已錄路線相容性按平台特徵配置判斷（不再寫死 iOS）",
+        "RoutePlatform.feature.featureRevision",
     ),
     (
         APP / "test/menu_ui_test.dart",

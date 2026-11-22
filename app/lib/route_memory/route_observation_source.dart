@@ -3,8 +3,9 @@ import 'dart:math';
 import 'dart:ui' as ui;
 
 import 'package:crypto/crypto.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+
+import 'route_platform_profile.dart';
 
 enum RouteCaptureStatus {
   idle,
@@ -87,8 +88,7 @@ class _RouteSession {
 /// belongs to this source; captured bytes live only until the caller releases them.
 class RouteObservationSource {
   RouteObservationSource({bool? supported})
-    : supported =
-          supported ?? (!kIsWeb && defaultTargetPlatform == TargetPlatform.iOS);
+    : supported = supported ?? RoutePlatform.captureSupported;
   final bool supported;
   static const _methods = MethodChannel('hk.pathguide/route_camera');
   static const _events = EventChannel('hk.pathguide/route_camera/events');
@@ -274,9 +274,9 @@ class RouteObservationSource {
     if (!_matches(h, current) ||
         h['requestId'] != request ||
         h['startRequestId'] != current.startRequest ||
-        h['source'] != 'avfoundation-back-wide' ||
-        h['profile'] != 'route-camera-engineering-v1' ||
-        h['clockMapping'] != 'coremedia-host' ||
+        h['source'] != RoutePlatform.camera.source ||
+        h['profile'] != RouteCameraProfile.profile ||
+        h['clockMapping'] != RoutePlatform.camera.clockMapping ||
         h['walkingValidated'] != false ||
         h['mirrored'] != false) {
       return false;
@@ -302,7 +302,7 @@ class RouteObservationSource {
     final epoch = h['clockEpoch'], clock = h['captureClockId'];
     if (epoch is! String ||
         epoch.isEmpty ||
-        clock != 'avcapture-session-$epoch' ||
+        clock != RoutePlatform.camera.clockId(epoch) ||
         (_clockEpoch != null && epoch != _clockEpoch)) {
       return false;
     }

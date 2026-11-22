@@ -637,7 +637,11 @@ class VisionPlugin(
             lastFrameHeight = h
             // 同时报**原始平面步长**与**紧凑副本宽度**：UV 取色下标必须按后者算，
             // 两者不一致正是「色度取错、画面变灰」那类缺陷的来源。
-            lastFrameFormat = "YUV420 $fmt uvPlane=${uPlane.rowStride}/${uPlane.pixelStride} uvCopy=$cw"
+            lastFrameFormat = "YUV420 $fmt uvPlane=${uPlane.rowStride}/${uPlane.pixelStride} uvCopy=$cw " +
+                "fullRange=${YoloDetector.CAMERA_FULL_RANGE} ${det.lumaRange} " +
+                "pre=%.1fms infer=%.1fms".format(det.lastPreprocessMs, det.lastInferenceMs)
+            // 每 30 幀記一次，供 adb logcat 讀取前處理／推理耗時與 Y 範圍（全範圍佐證）。
+            if (analyzedFrames % 30 == 0L) Log.i(TAG, "幀格式 $lastFrameFormat")
             lastMaxScore = detections.maxOfOrNull { it.score } ?: 0f
             lastMinScore = detections.minOfOrNull { it.score } ?: 0f
             lastDetectionCount = detections.size
@@ -827,6 +831,12 @@ class YoloDetector private constructor(
         const val PAD = 114
 
         /**
+         * 相機 YUV_420_888 視為 JFIF 全範圍 BT.601（Android 相機慣例）。
+         * 真機以 [lumaRange]（Y 的實際最小／最大值）佐證：限幅範圍資料不會低於 16 或高於 235。
+         */
+        const val CAMERA_FULL_RANGE = true
+
+        /**
          * 从**文件路径**构建，用内存映射。
          *
          * LiteRT 的 `Interpreter` 要求模型缓冲是 `MappedByteBuffer` 或
@@ -910,6 +920,18 @@ class YoloDetector private constructor(
 
     @Volatile var lastInferenceMs: Double = 0.0
         private set
+
+    /** 前處理（YUV→RGB＋letterbox）耗時，與推理時間分開記。 */
+    @Volatile var lastPreprocessMs: Double = 0.0
+        private set
+
+    /** 最近一幀 Y 平面的實際範圍，用來佐證相機是全範圍 YUV。 */
+    @Volatile var lumaRange: String = ""
+        private set
+
+    // 只在推理線程使用（detectYuv 已以 busy 互斥）。
+    private var rgbScratch: FloatArray? = null
+    private val inputArray: FloatArray by lazy { FloatArray(inputSize * inputSize * 3) }
 
     /**
      * 被判定为无效而丢弃的检测数（分数不在 [0,1]、坐标为非有限值、宽高非正）。
@@ -1106,53 +1128,37 @@ class YoloDetector private constructor(
             busy = true
         }
         try {
-            val rot = ((rotationDegrees % 360) + 360) % 360
-            val swap = rot == 90 || rot == 270
-            val srcW = if (swap) frameHeight else frameWidth
-            val srcH = if (swap) frameWidth else frameHeight
-
-            val scale = min(inputSize.toFloat() / srcW, inputSize.toFloat() / srcH)
-            val newW = (srcW * scale).toInt().coerceAtLeast(1)
-            val newH = (srcH * scale).toInt().coerceAtLeast(1)
-            val padX = (inputSize - newW) / 2
-            val padY = (inputSize - newH) / 2
-
+            // ★ 前處理與離線評估／iOS 逐項對齊（見 CameraPreprocess 與其 JVM 對照測試）：
+            //   全範圍 BT.601 YUV→RGB、四捨五入（.5 取偶）尺寸、半像素雙線性、114 填充。
+            //   舊版「最近一點 + 限幅範圍公式」不報錯，只會令輸入偏離訓練分佈。
+            check(uvWidth == (frameWidth + 1) / 2) { "uvWidth=$uvWidth frame=$frameWidth" }
+            val tPre = System.nanoTime()
+            var yMin = 255
+            var yMax = 0
+            for (i in 0 until frameWidth * frameHeight) {
+                val value = y[i].toInt() and 0xFF
+                if (value < yMin) yMin = value
+                if (value > yMax) yMax = value
+            }
+            lumaRange = "Y[$yMin,$yMax]"
+            val rgbSize = frameWidth * frameHeight * 3
+            val rgb = rgbScratch?.takeIf { it.size == rgbSize } ?: FloatArray(rgbSize).also { rgbScratch = it }
+            CameraPreprocess.yuvToRgb(y, u, v, frameWidth, frameHeight, CAMERA_FULL_RANGE, rgb)
+            val geometry = CameraPreprocess.letterbox(
+                rgb, frameWidth, frameHeight, rotationDegrees, inputSize, channelsFirstInput, inputArray,
+            )
             inputBuffer.rewind()
-            // ★ 先用 letterbox 填充色铺满整个输入，再写入真实像素。
-            //
-            // 训练时 Ultralytics 用 114/255 ≈ 0.447 的灰边填充；如果这里留 0（黑边），
-            // 填充区域与训练分布不一致，会拉低置信度。这一点与「灰度输入」是同一类
-            // 问题：预处理必须和训练时逐项对齐，差一项都不报错，只是分数变低。
-            // 用 FloatBuffer 视图顺序写入，避免手动算字节偏移。
-            // 顺序是「先填满填充色，再逐行覆盖真实像素」——填充色与真实内容
-            // 都需要写入，所以分两趟：先整幅填 PAD，再把真实区域覆盖回去。
-            val padValue = PAD / 255f
             inputFloats.clear()
-            val totalPixels = inputSize * inputSize
-            var filled = 0
-            while (filled < totalPixels) {
-                inputFloats.put(padValue).put(padValue).put(padValue)
-                filled++
-            }
-            // 现在把真实内容覆盖到 [padY, padY+newH) x [padX, padX+newW) 区域。
-            // 用绝对下标定位（视图没有 position 语义上的字节偏移问题）。
-            for (dy in 0 until newH) {
-                val rowBase = (padY + dy) * inputSize + padX
-                for (dx in 0 until newW) {
-                    val pixel = rowBase + dx
-                    val idx = if (channelsFirstInput) pixel else pixel * 3
-                    val channelStep = if (channelsFirstInput) totalPixels else 1
-                    val (r, g, b) = sampleRgb(
-                        y, u, v, frameWidth, frameHeight, uvWidth,
-                        rot, dx, dy, newW, newH,
-                    )
-                    inputFloats.put(idx, r)
-                    inputFloats.put(idx + channelStep, g)
-                    inputFloats.put(idx + 2 * channelStep, b)
-                }
-            }
+            inputFloats.put(inputArray)
             inputFloats.rewind()
             inputBuffer.rewind()
+            lastPreprocessMs = (System.nanoTime() - tPre) / 1_000_000.0
+            val srcW = geometry.uprightWidth
+            val srcH = geometry.uprightHeight
+            val newW = geometry.scaledWidth
+            val newH = geometry.scaledHeight
+            val padX = geometry.padX
+            val padY = geometry.padY
 
             // ---- 诊断：抓输入缓冲的真实内容 ----
             // 真机曾出现「输出分数为负、前 1631 个锚点正常之后全是垃圾」，
@@ -1250,96 +1256,7 @@ class YoloDetector private constructor(
         }
     }
 
-    /**
-     * 取 (dx, dy) 处的 RGB（已归一化到 [0,1]），**只计算不写缓冲**。
-     *
-     * 之所以只返回数值、由调用方顺序写入：写缓冲的位置管理一旦出错就会
-     * 越写越偏且不报错（真机出现过「前 1631 个锚点正常、之后全是垃圾」）。
-     * 把「算」和「写」分开，写入点只有一处且是顺序的。
-     *
-     * 映射链：letterbox 图 -> 正立帧（撤缩放）-> 原始帧（逆旋转）-> YUV 采样 -> RGB。
-     *
-     * **逆旋转的方向与公式见下面 `when` 里的推导。**
-     */
-    private fun sampleRgb(
-        y: ByteArray,
-        u: ByteArray,
-        v: ByteArray,
-        frameWidth: Int,
-        frameHeight: Int,
-        uvWidth: Int,
-        rotationDegrees: Int,
-        dx: Int,
-        dy: Int,
-        newW: Int,
-        newH: Int,
-    ): Triple<Float, Float, Float> {
-        val outW = frameWidthOrRotated(frameWidth, frameHeight, rotationDegrees)
-        val outH = frameHeightOrRotated(frameWidth, frameHeight, rotationDegrees)
-        val ux = dx * outW / newW
-        val uy = dy * outH / newH
-
-        // ★ 逆旋转：由「正立图坐标 (ux, uy)」反查「原始帧坐标 (sx, sy)」。
-        //
-        // Android 里 `rotationDegrees` 的语义是「把原始帧**顺时针**转这么多度才正立」。
-        // 顺时针 90 度的**正向**映射是 `destX = SRC_H - 1 - srcY`、`destY = srcX`
-        // （注意第二项是 `srcX`，**不是** `SRC_W - 1 - srcX`；后者会多一次镜像）。
-        // 反解即：`srcY = SRC_H - 1 - destX`、`srcX = destY`。
-        //
-        // 这里曾经错得离谱：90 分支写成 `Pair(outH-1-uy, frameWidth-1-ux)`，
-        // 两个分量都不对。用 numpy 逐点核对（原始帧 1280x720、rotation=90）：
-        // 该写法 **9216 个采样点全部取错源像素（100%）**，正确写法 0 个错。
-        // 270 分支写成 `Pair(uy, ux)`（纯转置 = 镜像，缺一次翻转），同样 100% 错。
-        // 0 与 180 原本就对，未改动。
-        //
-        // 为什么特别难发现：`sy` 会算到 [560,1279]，而原始帧只有 720 行，
-        // 被下面的 `coerceIn` 夹到 719 —— 于是正立图里约 78% 的区域
-        // **全都取的是原始帧的最后一行**，模型看到的基本上是一条糊掉的横线。
-        // 而输入诊断（min/max/越界计数）看不出任何异常，因为读到的仍是合法 Y 值。
-        // 正确写法下索引天然落在范围内，`coerceIn` 只是防御，不应触发。
-        val (sx, sy) = when (rotationDegrees) {
-            90 -> Pair(uy, frameHeight - 1 - ux)
-            180 -> Pair(frameWidth - 1 - ux, frameHeight - 1 - uy)
-            270 -> Pair(frameWidth - 1 - uy, ux)
-            else -> Pair(ux, uy)
-        }
-        val cx = sx.coerceIn(0, frameWidth - 1)
-        val cy = sy.coerceIn(0, frameHeight - 1)
-
-        val yVal = y[cy * frameWidth + cx].toInt() and 0xFF
-        // ★ UV 下标必须按**紧凑副本**的布局算，不能用原始平面的 rowStride/pixelStride。
-        //
-        // `copyPlane` 返回的是紧凑数组 `out[y * width + x]`，UV 的 width 就是
-        // `(frameWidth + 1) / 2`、pixelStride 已展开为 1。这里曾经写成
-        // `(cy/2) * uvRowStride + (cx/2) * uvPixelStride`，用的是**原始平面**的步长：
-        // 真机常见的 NV21 布局是 rowStride≈frameWidth、pixelStride=2，于是下标被放大
-        // 约 2 倍 —— 上半幅画面取到**错误的色度**，下半幅直接越界，
-        // 被下面的 `in u.indices` 兜成 128（中性色 = 灰度）。
-        //
-        // 表现和「喂灰度图」一模一样：模型仍能跑、分数普遍偏低、颜色线索全丢
-        // （本项目实测灰度输入把最高分从 0.62~0.82 压到 0.04~0.55），
-        // 而且不报任何错。按紧凑宽度算则恒有 uvIndex ∈ [0, uvWidth*ch)，
-        // 无论设备给出什么步长都正确。
-        val uvIndex = (cy / 2) * uvWidth + (cx / 2)
-        val uVal = if (uvIndex in u.indices) u[uvIndex].toInt() and 0xFF else 128
-        val vVal = if (uvIndex in v.indices) v[uvIndex].toInt() and 0xFF else 128
-
-        // 标准 BT.601 YUV -> RGB，输出归一化到 [0,1]。
-        // 模型输入是 float32，每个像素 3 个 float；写成 byte 会让字节数差 4 倍。
-        val yf = yVal - 16
-        val uf = uVal - 128
-        val vf = vVal - 128
-        val r = (1.164f * yf + 1.596f * vf).coerceIn(0f, 255f) / 255f
-        val g = (1.164f * yf - 0.392f * uf - 0.813f * vf).coerceIn(0f, 255f) / 255f
-        val b = (1.164f * yf + 2.017f * uf).coerceIn(0f, 255f) / 255f
-        return Triple(r, g, b)
-    }
-
-    private fun frameWidthOrRotated(w: Int, h: Int, rot: Int): Int =
-        if (rot == 90 || rot == 270) h else w
-
-    private fun frameHeightOrRotated(w: Int, h: Int, rot: Int): Int =
-        if (rot == 90 || rot == 270) w else h
+    // 舊 sampleRgb（最近一點取樣＋限幅範圍 YUV）已由 CameraPreprocess 取代，見其 JVM 對照測試。
 
     /**
      * 输出张量 -> 归一化检测框。

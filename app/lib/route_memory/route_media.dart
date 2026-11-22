@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'route_package.dart' show RouteDocument, RouteProblem, RouteStoreFailure;
+import 'route_platform_profile.dart';
 
 /// Frozen engineering limits, including drafts and historical versions at the
 /// store level. They are storage limits, not validated walking profiles.
@@ -117,11 +118,12 @@ class CapturedRouteView {
         observation.values.whereType<num>().any((v) => !v.isFinite) ||
         utf8.encode(jsonEncode(observation)).length > 4096 ||
         observation['routeId'] != routeId ||
-        observation['source'] != 'avfoundation-back-wide' ||
-        observation['profile'] != 'route-camera-engineering-v1' ||
+        RouteCameraProfile.bySource(observation['source']) == null ||
+        observation['profile'] != RouteCameraProfile.profile ||
         observation['walkingValidated'] != false ||
         observation['mirrored'] != false ||
-        observation['clockMapping'] != 'coremedia-host' ||
+        observation['clockMapping'] !=
+            RouteCameraProfile.bySource(observation['source'])!.clockMapping ||
         ![0, 90, 180, 270].contains(observation['rotationDegrees'])) {
       throw const RouteStoreFailure(RouteProblem.invalid);
     }
@@ -138,7 +140,8 @@ class CapturedRouteView {
       }
     }
     if (observation['captureClockId'] !=
-            'avcapture-session-${observation['clockEpoch']}' ||
+            RouteCameraProfile.bySource(observation['source'])!
+                .clockId(observation['clockEpoch'] as String) ||
         observation['capturedHostSeconds'] is! num ||
         (observation['capturedHostSeconds'] as num) < 0) {
       throw const RouteStoreFailure(RouteProblem.invalid);

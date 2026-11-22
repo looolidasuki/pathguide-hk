@@ -369,3 +369,7 @@ OCR讀出的店名、房號、菜名、價格及樓層文字不逐字新增物�
 2026 年 11 月 20 日補記以使用者原有定向方法作對照，以及按獨立趟次記錄路線重行證據。
 
 2026-11-20 以工作區、裝機收據、舊版資料覆核及 B11 本機交接重整閱讀順序，核對內置模型與映射，保留類別字典、留集、來源署名、證據及評估規格。本次範圍為文件核對。過往實驗及整理索引見 [verification](../verification/) 與 Git 歷史。
+
+## 本倉庫 Android 維護紀錄（非上游內容）
+
+2026-11-23 Android 檢測前處理對齊：Android 版改用 `CameraPreprocess.kt`，與本文件「離線設定」（640 RGB、半像素雙線性 letterbox、填色 114）一致；JVM 對照測試平均差 1.7e-8，真機 Y 範圍 [0,255] 證實相機為全範圍 YUV。此前 Android 手機上的誤認觀察不能直接與本文件逐類基準比較（前處理不同）；之後應以同一嚴格留集經 Android 管線重報 TP／FP／FN。另新增 Android 路標特徵模型：MediaPipe MobileNetV3-small 圖像嵌入（Apache-2.0，來源與雜湊見 `app/assets/models/route_landmark_embedder.json`），只作已錄路標比對，與十類檢測模型無關；距離閾值為暫定值，須以實拍路線照片校準。

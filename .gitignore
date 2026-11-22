@@ -103,6 +103,8 @@ weights/
 # 注意：被排除的目录里的文件无法用 ! 重新包含，所以这里只对具体文件放行，
 # 且父目录 app/assets/models/ 没有被 * 规则整目录排除。
 !app/assets/models/detector.tflite
+# Android 路標特徵模型（MediaPipe MobileNetV3-small 嵌入，Apache-2.0；來源與雜湊見同名 .json）。
+!app/assets/models/route_landmark_embedder.tflite
 
 # IDE
 .idea/

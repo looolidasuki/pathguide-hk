@@ -78,6 +78,9 @@ dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+
+    // 原生純邏輯的 JVM 單元測試（例：CameraPreprocessTest 與離線 OpenCV 逐像素對照）。
+    testImplementation("junit:junit:4.13.2")
 }
 
 flutter {

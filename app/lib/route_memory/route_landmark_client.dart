@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 
 import 'route_observation_source.dart';
 import 'route_localizer.dart';
+import 'route_platform_profile.dart';
 
 class LandmarkFailure implements Exception {
   const LandmarkFailure(this.code);
@@ -93,7 +94,7 @@ class RouteLandmarkClient {
         text.length > 32 ||
         text.any((t) => t is! String || t.length > 120) ||
         v['manualFloorConfirmationRequired'] != true ||
-        ![2, 3].contains(v['ocrRevision'])) {
+        !RoutePlatform.feature.ocrRevisions.contains(v['ocrRevision'])) {
       throw const LandmarkFailure('invalid');
     }
     return LandmarkAnalysis(hash, feature, text.cast<String>());

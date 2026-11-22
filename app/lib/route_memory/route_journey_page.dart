@@ -15,6 +15,7 @@ import 'route_audio_note_dialog.dart';
 import 'route_learning_review_page.dart';
 import 'route_learning_store.dart';
 import 'route_package.dart';
+import 'route_camera_preview.dart';
 
 /// Product recording and replay. Merely opening the library never opens camera.
 class RouteJourneyPage extends StatefulWidget {
@@ -1984,9 +1985,7 @@ class _RouteJourneyPageState extends State<RouteJourneyPage>
                       visible: c!.running,
                       child:
                           widget.previewBuilder?.call(context) ??
-                          const UiKitView(
-                            viewType: 'hk.pathguide/route_camera/preview',
-                          ),
+                          routeCameraPreview(),
                     ),
                   if (c!.mode == RecordedRouteMode.library && _newRoute) ...[
                     heading(t('錄製新路線', 'Record new route')),

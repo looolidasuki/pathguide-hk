@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart' show StringCharacters;
 
 import 'cross_floor_contract.dart';
 import 'route_media.dart';
+import 'route_platform_profile.dart';
 export 'route_media.dart';
 
 enum RouteProblem {
@@ -169,11 +170,21 @@ class RouteDocument {
       nodes.fold(0, (sum, n) => sum + (n.audioNote?.encoded.length ?? 0));
   static bool validId(String id) =>
       RegExp(r'^[A-Za-z0-9_-]{1,80}$').hasMatch(id);
-  bool get compatible => source == RouteContentSource.synthetic
+  bool get compatible =>
+      compatibleRevisions(source, featureRevision, preprocessRevision);
+
+  /// Captured routes replay only with this platform's landmark descriptor
+  /// (iOS Vision feature print, Android MobileNetV3-small embedder); features
+  /// from another profile are not comparable. See RouteFeatureProfile.
+  static bool compatibleRevisions(
+    RouteContentSource source,
+    String featureRevision,
+    String preprocessRevision,
+  ) => source == RouteContentSource.synthetic
       ? featureRevision == 'p0-synthetic-v1' &&
             preprocessRevision == 'none-synthetic'
-      : featureRevision == 'vision-featureprint-v1' &&
-            preprocessRevision == 'upright-jpeg-v1';
+      : featureRevision == RoutePlatform.feature.featureRevision &&
+            preprocessRevision == RoutePlatform.feature.preprocessRevision;
 
   void validate() {
     if ((source == RouteContentSource.synthetic &&

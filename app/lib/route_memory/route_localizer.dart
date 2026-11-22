@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 
 import 'cross_floor_contract.dart';
 import 'route_package.dart' show RouteDocument;
+import 'route_platform_profile.dart';
 
 enum RouteMatchState {
   unknown,
@@ -89,9 +90,14 @@ class RouteLocalizer extends ChangeNotifier {
       throw ArgumentError('Invalid landmarks');
     }
   }
-  static const featureRevision = 'vision-featureprint-v1',
-      preprocessRevision = 'upright-jpeg-v1';
-  static const maxDistance = 8.0, minGap = 2.0, validity = Duration(seconds: 5);
+  // Per-platform descriptor profile (iOS Vision feature print, Android
+  // MobileNetV3-small embedder); see RouteFeatureProfile.
+  static String get featureRevision => RoutePlatform.feature.featureRevision;
+  static String get preprocessRevision =>
+      RoutePlatform.feature.preprocessRevision;
+  static double get maxDistance => RoutePlatform.feature.maxDistance;
+  static double get minGap => RoutePlatform.feature.minGap;
+  static const validity = Duration(seconds: 5);
   final String routeId;
   final int routeVersion;
   final List<RouteLandmarkIdentity> landmarks;

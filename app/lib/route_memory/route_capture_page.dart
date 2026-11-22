@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../settings/app_settings.dart';
 import 'route_capture_controller.dart';
 import 'route_observation_source.dart';
+import 'route_camera_preview.dart';
 
 class RouteCapturePage extends StatefulWidget {
   const RouteCapturePage({
@@ -207,9 +208,7 @@ class _RouteCapturePageState extends State<RouteCapturePage>
                             height: 240,
                             child:
                                 widget.previewBuilder?.call(context) ??
-                                const UiKitView(
-                                  viewType: 'hk.pathguide/route_camera/preview',
-                                ),
+                                routeCameraPreview(),
                           ),
                         ),
                       if (_photo case final photo?) ...[

@@ -22,6 +22,9 @@ class MainActivity : FlutterActivity() {
         flutterEngine.plugins.add(NavigationPlugin())
         flutterEngine.plugins.add(SpeechInputPlugin())
         flutterEngine.plugins.add(menuPlugin)
+        // 室內錄路（Android）：相機關鍵幀與路標特徵，對應 iOS 的 RouteCamera／RouteLandmark。
+        flutterEngine.plugins.add(RouteCameraPlugin(this))
+        flutterEngine.plugins.add(RouteLandmarkPlugin(this))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

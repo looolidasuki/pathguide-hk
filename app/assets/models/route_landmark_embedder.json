@@ -1,0 +1,17 @@
+{
+  "format": 1,
+  "purpose": "Android route landmark descriptor (indoor route recording and replay)",
+  "file": "route_landmark_embedder.tflite",
+  "bytes": 4117670,
+  "sha256": "bbbb4c51a55a53905af1daec995ca1aae355046f8839bb8c9f5ce9271394bc40",
+  "source": "https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_small/float32/latest/mobilenet_v3_small.tflite",
+  "retrievedAt": "2026-11-23",
+  "model": "MediaPipe Image Embedder MobileNetV3-small (float32)",
+  "license": "Apache-2.0 (MediaPipe model card)",
+  "featureRevision": "mediapipe-mobilenet-v3-small-embedder-v1",
+  "preprocessRevision": "upright-jpeg-224-rgb-pm1-v1",
+  "input": {"shape": [1, 224, 224, 3], "dtype": "float32", "color": "RGB", "resize": "bilinear stretch to 224x224", "normalize": "x / 127.5 - 1"},
+  "output": {"shape": [1, 1024], "dtype": "float32", "postprocess": "L2 normalise"},
+  "distance": "1 - cosine similarity (0..2)",
+  "calibration": "provisional desk check only; not field-calibrated"
+}

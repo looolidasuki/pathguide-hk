@@ -1,0 +1,65 @@
+{
+  "date": "2026-11-23",
+  "appVersion": "1.12.1+31",
+  "tag": "v1.12.1+31-android-sync.4",
+  "type": "android-feature-and-fix",
+  "previousCheckpoint": {
+    "tag": "v1.12.1+31-android-sync.3",
+    "appVersion": "1.12.1+31"
+  },
+  "device": {
+    "model": "2609FRA74T (Redmi)",
+    "android": "16",
+    "install": "adb install -r (data preserved)"
+  },
+  "androidRouteRecording": {
+    "scope": "Initial Report 4.10 / FR3: record, encrypted save, reopen after restart (draft). Replay was not exercised.",
+    "nativePlugins": {
+      "RouteCameraPlugin.kt": "CameraX Preview + ImageAnalysis (RGBA, keep latest); upright JPEG keyframe <= 512 KB, long side <= 1280; source camerax-back, clockMapping android-elapsed-realtime, captureClockId camerax-session-<epoch>; non-realtime sensor clocks report unknown_clock",
+      "RouteLandmarkPlugin.kt": "MediaPipe MobileNetV3-small image embedder on LiteRT (L2-normalised 1024-d, distance 1 - cos) plus ML Kit Chinese OCR for floor hints; model hash checked at load; iOS Vision features report incompatible"
+    },
+    "model": {
+      "file": "app/assets/models/route_landmark_embedder.tflite",
+      "sha256": "bbbb4c51a55a53905af1daec995ca1aae355046f8839bb8c9f5ce9271394bc40",
+      "source": "https://storage.googleapis.com/mediapipe-models/image_embedder/mobilenet_v3_small/float32/latest/mobilenet_v3_small.tflite",
+      "license": "Apache-2.0",
+      "preprocess": "RGB bilinear stretch 224x224, x/127.5-1",
+      "thresholds": "provisional maxDistance 0.35, minGap 0.09, duplicate 0.09 from a desk check (same view mean 0.16 / worst 0.21; different photos mean 0.70); not field-calibrated"
+    },
+    "dartChanges": "route_platform_profile.dart selects camera provenance and descriptor profile by the real host OS (host tests keep the iOS contract); route_localizer thresholds, landmark OCR revision, observation header validation, stored view validation, document compatibility and the native preview view are platform-aware",
+    "defectFoundOnDevice": "after restart the Android route showed 'cannot be matched here' because RouteDocument.compatible still hard-coded vision-featureprint-v1; host unit tests run the iOS profile so they could not catch it; fixed and covered by route_android_profile_test",
+    "deviceResults": {
+      "previewAndAutoSampling": "camera preview shown; automatic sampling added a landmark (keyframe, embedding, OCR)",
+      "sensorClock": "realtime timestamp source; keyframe freshness computed honestly",
+      "qualityGate": "featureless door frame rejected as insufficient detail without crash",
+      "saveAndReopen": "encrypted save reported; after force-stop and restart the route lists as a draft and opens with the draft guidance",
+      "notCovered": "replay matching, floor confirmation, audio notes, learning store (still iOS-gated)"
+    }
+  },
+  "androidDetectorPreprocessing": {
+    "before": "nearest-neighbour sampling with truncated sizes and limited-range BT.601 YUV conversion on full-range camera data; about 190 ms per frame in Kotlin with per-pixel allocations",
+    "after": "CameraPreprocess.kt: full-range BT.601 YUV to RGB, round-half-even sizes, half-pixel bilinear letterbox with 114 padding, identical to dataset_pipeline/a10_evaluate.py and the iOS pipeline",
+    "jvmParity": {
+      "test": "app/android/app/src/test/kotlin/hk/pathguide/pathguide/CameraPreprocessTest.kt (4 tests) with OpenCV fixtures from scripts/gen_camera_preprocess_fixtures.py",
+      "downscaleRotations0_90_180": {"meanAbsDiff": 1.708e-08, "maxAbsDiff": 1.192e-07, "legacyNearestMeanAbsDiff": 0.1477},
+      "upscaleRotation270": {"meanAbsDiff": 1.837e-08, "maxAbsDiff": 1.788e-07, "legacyNearestMeanAbsDiff": 0.06083},
+      "note": "synthetic high-frequency fixture exaggerates the legacy error compared with natural photos"
+    },
+    "device": {
+      "lumaRange": "Y[0,255] observed, so camera YUV is full range and the old limited-range formula was wrong",
+      "timing": "preprocess 24.7 ms, inference 357.0 ms; total per frame about 550 ms -> about 380 ms; about 1.7 fps -> 2.7 fps",
+      "falsePositives": "not yet measured on the strict validation set through the Android path; a featureless dark frame still yields a full-frame low-score stairs box before and after the fix (display threshold 0.30 vs speech 0.70 remains)"
+    }
+  },
+  "tests": {
+    "flutterTestsPassed": 633,
+    "flutterTestsSkipped": 7,
+    "jvmUnitTestsPassed": 4,
+    "pythonTestsPassed": 493,
+    "pythonTestsSkipped": 1,
+    "flutterAnalyze": "No issues found",
+    "androidDebugApkBuilt": true,
+    "deviceInstalled": true
+  },
+  "overlayScript": "section 11: 27 generated patches over 12 upstream files plus 18 restored files; verified by applying to pre-change files and comparing byte-for-byte; default SourceRef -> v1.12.1+31-android-sync.4; -Check reports 90 items ready"
+}
