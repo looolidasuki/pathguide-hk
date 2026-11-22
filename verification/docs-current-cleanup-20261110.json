@@ -1,0 +1,153 @@
+{
+  "dateHongKong": "2026-11-10",
+  "task": "Consolidate obsolete and redundant content in the existing four maintained documents",
+  "sourceCheckpoint": "a7cc8658104b92d676e1ba7c38661122d746ef8d",
+  "scope": "Documentation only; preserve unrelated pre-existing worktree changes",
+  "beforeBackupOutsideRepository": "/tmp/pathguide-doc-cleanup-20261110-before",
+  "originalPendingDiffPreservedOutsideRepository": "/tmp/pathguide-doc-cleanup-20261110-before/pending.diff",
+  "documents": {
+    "FRONTEND-DESIGN.zh-HK.md": {
+      "beforeLines": 1437,
+      "afterLines": 771,
+      "beforeSha256": "215f036d3cb8598132b3c479f7a95f6571531d1f522f8466cb5a220649af40b7",
+      "afterSha256": "80ce88acf218937044a4499f857d5d8ac7ec5dac0a759a979d070031e034e484"
+    },
+    "BACKEND-DESIGN.zh-HK.md": {
+      "beforeLines": 892,
+      "afterLines": 507,
+      "beforeSha256": "0d6b603edad2147446cf31dc98effc953d3b1c4df3a227a14bd180df3a20804d",
+      "afterSha256": "fdf632a4fcee9a2c7deb7d79f722fb44588d64cfa72404163dd9631b1568d589"
+    },
+    "DATASET-REVIEW.zh-HK.md": {
+      "beforeLines": 828,
+      "afterLines": 617,
+      "beforeSha256": "560ffb1fa115be6cf511accb166d4f781057b24452619e8fa2fd2884e2cda930",
+      "afterSha256": "fc877cc8023e855b0c76432fff95fb32bf003e125d9952e1a4413aec8e6d5df6"
+    },
+    "APP-FEATURES.zh-HK.md": {
+      "beforeLines": 101,
+      "afterLines": 101,
+      "beforeSha256": "d59a7891f496fb0b4aba263098ca0acc9e6a6c41f4255b15b625bfb41b916dd4",
+      "afterSha256": "8d0dbe859e5ca0c24d37ad580e85eb039d0f9d5f8c768ff0e14ce7d4cf51d587"
+    }
+  },
+  "changes": [
+    "Replaced obsolete installed-version and undeployed-scene statements with receipt-based 1.11.0+29 state; field/VoiceOver acceptance remains pending",
+    "Removed superseded DSH/Sol/DeepSeek work assignments, paid dispatch rules and repetitive W/N0/version maintenance diaries; original evidence and Git retained",
+    "Replaced obsolete Hong Kong provider and 20/50-attempt trial instructions with latest recorded Singapore deployment and cumulative 100 / estimated USD 0.50 / 2026-11-14 03:22:40 Hong Kong expiry; no live balance claim",
+    "Updated route primary flow to typed buttons, automatic capture/naming, undo and no-keyboard draft saving; schema4 compatibility documented; notes/replay direction/focus/failed-mark history remain incomplete",
+    "Recorded W2 FP export repair as completed engineering work, separately from failed model quality gate and missing human approval",
+    "Kept accepted three-site scope, ordinary-camera baseline, optional depth/CSDI, private route purpose, unknown-floor draft and independent model comparison requirements",
+    "Condensed historical release test counts into references; kept enduring local data, media/privacy, deletion, release and acceptance contracts",
+    "Kept APP-FEATURES as finished-product vision rather than delivery status; removed duplicated scene/recording prose",
+    "Corrected Functions source inventory to 16 including describeScene; this is not a deployment inventory"
+  ],
+  "retained": {
+    "frontendAppBackground": true,
+    "identicalSharedStageTablesS0toS7": true,
+    "featurePlanIds": {
+      "FRONTEND-DESIGN.zh-HK.md": [
+        "F01",
+        "F02",
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F07",
+        "F08",
+        "F09",
+        "F10",
+        "F11",
+        "F12",
+        "F13",
+        "F14",
+        "F15",
+        "F16",
+        "F17",
+        "F18",
+        "F19",
+        "F20",
+        "F21",
+        "F22",
+        "F23",
+        "F24"
+      ],
+      "BACKEND-DESIGN.zh-HK.md": [
+        "B01",
+        "B02",
+        "B03",
+        "B04",
+        "B05",
+        "B06",
+        "B07",
+        "B08",
+        "B09",
+        "B10",
+        "B11",
+        "B12",
+        "B13",
+        "B14",
+        "B15",
+        "B16",
+        "B17"
+      ],
+      "DATASET-REVIEW.zh-HK.md": [
+        "D01",
+        "D02",
+        "D03",
+        "D04",
+        "D05",
+        "D06",
+        "D07",
+        "D08",
+        "D09",
+        "D10",
+        "D11",
+        "D12",
+        "D13",
+        "D14"
+      ]
+    },
+    "b11HandoffByteIdentical": true,
+    "classDictionaryByteIdentical": true,
+    "allOriginalExplicitAnchorsRetained": true,
+    "originalEvidenceAndDataNotDeleted": true
+  },
+  "evidenceInputs": {
+    "verification/release-receipts/app-1.11.0+29.json": "f19c869b9fa4337794097a45dfb3d42059f3a7f124658f68ee8f20e213c4cf3a",
+    "verification/route-mark-core-20261110.json": "c5cc006fa214500265d9893170b65184f8a04db9e6ec7f045892670f1984f666",
+    "verification/route-mark-design-q12-20261110.json": "758abccd75668ad6d1b13978a626e1ee8782834dea37ef2cbd2bd9dcd7dee5e7",
+    "verification/scene-content-detail-20261109.json": "854cd92e57da21e0b29a743c13500a5a068b8e09a27a2b1428c8de4f55296d57",
+    "verification/scene-100-five-days-20261109.json": "f0019e9614d59d5533ad1b53f82677539e3961511792465b1c5f5ff21e967392",
+    "verification/dsh-w2-fp-export-20261102.json": "f671af44e9d010d718c6b4bef5608875a162b155a28350ab0fbca7ad0d055492",
+    "verification/codex-p3b-landmarks-20261105.json": "47329d680b6623c178d7ce4185a42e6c37da8c9dd4274990ce69d3e5c1f1221f",
+    "verification/codex-p3c-journey-20261106.json": "704b64460d4379e7e80fdfc0c9a1da68da268990c5b2cc538f5b8da3c9e252d9",
+    "verification/floor-context-20261106.json": "dc77163477cd7ade1cf7ce79c5f7e327e19e4d1c4f56825fd589e03cc9e95f9c"
+  },
+  "limitations": [
+    "No live cloud, ledger, CSDI or B11 runtime query performed; dated evidence remains a snapshot",
+    "System screenshot full-page freeze remains unlocated",
+    "Real route / VoiceOver / Screen Curtain / scene-content acceptance remains pending",
+    "Existing local source/evidence links may reference pre-existing untracked files; this documentation checkpoint does not stage those unrelated files"
+  ],
+  "operations": {
+    "appCodeChanged": false,
+    "modelsChanged": false,
+    "appInstalled": false,
+    "backendDeployed": false,
+    "ledgerMutated": false,
+    "providerInferenceRequests": 0,
+    "datasetOrTrainingOperated": false,
+    "newDocumentsUnderDocs": false,
+    "appVersionOrReleaseCreated": false
+  },
+  "validation": {
+    "gitDiffCheck": "pass",
+    "sharedStagesAndFeaturePlans": "pass",
+    "b11AndDictionaryPreservation": "pass",
+    "localMarkdownLinksAndAnchors": "pass for all four documents against current local worktree",
+    "unrelatedWorktreeContent": "100 pre-existing non-doc dirty/untracked files outside build unchanged in pre-commit hash check",
+    "newAppTestsRun": false,
+    "reasonNoAppTests": "Only Markdown and verification metadata changed"
+  }
+}

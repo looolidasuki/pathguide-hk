@@ -1,0 +1,30 @@
+{
+  "checkedAtUtc": "2026-11-07T20:39:15.515Z",
+  "operation": "GET /models; no inference",
+  "executionLocation": "operator local machine; not deployed cloud runtime",
+  "providerRegion": "Singapore",
+  "baseUrl": "https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1",
+  "model": "qwen3-vl-plus",
+  "secretVersion": "2",
+  "deploymentState": "ACTIVE",
+  "httpStatus": 200,
+  "validModelList": true,
+  "modelListed": true,
+  "requestMs": 3080,
+  "ledgerUnchanged": true,
+  "trialCount": 1,
+  "trialHalted": true,
+  "trialInFlight": false,
+  "spentMicroUsd": 2458,
+  "lastStatus": "usage-unknown",
+  "agentPaidInferenceRequests": 0,
+  "limitations": [
+    "Model listing does not verify image inference, billing eligibility, cloud-runtime connectivity, scene quality or Cantonese speech.",
+    "Prior unknown usage remains unresolved; ledger halt retained."
+  ],
+  "officialSources": [
+    "https://docs.qwencloud.com/models/qwen3-vl-plus",
+    "https://docs.qwencloud.com/developer-guides/getting-started/regions"
+  ],
+  "next": "Reconcile the original provider usage/billing before a reviewed, one-request recovery; preserve count, request IDs and conservative cost history. No recovery was enabled by this model-list check."
+}

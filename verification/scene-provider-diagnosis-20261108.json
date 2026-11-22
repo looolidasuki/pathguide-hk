@@ -1,0 +1,49 @@
+{
+  "checks": {
+    "offline_scene_trial_probe_tests": 25,
+    "review": "GET-only fixed endpoint, no body/key logging, explicit disabled-by-default flag; no trial mutation"
+  },
+  "rootCause": "Provider rejected initial qwen3-vl-plus chat completion with HTTP 400 Model.Unsupported; exact alias/workspace/provider configuration cause remains unconfirmed despite official HK support listing.",
+  "paidRequestsByAgent": 0,
+  "trialLedgerReset": false,
+  "officialSources": [
+    "https://docs.qwencloud.com/developer-guides/getting-started/regions",
+    "https://docs.qwencloud.com/models/qwen3-vl-plus"
+  ],
+  "backend_preflight": {
+    "httpStatus": 200,
+    "operation": "GET models; no inference",
+    "timeUtc": "2026-11-07T20:13:14.696609Z",
+    "anonymousCallableHttpStatus": 401,
+    "trialCount": 1,
+    "trialHalted": true,
+    "trialInFlight": false
+  },
+  "provider_console": {
+    "region": "cn-hongkong",
+    "requestLocalTime": "2026-11-08 04:04:02 Asia/Hong_Kong",
+    "model": "qwen3-vl-plus",
+    "httpStatus": 400,
+    "errorReason": "Model.Unsupported",
+    "latencySeconds": 0.02,
+    "usage": "dash, not confirmed zero",
+    "totalRequests": 1,
+    "successfulRequests": 0,
+    "source": "read-only signed-in QwenCloud PAYG Usage / Logs / Request Details",
+    "rawRequestBodyOrAnswerAccessed": false
+  },
+  "next": "Resolve provider model availability before authorizing any resumed inference; do not reset ledger or equate missing usage with zero billing.",
+  "finalDeployment": {
+    "sourceCommit": "b94aab600526f29e6f59912d9a7babc628ea908f",
+    "state": "ACTIVE",
+    "safeFailureClassificationDeployed": true,
+    "preflightEnabled": false,
+    "anonymousCallableHttpStatus": 401,
+    "selectedAccountConfigVerified": true,
+    "trialMaxRequests": 20,
+    "qwenEstimatedBudgetUsd": 0.01,
+    "operationalTrialAttempts": 1,
+    "phoneBuildUnchanged": "1.8.2+17",
+    "agentPaidInferenceRequests": 0
+  }
+}

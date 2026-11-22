@@ -1,0 +1,36 @@
+{
+  "dateHongKong": "2026-11-08",
+  "version": "1.9.1+19",
+  "trigger": "User screenshot/report: vision active but scene describe/auto both disabled with generic paused status",
+  "rootCauseStatus": "Known failure-handling defect: discarded preparation error, no native enable acknowledgement or retry; specific first on-device exception not captured yet.",
+  "change": "Confirm native scene-enabled state; bounded preparation timeout; explicit local-only retry and safe error category; fail-closed motion/image/account/budget policies retained.",
+  "checks": {
+    "scopedFlutterPassed": 47,
+    "nativeSimulatorPassed": 58,
+    "analyze": "pass",
+    "signedBuild": "private Profile pass; deep strict codesign pass; model hashes unchanged"
+  },
+  "phoneAcceptance": "User reports switch usable on 1.9.1+19, but must remain completely still; minor movement disables/clears, automatic description still not accepted",
+  "privacy": "User screenshot kept out of repository/training; no picture or answer logging",
+  "ledger": "count 2 / 2593 microUSD / halted; existing one-attempt grant ready; no reset or new agent inference",
+  "paidInferenceRequestsByAgent": 0,
+  "review": "Implementing-agent scope/concurrency/privacy review; no independent review.",
+  "release": {
+    "tag": "v1.9.1+19",
+    "sourceCommit": "696a2ce81e033b468e4da815214ceeb43d85d699",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.1%2B19",
+    "remoteTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "phoneInstall": "1.9.1+19 installed and launched; no uninstall/data clear",
+  "ledgerReadback": {
+    "trialCount": 2,
+    "spentMicroUsd": 2593,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "ready",
+    "checkedAtUtc": "2026-11-08T09:19:47.766Z"
+  },
+  "followupEvidence": "live-scene-handheld-20261108.json"
+}

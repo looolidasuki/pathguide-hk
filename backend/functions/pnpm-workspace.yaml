@@ -1,0 +1,6 @@
+# Explicit lifecycle approval for the locked runtime dependencies in this
+# standalone Cloud Build source. Unlisted package scripts stay blocked.
+allowBuilds:
+  '@firebase/util': true
+  protobufjs: true
+  sharp: true

@@ -25,12 +25,22 @@ const String kVisionChannel = 'hk.pathguide/vision';
 /// 走 EventChannel 避免 Dart 每帧发一次请求（那会让帧率减半）。
 const String kFrameChannel = 'hk.pathguide/vision/frame';
 
+/// Local-only, independently paced scene evidence from the same iOS camera.
+const String kSceneChannel = 'hk.pathguide/vision/scene';
+
 /// 相机预览的平台视图类型名。必须与原生 `registerViewFactory` 的注册名一致——
 /// 不一致时表现为**一块空白**，两端都不报错。
 const String kVisionPreviewViewType = 'hk.pathguide/vision/preview';
 
 /// 原生方法名。
 abstract final class VisionMethods {
+  /// iOS only: local luma/attitude signals; does not upload or save frames.
+  static const String setSceneObservation = 'setSceneObservation';
+
+  /// iOS only: next frame from active vision lease, upright JPEG <=512px/512KiB.
+  /// Deadline includes encoding; never opens/restarts a camera or stores a photo.
+  static const String captureSceneFrame = 'captureSceneFrame';
+
   /// 加载模型。`{model: String}` -> `{loaded: bool, classes: int, inputSize: int}`
   static const String loadModel = 'loadModel';
 
@@ -78,6 +88,7 @@ abstract final class VisionMethods {
 ///
 /// 键名写错同样不会有任何报错——只会得到 `null`。
 abstract final class VisionKeys {
+  static const String sceneSignal = 'sceneSignal';
   // ---- loadModel ----
   static const String model = 'model';
   static const String loaded = 'loaded';

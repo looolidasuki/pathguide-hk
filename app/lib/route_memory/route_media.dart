@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'route_package.dart' show RouteDocument, RouteProblem, RouteStoreFailure;
 
@@ -9,6 +10,60 @@ abstract final class RouteMediaBounds {
   static const featureBytes = 64 * 1024;
   static const viewsPerNode = 4;
   static const viewsPerRoute = 64;
+  static const audioNoteBytes = 1024 * 1024;
+  static const audioBytesPerRoute = 4 * 1024 * 1024;
+  static const audioNoteSeconds = 10;
+}
+
+/// The iPhone recorder emits a bounded, mono 16-bit PCM WAV in memory.
+class RouteAudioNote {
+  RouteAudioNote._(this.bytes);
+
+  factory RouteAudioNote.fromBytes(Uint8List bytes) {
+    if (bytes.length < 46 || bytes.length > RouteMediaBounds.audioNoteBytes) {
+      throw const RouteStoreFailure(RouteProblem.invalid);
+    }
+    final header = ByteData.sublistView(bytes);
+    int word(int at) => header.getUint16(at, Endian.little);
+    int size(int at) => header.getUint32(at, Endian.little);
+    bool tag(int at, int expected) =>
+        header.getUint32(at, Endian.big) == expected;
+    final rate = size(24), payload = bytes.length - 44;
+    if (!tag(0, 0x52494646) || // RIFF
+        !tag(8, 0x57415645) || // WAVE
+        !tag(12, 0x666d7420) || // fmt
+        !tag(36, 0x64617461) || // data
+        size(4) != bytes.length - 8 ||
+        size(16) != 16 ||
+        word(20) != 1 ||
+        word(22) != 1 ||
+        word(32) != 2 ||
+        word(34) != 16 ||
+        rate < 8000 ||
+        rate > 96000 ||
+        size(28) != rate * 2 ||
+        size(40) != payload ||
+        payload.isOdd ||
+        payload < rate ~/ 2 ||
+        payload > rate * 2 * RouteMediaBounds.audioNoteSeconds) {
+      throw const RouteStoreFailure(RouteProblem.invalid);
+    }
+    return RouteAudioNote._(Uint8List.fromList(bytes).asUnmodifiableView());
+  }
+
+  factory RouteAudioNote.fromBase64(String encoded) {
+    if (encoded.length > ((RouteMediaBounds.audioNoteBytes + 2) ~/ 3) * 4) {
+      throw const RouteStoreFailure(RouteProblem.invalid);
+    }
+    final note = RouteAudioNote.fromBytes(base64Decode(encoded));
+    if (note.encoded != encoded) {
+      throw const RouteStoreFailure(RouteProblem.invalid);
+    }
+    return note;
+  }
+
+  final Uint8List bytes;
+  late final String encoded = base64Encode(bytes);
 }
 
 class CapturedRouteView {

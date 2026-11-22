@@ -29,10 +29,14 @@ void main() {
   var available = <String>['zh-HK', 'yue-HK', 'zh-TW', 'zh-CN'];
   final rejected = <String>{};
   var completeSpeech = true;
+  Completer<List<String>>? languageGate;
+  Completer<void>? sharedGate;
 
   setUp(() {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
     calls.clear();
+    languageGate = null;
+    sharedGate = null;
     rejected.clear();
     completeSpeech = true;
     available = <String>['zh-HK', 'yue-HK', 'zh-TW', 'zh-CN'];
@@ -53,7 +57,10 @@ void main() {
                   );
             });
           }
-          if (call.method == 'getLanguages') return available;
+          if (call.method == 'setSharedInstance') await sharedGate?.future;
+          if (call.method == 'getLanguages') {
+            return languageGate?.future ?? available;
+          }
           if (call.method == 'setLanguage' &&
               rejected.contains(call.arguments)) {
             return 0;
@@ -67,6 +74,80 @@ void main() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(const MethodChannel('flutter_tts'), null);
   });
+
+  test(
+    'speech start measurement requires a pending native utterance',
+    () async {
+      completeSpeech = false;
+      var starts = 0;
+      final playback = <TtsPlaybackEvent>[];
+      final speaker = FlutterTtsSpeaker(
+        cantoneseOnly: true,
+        onStarted: () => starts++,
+        onPlaybackEvent: playback.add,
+      );
+      final pending = speaker.speak('前方有門。');
+      await Future<void>.delayed(Duration.zero);
+      expect(starts, 0);
+      Future<void> event() async {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .handlePlatformMessage(
+              'flutter_tts',
+              const StandardMethodCodec().encodeMethodCall(
+                const MethodCall('speak.onStart'),
+              ),
+              (_) {},
+            );
+        await Future<void>.delayed(Duration.zero);
+      }
+
+      await event();
+      expect(starts, 1);
+      expect(playback, [TtsPlaybackEvent.started]);
+      await speaker.stop();
+      await pending;
+      await event();
+      expect(starts, 1);
+      expect(playback, [TtsPlaybackEvent.started, TtsPlaybackEvent.cancelled]);
+    },
+  );
+  test(
+    'stop during slow initialization cannot emit a late utterance',
+    () async {
+      languageGate = Completer<List<String>>();
+      final speaker = FlutterTtsSpeaker(cantoneseOnly: true);
+      final pending = speaker.speak('舊畫面');
+      await Future<void>.delayed(Duration.zero);
+      await speaker.stop();
+      languageGate!.complete(['zh-HK']);
+      await pending;
+      expect(calls.where((c) => c.method == 'speak'), isEmpty);
+    },
+  );
+  test(
+    'stop during audio-session restoration cannot emit late speech',
+    () async {
+      final speaker = FlutterTtsSpeaker(cantoneseOnly: true);
+      await speaker.initialize();
+      sharedGate = Completer<void>();
+      final pending = speaker.speak('舊畫面');
+      await Future<void>.delayed(Duration.zero);
+      await speaker.stop();
+      sharedGate!.complete();
+      await pending;
+      expect(calls.where((c) => c.method == 'speak'), isEmpty);
+    },
+  );
+  test(
+    'Cantonese-only scene output never silently falls back to Mandarin',
+    () async {
+      available = ['zh-TW', 'zh-CN'];
+      final speaker = FlutterTtsSpeaker(cantoneseOnly: true);
+      expect(await speaker.initialize(), isNull);
+      await expectLater(speaker.speak('前方有門。'), throwsStateError);
+      expect(calls.where((c) => c.method == 'speak'), isEmpty);
+    },
+  );
 
   test(
     'iOS selects zh-HK first and configures the shared audio session',

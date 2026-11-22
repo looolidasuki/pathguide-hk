@@ -163,3 +163,6 @@ exports.listPhotoProgress = onCall(options,async r=> {
     return {photos:docs.docs.map(doc=>({photoId:doc.id,uploadStatus:doc.data().uploadStatus,reviewStatus:doc.data().reviewStatus}))};
   } catch(e) { fail(e); }
 });
+
+// The manual scene callable shares its implementation with the isolated deployment entry.
+exports.describeScene = require('./scene_function').createSceneFunction(db, options);

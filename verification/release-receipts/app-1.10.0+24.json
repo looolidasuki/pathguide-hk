@@ -1,0 +1,76 @@
+{
+  "dateHongKong": "2026-11-09",
+  "version": "1.10.0+24",
+  "build": "signed private Profile; registered private App Check debug configuration",
+  "codesign": "deep strict pass",
+  "appHashes": {
+    "Runner": "ca355f700ff5def2d863522d00062325405fe004816bd1be32f867310ea1792a",
+    "Frameworks/App.framework/App": "883b07c3dd5c679dcaeb0b9f949dc604394dcaae5e22f00b7d224906dd0c2c5d"
+  },
+  "modelHashes": {
+    "detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf"
+  },
+  "modelsUnchanged": true,
+  "phoneInstall": "Installed in place after user unlocked iPhone; independent inventory verified 1.10.0 / build 24; normal launch succeeded. No uninstall or data clear.",
+  "phoneAcceptance": "Pending: real scene text/speech, walking triggers, latency, quality and VoiceOver. Earlier local fixed-sentence speech only was audible.",
+  "privateBinaryUploaded": false,
+  "phoneDataCleared": false,
+  "release": {
+    "tag": "v1.10.0+24",
+    "sourceCommit": "624b0e446943e9e8f5bc8e793721ad0cde1d0536",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.10.0%2B24",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "phoneInstallAttempts": [
+    {
+      "result": "iOS locked-device rejection",
+      "code": 10003,
+      "dataCleared": false
+    },
+    {
+      "result": "Installed after user unlock; inventory and launch verified",
+      "dataCleared": false
+    }
+  ],
+  "phoneInventory": {
+    "bundleIdentifier": "hk.pathguide.pathguide",
+    "version": "1.10.0",
+    "bundleVersion": "24",
+    "independentInventoryVerified": true,
+    "installedInPlace": true,
+    "dataCleared": false
+  },
+  "trialAmendment": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T16:06:25.443Z",
+    "deploymentUpdateTime": "2026-11-08T15:59:26.124892024Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 10000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 7,
+    "spentMicroUsd": 3483,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "allowanceHistoryAppended": true,
+    "originalCountCostIdsUnknownHistoryUnchanged": true,
+    "nominalRemaining": 43,
+    "windowExpiresAtUtc": "2026-11-09T04:06:25.443Z",
+    "windowExpiresAtHongKong": "2026-11-09 12:06:25",
+    "nextRequestReserveMicroUsd": 2458,
+    "notBillingCap": true
+  }
+}

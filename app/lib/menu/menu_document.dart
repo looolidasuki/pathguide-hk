@@ -64,8 +64,13 @@ class MenuDocument {
     required this.truncated,
     this.warnings = const [],
     this.diagnostics = '',
+    this.readingLines = const [],
+    this.readingLimited = false,
+    this.menuUnavailable = false,
   });
   final List<String> warnings;
+  final List<MenuLine> readingLines;
+  final bool readingLimited, menuUnavailable;
   final String diagnostics;
   final List<MenuEntry> entries;
   final String original;
@@ -128,6 +133,9 @@ MenuDocument parseMenu(
   bool truncated = false,
   List<String> warnings = const [],
   String engineVersion = 'unknown',
+  List<MenuLine> readingLines = const [],
+  bool readingLimited = false,
+  bool menuUnavailable = false,
 }) {
   final valid = source
       .where(
@@ -356,6 +364,9 @@ MenuDocument parseMenu(
     pages: pages,
     truncated: truncated,
     warnings: warnings,
+    readingLines: List.unmodifiable(readingLines),
+    readingLimited: readingLimited,
+    menuUnavailable: menuUnavailable,
   );
 }
 

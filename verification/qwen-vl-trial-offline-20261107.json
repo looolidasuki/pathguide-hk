@@ -1,0 +1,30 @@
+{
+  "date_hong_kong": "2026-11-07",
+  "scope": "Single-image cloud Qwen-VL trial CLI; no App integration",
+  "command": "python3 -m unittest discover -s scripts -p test_qwen_vl_trial.py -v",
+  "offline_tests_passed": 10,
+  "configuration_check": {
+    "api_key_configured": false,
+    "workspace_url_configured": false,
+    "model": "qwen3-vl-plus"
+  },
+  "actual_model_requests": 0,
+  "images_uploaded": 0,
+  "cloud_deployed": false,
+  "phone_app_modified": false,
+  "quality_evaluated": false,
+  "latency_measured_on_provider": false,
+  "user_account_setup": "User reports no Model Studio account/API key yet",
+  "next_dependencies": [
+    "Activate Model Studio and choose account region",
+    "Configure API key locally and matching workspace Base URL",
+    "Confirm selected image use and trial cost allowance",
+    "Run one explicit request, assess description and time to first text"
+  ],
+  "supported_endpoint_formats": [
+    "QwenCloud regional pay-as-you-go, no Workspace ID",
+    "Legacy Model Studio workspace-scoped URL"
+  ],
+  "qwencloud_endpoint_reference": "https://docs.qwencloud.com/developer-guides/getting-started/regions",
+  "token_plan_keys_rejected": true
+}

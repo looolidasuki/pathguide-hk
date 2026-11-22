@@ -46,7 +46,7 @@ abstract class MenuReader {
 }
 
 class NativeMenuReader implements MenuReader {
-  NativeMenuReader({MethodChannel? channel})
+  NativeMenuReader({MethodChannel? channel, this.includeGeneral = false})
     : _channel = channel ?? const MethodChannel('hk.pathguide/menu') {
     _channel.setMethodCallHandler((call) async {
       final m = call.arguments as Map?;
@@ -61,6 +61,7 @@ class NativeMenuReader implements MenuReader {
     });
   }
   final MethodChannel _channel;
+  final bool includeGeneral;
   String _requestId = '';
   static int _sequence = 0;
   void Function()? _onRecognizing;
@@ -94,6 +95,7 @@ class NativeMenuReader implements MenuReader {
     final response = await _invoke<Map>('readMenu', {
       'requestId': _requestId,
       'source': source.name,
+      if (includeGeneral) 'includeGeneral': true,
     });
     if (response == null) return null;
     return parseMenu(
@@ -103,6 +105,11 @@ class NativeMenuReader implements MenuReader {
       pages: (response['pages'] as num).toInt(),
       truncated: response['truncated'] == true,
       warnings: (response['warnings'] as List? ?? const []).cast<String>(),
+      readingLines: (response['readingLines'] as List? ?? const [])
+          .map((l) => MenuLine.fromMap(l as Map))
+          .toList(),
+      readingLimited: response['readingLimited'] == true,
+      menuUnavailable: response['menuUnavailable'] == true,
       engineVersion: response['ocrVersion'] as String? ?? 'unknown',
     );
   }

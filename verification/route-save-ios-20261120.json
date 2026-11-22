@@ -1,0 +1,21 @@
+{
+  "dateHongKong": "2026-11-20",
+  "observedPhoneVersion": "1.12.0+30",
+  "reportedOperation": "Finish and save on the first save of a new route",
+  "reportedFailureCause": "unconfirmed",
+  "reproduced": [
+    "Foundation returns Cocoa error 516 when creating an existing route directory without intermediate directories",
+    "The old native write limit rejects a version envelope over 2 MiB even though the Dart route version format allows 8 MiB"
+  ],
+  "verification": {
+    "flutterScopedPassed": 80,
+    "flutterAnalyze": "no issues",
+    "iosSimulatorTestsPassed": [
+      "testRouteStorageReusesDirectoryForAnotherVersion",
+      "testRouteStorageRejectsSymlinkDirectoriesAndOversizedWrites"
+    ]
+  },
+  "phoneDataAccess": "Read app version and route file metadata only",
+  "fixedBuildInstalled": false,
+  "humanAcceptance": "Pending reproduction of original first-save failure and validation on an iPhone"
+}

@@ -1,0 +1,27 @@
+{
+  "version": "1.9.1+19",
+  "buildMode": "private signed Profile; existing registered test App Check config; formal DeviceCheck pending",
+  "codesign": "deep strict passed",
+  "appHashes": {
+    "Runner": "33baac4f25aff183d607d262771a637753c79f05c43269b202916a304886805b",
+    "Frameworks/App.framework/App": "d5a02d1db1703ae07b4a7b9525f41d23be5eaa7d887a812531f9a85b74740d58"
+  },
+  "modelHashes": {
+    "detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf"
+  },
+  "modelsUnchanged": true,
+  "phoneInstall": "updated existing app after user unlocked; device inventory independently verified 1.9.1 build19; normal launch succeeded",
+  "phoneAcceptance": "pending user retry/initialization status and integrated automatic description",
+  "privateBinaryUploaded": false,
+  "phoneDataCleared": false,
+  "release": {
+    "tag": "v1.9.1+19",
+    "sourceCommit": "696a2ce81e033b468e4da815214ceeb43d85d699",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.1%2B19",
+    "remoteTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  }
+}

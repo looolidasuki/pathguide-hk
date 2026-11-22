@@ -1,0 +1,18 @@
+{
+  "dateHongKong": "2026-11-21",
+  "version": "1.12.1+31",
+  "sourceCommit": "a9d0d7a0731fdeb6dac0636868f131295458068a",
+  "release": "https://github.com/actiondarr/pathguide/releases/tag/v1.12.1%2B31",
+  "build": "Private iOS Profile, both scene flags enabled, deep strict signature verified",
+  "appHashes": {
+    "Runner": "8c317bea0c91e2e2c7bb1484953b865f70aee233030437da6768ecd623173404",
+    "Frameworks/App.framework/App": "a200a21e0c46cbf9baa20fe4e8d8c2122446669cccaf31535b6f84a9f786976f"
+  },
+  "phoneInstall": {
+    "inPlace": true,
+    "independentInventoryVerified": true,
+    "launchAccepted": true,
+    "routeFileMetadataMatched": 56
+  },
+  "humanAcceptance": "Cloud scene authorization, actual speech and VoiceOver not verified"
+}

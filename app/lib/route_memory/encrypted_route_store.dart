@@ -23,6 +23,7 @@ class DeviceRouteKeyVault implements RouteKeyVault {
   static const _probeKey = 'pathguide.route_memory.probe.aes.v1';
   DeviceRouteKeyVault() : _key = keyName;
   DeviceRouteKeyVault.probe() : _key = _probeKey;
+  DeviceRouteKeyVault.learning() : _key = 'pathguide.route_learning.aes.v1';
   final String _key;
   Future<void> deleteProbeKey() async {
     if (_key != _probeKey) throw StateError('Not a probe vault');
@@ -101,6 +102,7 @@ class EncryptedRouteStore {
   int _epoch = 0;
   final _cipher = AesGcm.with256bits();
   static const _scope = 'pathguide/device-local/routes/v1';
+  static const _versionEnvelopeLimit = 8 * 1024 * 1024;
 
   static Future<EncryptedRouteStore> open({
     Directory? root,
@@ -136,9 +138,13 @@ class EncryptedRouteStore {
     }
   }
 
-  Future<void> _writeFile(File file, List<int> bytes) async {
+  Future<void> _writeFile(
+    File file,
+    List<int> bytes, {
+    bool routeVersion = false,
+  }) async {
     if (_files != null) {
-      await _files.write(file, bytes);
+      await _files.write(file, bytes, routeVersion: routeVersion);
     } else {
       await file.writeAsBytes(bytes, flush: true);
     }
@@ -263,11 +269,16 @@ class EncryptedRouteStore {
     );
   }
 
-  Future<List<int>> _unsealBytes(File file, SecretKey key, String aad) async {
+  Future<List<int>> _unsealBytes(
+    File file,
+    SecretKey key,
+    String aad, {
+    int limit = 2 * 1024 * 1024,
+  }) async {
     try {
       if (await FileSystemEntity.type(file.path, followLinks: false) !=
               FileSystemEntityType.file ||
-          await file.length() > 2 * 1024 * 1024) {
+          await file.length() > limit) {
         throw const FormatException();
       }
       final sealed = jsonDecode(await file.readAsString()) as Map;
@@ -288,11 +299,13 @@ class EncryptedRouteStore {
   Future<Map<String, dynamic>> _unseal(
     File file,
     SecretKey key,
-    String aad,
-  ) async {
+    String aad, {
+    int limit = 2 * 1024 * 1024,
+  }) async {
     try {
-      return jsonDecode(utf8.decode(await _unsealBytes(file, key, aad)))
-          as Map<String, dynamic>;
+      return jsonDecode(
+        utf8.decode(await _unsealBytes(file, key, aad, limit: limit)),
+      ) as Map<String, dynamic>;
     } catch (_) {
       throw const RouteStoreFailure(RouteProblem.corrupt);
     }
@@ -434,13 +447,18 @@ class EncryptedRouteStore {
     if (info == null) throw const RouteStoreFailure(RouteProblem.notFound);
     final file = File('${_routeDir(id).path}/${info['file']}');
     try {
-      if (await file.length() > 2 * 1024 * 1024) {
+      if (await file.length() > _versionEnvelopeLimit) {
         throw const RouteStoreFailure(RouteProblem.corrupt);
       }
       if (_sha(await file.readAsBytes()) != info['sha']) {
         throw const RouteStoreFailure(RouteProblem.corrupt);
       }
-      final v = await _unseal(file, key, '$id/$version');
+      final v = await _unseal(
+        file,
+        key,
+        '$id/$version',
+        limit: _versionEnvelopeLimit,
+      );
       final document = RouteDocument.fromMap(
         v['document'] as Map<String, dynamic>,
       );
@@ -731,9 +749,10 @@ class EncryptedRouteStore {
         throw const RouteStoreFailure(RouteProblem.capacity);
       }
       final version = previous?['next'] as int? ?? 1;
-      final doc = document.toMap(),
-          docBytes = utf8.encode(jsonEncode(document.toMap()));
-      if (docBytes.length > limits.documentBytes) {
+      final doc = document.toMap();
+      final docBytes = utf8.encode(jsonEncode(doc));
+      if (docBytes.length - document.encodedAudioNoteLength >
+          limits.documentBytes) {
         throw const RouteStoreFailure(RouteProblem.capacity);
       }
       final hash = _sha(docBytes);
@@ -747,6 +766,9 @@ class EncryptedRouteStore {
         key,
         '${document.id}/$version',
       );
+      if (bytes.length > _versionEnvelopeLimit) {
+        throw const RouteStoreFailure(RouteProblem.capacity);
+      }
       final filename = '${_random()}.enc';
       final index = <String, Map<String, Object>>{
         for (final e in refs.entries)
@@ -802,7 +824,7 @@ class EncryptedRouteStore {
         await _renameFile(temp, '${folder.path}/${index[e.key]!['file']}');
       }
       final temp = File('${folder.path}/$filename.tmp');
-      await _writeFile(temp, bytes);
+      await _writeFile(temp, bytes, routeVersion: true);
       await _step('afterVersionWrite');
       _guard(token);
       await _renameFile(temp, '${folder.path}/$filename');
@@ -835,7 +857,11 @@ class EncryptedRouteStore {
     });
   }
 
-  Future<void> delete(String id, {required int expectedRevision}) {
+  Future<void> delete(
+    String id, {
+    required int expectedRevision,
+    Future<void> Function()? beforeDelete,
+  }) {
     _actor.routeEpoch[id] = (_actor.routeEpoch[id] ?? 0) + 1;
     return _locked((key) async {
       final cat = await _catalog(key);
@@ -846,6 +872,7 @@ class EncryptedRouteStore {
       if (e != null && e['revision'] != expectedRevision) {
         throw const RouteStoreFailure(RouteProblem.conflict);
       }
+      await beforeDelete?.call();
       cat['routes'].remove(id);
       cat['deleted'][id] = true;
       await _commit(cat, key, deletion: true);
@@ -920,8 +947,13 @@ class EncryptedRouteStore {
         }
       }
     }
+    // ★ keep 用 '/' 拼路徑，但 Windows 的 Directory.list 回傳反斜線路徑；
+    //   直接比對會把要保留的紀錄與 .lock 都當孤兒刪掉。POSIX（Android／iOS）上這是 no-op。
+    final keepNative = {
+      for (final k in keep) k.replaceAll('/', Platform.pathSeparator),
+    };
     await for (final f in directory.list(recursive: true, followLinks: false)) {
-      if (f is File && !keep.contains(f.path)) await f.delete();
+      if (f is File && !keepNative.contains(f.path)) await f.delete();
     }
     for (final id in (cat['deleted'] as Map).keys) {
       await _removeDir(id as String);

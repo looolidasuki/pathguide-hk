@@ -1,0 +1,23 @@
+{
+  "dateHongKong": "2026-11-21",
+  "homeDescribeAheadEntry": "removed",
+  "liveSceneEntry": "Live recognition on private iOS trial builds",
+  "buildCommand": "app/tool/run_iphone.sh --build-scene-trial --no-pub",
+  "checkedBuildDefines": {
+    "SCENE_DESCRIPTION_ENABLED": true,
+    "SCENE_DESCRIPTION_TRIAL": true
+  },
+  "checks": {
+    "flutterWithTrialConfigPassed": 623,
+    "defaultTaskEntryTestsPassed": 4,
+    "flutterAnalyze": "no issues",
+    "signedIosProfileBuild": "passed",
+    "codesignDeepStrict": "passed"
+  },
+  "appHashes": {
+    "Runner": "39b38a05c509a76d532a1e88fa204e147a0233f67609aab61c6d954e97376028",
+    "Frameworks/App.framework/App": "44d3641a48b6070f56feaf93cbde2c9c74b2920f16f560fcb3a629755440983c"
+  },
+  "installed": false,
+  "cloudTrialAndVoiceOverAcceptance": "not verified"
+}

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../settings/app_settings.dart';
 import 'encrypted_route_store.dart';
 import 'device_route_library.dart';
 import 'route_library_controller.dart';
 import 'route_library_page.dart';
+import 'route_learning_store.dart';
 
 /// The sole native store owner for this screen; opening is lazy and explicit.
 class RouteLibraryScreen extends StatefulWidget {
@@ -55,7 +57,12 @@ class _RouteLibraryScreenState extends State<RouteLibraryScreen>
 
   Future<RouteLibraryController> _deviceController() async =>
       RouteLibraryController(
-        DeviceRouteLibrary(await EncryptedRouteStore.open()),
+        DeviceRouteLibrary(
+          await EncryptedRouteStore.open(),
+          openLearningStore: defaultTargetPlatform == TargetPlatform.iOS
+              ? RouteLearningStore.open
+              : null,
+        ),
       );
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {

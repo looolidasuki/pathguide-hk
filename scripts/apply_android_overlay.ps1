@@ -20,12 +20,12 @@
       AndroidManifest.xml       label 走 @string/app_name；磁貼 service；FileProvider
       build.gradle.kts          ML Kit text-recognition-chinese
       menu_reader.dart          supported 納入 Android
-      menu_page.dart            第三方語音廠商名按平台（iOS=Apple / Android=Google）
+      menu_page.dart            第三方語音廠商名按平台（iOS=Apple / Android=Google）；不支援理由分讀字／菜單
       menu_ui_test.dart         廠商名映射測試
+      MenuPlugin.kt             includeGeneral → 回傳 readingLines（上游 1.12 通用讀字）
 
-    平台守衛（上游 4 個路線記憶測試依賴 iOS Keychain，非 macOS 必然失敗）
-      captured_route_store_test / encrypted_route_store_test /
-      route_journey_page_test / route_record_replay_test
+    route_memory 的 Windows 相容（修程式、不跳測試；POSIX 上是 no-op）
+      encrypted_route_store / route_learning_store：.lock 用路徑末段判斷、孤兒清理按平台分隔符比對
 
   冪等規則（可重複執行）：
     - 新增檔已存在           → 跳過（不覆蓋手改內容）
@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.8.0+15-android-sync.1'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.1'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -281,25 +281,36 @@ Patch-Overlay $page 'menu_page: 內容移除 const' `
     ('          content: const AppText(' + $LF + "            '這部手機未提供離線粵語辨識") `
     ('          content: AppText(' + $LF + "            '這部手機未提供離線粵語辨識")
 
+# 上游 1.12.1+31 起此處按 widget.generalReading 分「讀字／菜單」兩句（仍只講 iPhone）。
+$unsupportedAnchor = @(
+    '              AppText(',
+    '                widget.generalReading',
+    "                    ? '閱讀文字支援 iOS 16 或以上的 iPhone。'",
+    "                    : '本輪菜單閱讀先支援 iPhone，繁體中文辨識需要 iOS 16 或以上。',",
+    '              ),'
+) -join $LF
 Patch-Overlay $page 'menu_page: 不支援時的理由' `
-    'AppText(_unsupportedReason())' `
-    "              const AppText('本輪菜單閱讀先支援 iPhone，繁體中文辨識需要 iOS 16 或以上。')," `
-    '              AppText(_unsupportedReason()),'
+    'AppText(_unsupportedReason(widget.generalReading))' `
+    $unsupportedAnchor `
+    '              AppText(_unsupportedReason(widget.generalReading)),'
 
 $helpers = @(
     '  /// 線上語音廠商名的內部入口。',
     '  static String _onlineVoiceVendor() => onlineVoiceVendorFor(defaultTargetPlatform);',
     '',
-    '  /// 這個平台不支援菜單閱讀時，要說出為什麼與在哪些平台可用。',
-    '  static String _unsupportedReason() => switch (defaultTargetPlatform) {',
-    "    TargetPlatform.iOS => '菜單閱讀在 iPhone 需要 iOS 16 或以上。',",
+    '  /// 這個平台不支援菜單／讀字時，要說出為什麼與在哪些平台可用。',
+    '  static String _unsupportedReason(bool generalReading) =>',
+    '      switch (defaultTargetPlatform) {',
+    '    TargetPlatform.iOS => generalReading',
+    "        ? '閱讀文字支援 iOS 16 或以上的 iPhone。'",
+    "        : '菜單閱讀在 iPhone 需要 iOS 16 或以上。',",
     "    TargetPlatform.android => '這部 Android 裝置未提供可用的文字辨識服務。',",
-    "    _ => '菜單閱讀目前支援 iPhone 與 Android。',",
+    "    _ => '文字及菜單閱讀目前支援 iPhone 與 Android。',",
     '  };',
     ''
 ) -join $LF
 Patch-Overlay $page 'menu_page: 兩個 helper' `
-    'static String _unsupportedReason()' `
+    'static String _unsupportedReason(' `
     '  void _search() {' `
     ($helpers + '  void _search() {')
 
@@ -336,15 +347,17 @@ Patch-Overlay $uiTest 'menu_ui_test: 廠商名三分支測試' `
     $vendorTest
 # ================================================================ 8. route_memory 的 Windows 相容
 #
-# 兩件事，都是「上游在 macOS／POSIX 看不到、Windows 上必炸」的類型：
+# 都是「上游在 macOS／POSIX 看不到、Windows 上必炸」的類型；修程式，不跳測試。
+# 改動在 POSIX（Android／iOS）上都是 no-op。
 #
-# (a) `_key()` 用 `f.path.endsWith('/.lock')` 判斷鎖檔，但 Windows 的 File.path 用反斜線，
-#     於是鎖檔被當成「已有資料但沒有金鑰」→ 每次開檔都 RouteStoreFailure(keyUnavailable)。
-#     這是**真 bug**（POSIX 掩蓋了它），所以修程式，不跳測試。
+# (a) 鎖檔判斷用 `f.path.endsWith('/.lock')`，但 Windows 的 path 用反斜線，
+#     於是鎖檔被當成「已有資料但沒有金鑰」→ 每次開檔都 keyUnavailable。
+#     encrypted_route_store（1.8.0 起）與 route_learning_store（1.12 新增）各有一處。
 #
-# (b) 有幾條測試刻意在 store 仍持有 .lock 時刪檔／模擬崩潰。POSIX 允許刪除已打開的檔案，
-#     Windows 回 PathAccessException(errno 32)。那是平台語義差異、不是產品缺陷，
-#     所以只在 Windows 跳過那幾條，並寫明真正的原因（不要用假理由蓋掉真 bug）。
+# (b) 孤兒清理用 '/' 拼出「要保留的路徑」，再和 Directory.list 的路徑比對；
+#     Windows 列出的是反斜線路徑 → 要保留的紀錄與 .lock 全被當孤兒刪除。
+#     （2026-11-22 查證：之前 Windows 上跳過的 8 條測試，真正原因是這個，
+#      不是「Windows 無法刪除已打開的 .lock」；修好後全部可在 Windows 通過，跳過已撤銷。）
 $storeFile = 'app/lib/route_memory/encrypted_route_store.dart'
 Patch-Overlay $storeFile 'route_store: .lock 用路徑末段判斷' `
     "name != '.lock'" `
@@ -360,71 +373,34 @@ Patch-Overlay $storeFile 'route_store: .lock 用路徑末段判斷' `
         '          if (f is File && name != ''.lock'') {'
     ) -join $LF)
 
-$winHelper = @(
-    '// Windows 允許「刪除已打開的檔案」嗎？不可以（POSIX 可以）。',
-    '// 下面這些測試刻意在 store 仍持有 `.lock` 時刪檔／模擬崩潰，',
-    '// 在 Windows 上必然得到 PathAccessException(errno 32) → RouteStoreFailure(io)。',
-    '// Android/iOS 是 POSIX，行為正確；所以只在 Windows 跳過，並寫明真正的原因，',
-    '// 不要用「需要 Keychain」之類的假理由（會蓋掉真 bug）。',
-    'const _winLockSkip =',
-    "    'Windows 無法刪除已打開的 .lock（POSIX 允許；Android/iOS 不受影響）';",
-    '',
-    'void destructiveTest(String name, Future<void> Function() body) =>',
-    '    test(name, body, skip: Platform.isWindows ? _winLockSkip : null);',
-    '',
-    '// testWidgets 的 skip 只收 bool，帶不上原因字串；真正的原因寫在 _winLockSkip 的註解裡。',
-    'void destructiveWidgetTest(String name, WidgetTesterCallback body) =>',
-    '    testWidgets(name, body, skip: Platform.isWindows);',
-    '',
-    'void main() {'
+$learningFile = 'app/lib/route_memory/route_learning_store.dart'
+Patch-Overlay $learningFile 'learning_store: .lock 用路徑末段判斷' `
+    "e.uri.pathSegments.where((s) => s.isNotEmpty).last != '.lock'" `
+    "          if (await directory.list().any((e) => !e.path.endsWith('/.lock'))) {" `
+    (@(
+        '          // ★ 用路徑的**最後一段**判斷，不要比對 ''/.lock''（同 encrypted_route_store）：',
+        '          //   Windows 的 path 用反斜線，鎖檔會被誤判成「有資料但沒有金鑰」。',
+        '          if (await directory.list().any((e) =>',
+        '              e.uri.pathSegments.where((s) => s.isNotEmpty).last != ''.lock'')) {'
+    ) -join $LF)
+
+$orphanAnchor = @(
+    '    await for (final f in directory.list(recursive: true, followLinks: false)) {',
+    '      if (f is File && !keep.contains(f.path)) await f.delete();'
 ) -join $LF
-
-$captured = 'app/test/captured_route_store_test.dart'
-Patch-Overlay $captured 'captured_store_test: Windows 鎖語義 helper' `
-    'void destructiveTest(String name' `
-    ('void main() {' + $LF) `
-    $winHelper
-
-Patch-Overlay $captured 'captured_store_test: 包裝 for 迴圈的兩條' `
-    'destructiveTest(''$cancel cancels media waiting' `
-    '    test(''$cancel cancels media waiting before catalog publication'', () async {' `
-    '    destructiveTest(''$cancel cancels media waiting before catalog publication'', () async {'
-
-Patch-Overlay $captured 'captured_store_test: 包裝 crash 那條' `
-    'destructiveTest(''a crash after media write' `
-    'test(''a crash after media write preserves old pointer; explicit cleanup removes orphans'',' `
-    'destructiveTest(''a crash after media write preserves old pointer; explicit cleanup removes orphans'','
-
-Patch-Overlay $captured 'captured_store_test: 包裝 tampered 那條' `
-    'destructiveTest(''tampered image blocks latest version' `
-    'test(''tampered image blocks latest version; explicit rollback recovers and delete removes all media'',' `
-    'destructiveTest(''tampered image blocks latest version; explicit rollback recovers and delete removes all media'','
-
-$encrypted = 'app/test/encrypted_route_store_test.dart'
-Patch-Overlay $encrypted 'encrypted_store_test: Windows 鎖語義 helper' `
-    'void destructiveTest(String name' `
-    ('void main() {' + $LF) `
-    $winHelper
-
-Patch-Overlay $encrypted 'encrypted_store_test: 包裝 corrupt active 那條' `
-    ('destructiveTest(' + $LF + '    ''corrupt active version preserved') `
-    ('test(' + $LF + '    ''corrupt active version preserved; explicit verified older rollback works'',') `
-    ('destructiveTest(' + $LF + '    ''corrupt active version preserved; explicit verified older rollback works'',')
-
-Patch-Overlay $encrypted 'encrypted_store_test: 包裝 failure before catalog 那條' `
-    'destructiveTest(''failure before catalog switch' `
-    'test(''failure before catalog switch leaves stable active version and orphan ignored'', () async {' `
-    'destructiveTest(''failure before catalog switch leaves stable active version and orphan ignored'', () async {'
-
-Patch-Overlay $encrypted 'encrypted_store_test: 包裝 route namespace 那條' `
-    ('destructiveTest(' + $LF + '    ''route namespace and key') `
-    ('test(' + $LF + '    ''route namespace and key do not touch photo queue or another library'',') `
-    ('destructiveTest(' + $LF + '    ''route namespace and key do not touch photo queue or another library'',')
-
-Patch-Overlay $encrypted 'encrypted_store_test: 包裝 explicit pruning 那條' `
-    'destructiveTest(''explicit pruning retains active' `
-    '  test(''explicit pruning retains active, verified fallback and draft, with monotonic versions'', () async {' `
-    '  destructiveTest(''explicit pruning retains active, verified fallback and draft, with monotonic versions'', () async {'
+$orphanFix = @(
+    '    // ★ keep 用 ''/'' 拼路徑，但 Windows 的 Directory.list 回傳反斜線路徑；',
+    '    //   直接比對會把要保留的紀錄與 .lock 都當孤兒刪掉。POSIX（Android／iOS）上這是 no-op。',
+    '    final keepNative = {',
+    '      for (final k in keep) k.replaceAll(''/'', Platform.pathSeparator),',
+    '    };',
+    '    await for (final f in directory.list(recursive: true, followLinks: false)) {',
+    '      if (f is File && !keepNative.contains(f.path)) await f.delete();'
+) -join $LF
+Patch-Overlay $storeFile 'route_store: 孤兒清理按平台分隔符比對' `
+    'final keepNative = {' $orphanAnchor $orphanFix
+Patch-Overlay $learningFile 'learning_store: 孤兒清理按平台分隔符比對' `
+    'final keepNative = {' $orphanAnchor $orphanFix
 
 # ================================================================ 結果
 Write-Host ''

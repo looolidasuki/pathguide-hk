@@ -95,7 +95,12 @@ PATCH_MARKERS = [
     (
         APP / "lib/menu/menu_page.dart",
         "菜單頁不支援时的理由",
-        "AppText(_unsupportedReason())",
+        "AppText(_unsupportedReason(widget.generalReading))",
+    ),
+    (
+        APP / "android/app/src/main/kotlin/hk/pathguide/pathguide/MenuPlugin.kt",
+        "Android 菜單插件回傳通用讀字的 readingLines",
+        'payload["readingLines"] = lines',
     ),
     (
         APP / "test/menu_ui_test.dart",
@@ -109,18 +114,13 @@ PATCH_MARKERS = [
     ),
 ]
 
-# route_memory 在 Windows 上的兩件事：
-#   (a) `.lock` 用路徑末段判斷（真 bug：POSIX 掩蓋了它）
-#   (b) 幾條「刪除已打開檔案」的測試在 Windows 上不可行 → 逐條跳過並寫明原因
+# route_memory 在 Windows 上的兩件事（都修程式，不跳測試；POSIX 上是 no-op）：
+#   (a) `.lock` 用路徑末段判斷
+#   (b) 孤兒清理按平台分隔符比對 keep 集合
+# 2026-11-22 查證：之前 Windows 跳過的 8 條測試，真因是 (b)，不是「不能刪除已打開的 .lock」。
 ROUTE_STORE = APP / "lib/route_memory/encrypted_route_store.dart"
-WIN_SKIP_HELPER = "void destructiveTest(String name"
-WINDOWS_LOCK_SKIPPED = [
-    (APP / "test/captured_route_store_test.dart", "destructiveTest('a crash after media write"),
-    (APP / "test/captured_route_store_test.dart", "destructiveTest('$cancel cancels media waiting"),
-    (APP / "test/captured_route_store_test.dart", "destructiveTest('tampered image blocks latest version"),
-    (APP / "test/encrypted_route_store_test.dart", "destructiveTest('failure before catalog switch"),
-    (APP / "test/encrypted_route_store_test.dart", "destructiveTest('explicit pruning retains active"),
-]
+LEARNING_STORE = APP / "lib/route_memory/route_learning_store.dart"
+ROUTE_STORES = [ROUTE_STORE, LEARNING_STORE]
 
 
 def test_overlay_script_exists():
@@ -176,26 +176,32 @@ def test_route_store_lock_path_is_platform_safe():
     )
 
 
-def test_windows_lock_skip_helper_present():
-    """兩個 store 測試檔都要有 Windows 鎖語義的 helper 與原因字串。"""
-    for rel in (
-        APP / "test/captured_route_store_test.dart",
-        APP / "test/encrypted_route_store_test.dart",
-    ):
-        text = rel.read_text(encoding="utf-8")
-        assert WIN_SKIP_HELPER in text, f"{rel.name} 缺少 destructiveTest helper"
-        assert "Platform.isWindows" in text, f"{rel.name} 沒有平台條件"
-        assert ".lock" in text, f"{rel.name} 要寫明是 .lock 的刪除限制（不要用假理由）"
+@pytest.mark.parametrize("path", ROUTE_STORES, ids=lambda p: p.name)
+def test_learning_and_route_store_lock_path_is_platform_safe(path: Path):
+    """兩個 store 都不能再用 `endsWith('/.lock')` 判斷鎖檔（route_learning_store 是上游 1.12 新增的同款 bug）。"""
+    text = path.read_text(encoding="utf-8")
+    assert "!f.path.endsWith('/.lock')) {" not in text
+    assert "!e.path.endsWith('/.lock')))" not in text
+
+
+@pytest.mark.parametrize("path", ROUTE_STORES, ids=lambda p: p.name)
+def test_orphan_cleanup_compares_native_paths(path: Path):
+    """孤兒清理的 keep 集合用 '/' 拼，必須轉成平台分隔符再比對。
+
+    否則 Windows 上要保留的紀錄與 .lock 全被當孤兒刪掉（POSIX 看不到）。
+    """
+    text = path.read_text(encoding="utf-8")
+    assert "final keepNative = {" in text
+    assert "!keepNative.contains(f.path)" in text
+    assert "!keep.contains(f.path)) await f.delete();" not in text
 
 
 @pytest.mark.parametrize(
-    "path,marker",
-    WINDOWS_LOCK_SKIPPED,
-    ids=[f"{p.name}:{m[26:52]}" for p, m in WINDOWS_LOCK_SKIPPED],
+    "rel",
+    ["test/captured_route_store_test.dart", "test/encrypted_route_store_test.dart"],
 )
-def test_windows_unsafe_tests_are_wrapped(path: Path, marker: str):
-    assert path.exists(), f"{path.relative_to(REPO_ROOT)} 不存在"
-    assert marker in path.read_text(encoding="utf-8"), (
-        f"{path.name} 少了包裝：{marker!r}；"
-        "在 Windows 上這幾條會因「不能刪除已打開的 .lock」而紅"
-    )
+def test_route_store_tests_are_not_skipped_on_windows(rel: str):
+    """跳過已撤銷：程式修好後這些測試在 Windows 上也要真跑。"""
+    text = (APP / rel).read_text(encoding="utf-8")
+    assert "destructiveTest(" not in text
+    assert "_winLockSkip" not in text

@@ -1,0 +1,125 @@
+{
+  "scope": "Read-only handoff requested by user; no fixes/deployment/inference",
+  "dateHongKong": "2026-11-09",
+  "state": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T19:03:43.148Z",
+    "deploymentUpdateTime": "2026-11-08T16:35:15.382413860Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 32,
+    "spentMicroUsd": 13331,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "windowExpiresAtMs": 1794197185443,
+    "windowExpired": false,
+    "windowMaxCount": 50,
+    "nominalRemaining": 18,
+    "nextRequestReserveMicroUsd": 2458,
+    "nextRequestFitsBudget": true,
+    "configuredFingerprintMatches": true,
+    "stopReason": null,
+    "lastResult": {
+      "receivedAtMs": 1794164471409,
+      "status": "complete",
+      "rejectionDetail": "text-content",
+      "rejectionReason": "disallowed-content",
+      "metrics": {
+        "estimate": {
+          "usd": 0.00021620000000000002,
+          "notBillingCap": true,
+          "outputUsdPerMillion": 1.6,
+          "inputUsdPerMillion": 0.2
+        },
+        "modelMs": 2403,
+        "usage": {
+          "completion_tokens": 78,
+          "prompt_tokens": 457,
+          "total_tokens": 535
+        }
+      },
+      "requestId": "505957433004eb4d5e0a24dd9150c746"
+    },
+    "recentResults": [
+      {
+        "requestId": "2a46f977a7d21c24a876e14a42d20872",
+        "status": "complete",
+        "receivedAtMs": 1794164454243,
+        "metrics": {
+          "modelMs": 2268,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 89,
+            "total_tokens": 546
+          },
+          "estimate": {
+            "usd": 0.00023380000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "0d502b62f6ed97e1007b2f22488ea4e5",
+        "status": "complete",
+        "receivedAtMs": 1794164463871,
+        "metrics": {
+          "modelMs": 2510,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 82,
+            "total_tokens": 539
+          },
+          "estimate": {
+            "usd": 0.00022260000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "505957433004eb4d5e0a24dd9150c746",
+        "status": "complete",
+        "receivedAtMs": 1794164471409,
+        "metrics": {
+          "modelMs": 2403,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 78,
+            "total_tokens": 535
+          },
+          "estimate": {
+            "usd": 0.00021620000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      }
+    ],
+    "rateGuardRemainingMs": 0,
+    "dailyCount": 30
+  },
+  "privateScreenshotsUploaded": false,
+  "screenshotCounts": [
+    25,
+    26
+  ],
+  "userReportsRoomAudioSuccess": true,
+  "complexSceneFormatAndContentRejectionsUnresolved": true,
+  "rawLastResultStaleRejectionFieldsObserved": true,
+  "testsRerun": false
+}

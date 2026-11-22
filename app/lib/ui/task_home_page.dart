@@ -44,7 +44,12 @@ class TaskHomePage extends StatelessWidget {
           Icons.navigation_outlined,
           onNavigation,
         ),
-        _task('菜單閱讀與語音搜尋', '拍攝菜單，查詢菜名及價格。', Icons.restaurant_menu, onMenu),
+        _task(
+          '閱讀文字',
+          '拍攝或選圖，閱讀文字或查詢菜單價錢。',
+          Icons.text_snippet_outlined,
+          onMenu,
+        ),
         const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: onSettings,

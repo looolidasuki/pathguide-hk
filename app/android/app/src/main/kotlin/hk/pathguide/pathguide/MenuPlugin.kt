@@ -72,6 +72,8 @@ class MenuPlugin(private val activity: Activity) :
     // ---- 讀菜單（一次只有一個）----
     private var readReply: MethodChannel.Result? = null
     private var readRequestId: String = ""
+    /** 上游 1.12 起的「通用讀字」：Dart 傳 includeGeneral=true 時要另回 readingLines。 */
+    private var readIncludeGeneral = false
     private var cameraOutput: File? = null
 
     // ---- 語音查詢（一次只有一個）----
@@ -141,6 +143,7 @@ class MenuPlugin(private val activity: Activity) :
         val source = call.argument<String>("source") ?: "camera"
         readReply = result
         readRequestId = requestId
+        readIncludeGeneral = call.argument<Boolean>("includeGeneral") == true
 
         val intent = when (source) {
             "library" -> Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -196,7 +199,7 @@ class MenuPlugin(private val activity: Activity) :
         }
 
         channel?.invokeMethod("recognizing", mapOf("requestId" to readRequestId))
-        recognize(uri) { payload, failure ->
+        recognize(uri, readIncludeGeneral) { payload, failure ->
             readReply = null
             cameraOutput?.delete()
             cameraOutput = null
@@ -211,6 +214,7 @@ class MenuPlugin(private val activity: Activity) :
 
     private fun recognize(
         uri: Uri,
+        includeGeneral: Boolean,
         done: (Map<String, Any?>?, String?) -> Unit,
     ) {
         val image = try {
@@ -245,16 +249,21 @@ class MenuPlugin(private val activity: Activity) :
                     warnings.add("相片較細，價錢可能需要重拍。")
                 }
                 if (lines.isEmpty()) warnings.add("這張相片沒有辨識到文字。")
-                done(
-                    mapOf(
-                        "ocrVersion" to OCR_VERSION,
-                        "lines" to lines,
-                        "pages" to 1,
-                        "truncated" to false,
-                        "warnings" to warnings,
-                    ),
-                    null,
+                val payload = mutableMapOf<String, Any?>(
+                    "ocrVersion" to OCR_VERSION,
+                    "lines" to lines,
+                    "pages" to 1,
+                    "truncated" to false,
+                    "warnings" to warnings,
                 )
+                if (includeGeneral) {
+                    // 通用讀字（對齊 iOS MenuPlugin 1.12）：iOS 另跑一次整頁、不做菜單合併的辨識；
+                    // ML Kit 本來就是整頁逐行輸出、沒有菜單專用的分區合併，所以同一份行即可。
+                    payload["readingLines"] = lines
+                    payload["readingLimited"] = false
+                    payload["menuUnavailable"] = false
+                }
+                done(payload, null)
             }
             .addOnFailureListener { e -> done(null, "文字辨識失敗：${e.message}") }
     }

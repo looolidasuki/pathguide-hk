@@ -1,0 +1,56 @@
+{
+  "dateHongKong": "2026-11-08",
+  "version": "1.9.5+23",
+  "build": "signed private Profile; reused registered private App Check configuration",
+  "codesign": "deep strict pass",
+  "appHashes": {
+    "Runner": "f53a94bcc54f6d0f4422ce1208a26ad1e2769ccb1a524761f151a3237301671e",
+    "Frameworks/App.framework/App": "1d4e7873342be856c0d1c18ad01696470d7fcda28e95b13f1cb75c604d940c10"
+  },
+  "modelHashes": {
+    "detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf"
+  },
+  "modelsUnchanged": true,
+  "phoneInstall": "Installed in place after user unlocked phone; independent devicectl inventory verified 1.9.5 / build 23 and normal launch succeeded. No uninstall/data clear. Initial connection reset then iOS locked-device rejection preserved as installation history.",
+  "phoneAcceptance": "Local fixed speech audible per user; real scene text/speech and automatic walking flow remain pending.",
+  "privateBinaryUploaded": false,
+  "phoneDataCleared": false,
+  "newPaidGrant": true,
+  "release": {
+    "tag": "v1.9.5+23",
+    "sourceCommit": "e34a8f209ee5b8a633abad9cffb7b0af3cfd404b",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.5%2B23",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "localSpeechAcceptance": {
+    "dateHongKong": "2026-11-08",
+    "version": "1.9.5+23",
+    "userConfirmation": "有聲",
+    "scope": "Local fixed synthetic speech through scene output path; not a new cloud scene description or automatic walking-mode acceptance."
+  },
+  "integratedRecoveryGrant": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T14:13:38.708Z",
+    "deploymentUpdateTime": "2026-11-08T10:27:52.373495352Z",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "originalCountCostIdsUnchanged": true,
+    "priorRecoveryArchived": true,
+    "trialCount": 6,
+    "spentMicroUsd": 3296,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "ready",
+    "recoveryExpiresAtUtc": "2026-11-08T16:13:37.182Z",
+    "paidInferenceRequestsByAgent": 0
+  }
+}

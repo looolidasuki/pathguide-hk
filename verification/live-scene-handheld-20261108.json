@@ -1,0 +1,99 @@
+{
+  "dateHongKong": "2026-11-08",
+  "version": "1.9.2+20",
+  "trigger": "User: controls require completely still phone and disappear on movement; switch now usable but automatic description not accepted.",
+  "change": "Keep manual controls available independent of instantaneous stability; manual request waits locally up to 2.5s before photo; distinguish hand tremor from significant snapshot change; preserve current result across minor encoding/reply pose drift.",
+  "checks": {
+    "scopedFlutterPassed": 68,
+    "analyze": "pass",
+    "native": "Swift unchanged; 58-test 1.9.1 simulator baseline retained",
+    "signedBuild": "Profile passed; codesign deep strict passed; four model hashes unchanged"
+  },
+  "parameters": {
+    "stableMs": 700,
+    "stableGridDifference": 0.06,
+    "stableAttitudeDegrees": 5,
+    "stableRotationRateRadPerSec": 0.45,
+    "immediateFastTurnRadPerSec": 0.8,
+    "snapshotInvalidationAttitudeDegrees": 12,
+    "snapshotInvalidationGridDifference": 0.12,
+    "importantChangeAttitudeDegrees": 15,
+    "importantChangeGridDifference": 0.12,
+    "cooldownSeconds": 45,
+    "manualStableWaitMs": 2500,
+    "localAttemptCap": 3
+  },
+  "safety": "Engineering thresholds pending handheld calibration; cancellation/background/expiry, one in flight, server ledger/budget and no automatic paid retry unchanged.",
+  "paidInferenceRequestsByAgent": 0,
+  "phoneAcceptance": "NOT ACCEPTED: user reports consent then no text/audio; re-entry preparation timeout. A backend complete request on old version did not establish client delivery.",
+  "review": "Implementing-agent review; no independent review; test movement, encoding race, stale/turn cancellation, no-capture timeout and existing UI/standalone/speech regression.",
+  "release": {
+    "tag": "v1.9.2+20",
+    "sourceCommit": "9b24b66c0cfa2c8d54dee9616c3e87a76e8cc745",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.2%2B20",
+    "remoteTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "phoneInstall": "1.9.2+20 installed; independent inventory version/build and normal launch verified; no uninstall/data clear",
+  "backendAfterUserAttempt": {
+    "trialCount": 3,
+    "spentMicroUsd": 2764,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "lastResult": {
+      "mapValue": {
+        "fields": {
+          "status": {
+            "stringValue": "complete"
+          },
+          "metrics": {
+            "mapValue": {
+              "fields": {
+                "usage": {
+                  "mapValue": {
+                    "fields": {
+                      "prompt_tokens": {
+                        "integerValue": "267"
+                      },
+                      "completion_tokens": {
+                        "integerValue": "73"
+                      },
+                      "total_tokens": {
+                        "integerValue": "340"
+                      }
+                    }
+                  }
+                },
+                "modelMs": {
+                  "integerValue": "1517"
+                },
+                "estimate": {
+                  "mapValue": {
+                    "fields": {
+                      "usd": {
+                        "doubleValue": 0.00017020000000000002
+                      },
+                      "outputUsdPerMillion": {
+                        "doubleValue": 1.6
+                      },
+                      "notBillingCap": {
+                        "booleanValue": true
+                      },
+                      "inputUsdPerMillion": {
+                        "doubleValue": 0.2
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "checkedAtUtc": "2026-11-08T09:50:40.160Z"
+  },
+  "followupEvidence": "live-scene-independent-stream-20261108.json"
+}

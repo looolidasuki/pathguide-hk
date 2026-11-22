@@ -1,0 +1,85 @@
+{
+  "dateHongKong": "2026-11-08",
+  "phoneVersion": "1.9.3+21",
+  "userPhoneReport": {
+    "installedAndVersionVerified": true,
+    "controlsUsable": true,
+    "descriptionAndSpeech": false,
+    "finalStatus": "場景分析額度已停止"
+  },
+  "backendReadback": {
+    "checkedAtUtc": "2026-11-08T10:08:48.840Z",
+    "trialCount": 4,
+    "spentMicroUsd": 2947,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "rejected",
+    "recoveryStatus": "consumed",
+    "latest": {
+      "modelMs": 2464,
+      "promptTokens": 267,
+      "completionTokens": 81,
+      "totalTokens": 348,
+      "estimatedMicroUsd": 183
+    }
+  },
+  "findings": [
+    "One phone request reached provider but was rejected by output validation. Later calls are blocked by the exhausted one-attempt recovery.",
+    "Old telemetry has no rejection reason and no answer content; the exact rejected rule cannot be recovered or assumed."
+  ],
+  "change": [
+    "Return and retain only a locally constructed fixed rejection category alongside numerical metrics.",
+    "Explicit single-paragraph/no-heading/no-newline/no-list/no-advice prompt; original output acceptance boundary unchanged."
+  ],
+  "checks": {
+    "offlineTestsPassed": 30,
+    "diffCheck": "pass",
+    "originalValidationDecisionsIdentical": 298,
+    "noPaidRequestsInTests": true
+  },
+  "review": "Implementing-agent review: acceptance decisions unchanged, rejection codes constructed locally, no raw content persistence, same auth/App Check/account/budget and one-call/no-retry guards. No independent review.",
+  "deployment": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "deploymentUpdateTime": "2026-11-08T10:13:55.953773572Z",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "isolatedSceneOnly": true
+  },
+  "recoveryGrant": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T10:14:22.798Z",
+    "deploymentUpdateTime": "2026-11-08T10:13:55.953773572Z",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "originalCountCostIdsUnchanged": true,
+    "priorRecoveryArchived": true,
+    "trialCount": 4,
+    "spentMicroUsd": 2947,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "rejected",
+    "recoveryStatus": "ready",
+    "recoveryExpiresAtUtc": "2026-11-08T12:14:19.960Z",
+    "paidInferenceRequestsByAgent": 0
+  },
+  "paidInferenceRequestsByAgent": 0,
+  "phoneAcceptance": "FAILED again: fifth attempt sentence-count, phone displayed scene changed; diagnostics candidate tracked separately.",
+  "controlledRerun": {
+    "trialCount": 5,
+    "spentMicroUsd": 3125,
+    "lastStatus": "rejected",
+    "rejectionReason": "sentence-count",
+    "recoveryStatus": "consumed",
+    "mode": "manual, auto off",
+    "phoneDisplayed": "場景已改變",
+    "followup": "live-scene-test-data-20261108.json"
+  }
+}

@@ -7,6 +7,8 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'announcer.dart';
 import '../settings/app_settings.dart';
 
+enum TtsPlaybackEvent { started, completed, cancelled, failed }
+
 /// 基于 `flutter_tts` 的粤语扬声器。
 ///
 /// ## 粤语在两端不是一回事
@@ -22,6 +24,9 @@ import '../settings/app_settings.dart';
 class FlutterTtsSpeaker implements Speaker {
   FlutterTtsSpeaker({
     FlutterTts? tts,
+    this.cantoneseOnly = false,
+    this.onStarted,
+    this.onPlaybackEvent,
     double speechRate = defaultSpeechRate,
     AppLanguage language = AppLanguage.chinese,
   }) : _tts = tts ?? FlutterTts(),
@@ -39,6 +44,10 @@ class FlutterTtsSpeaker implements Speaker {
   ];
 
   final FlutterTts _tts;
+  final bool cantoneseOnly;
+  final VoidCallback? onStarted;
+  final void Function(TtsPlaybackEvent)? onPlaybackEvent;
+  int _speechGeneration = 0;
   double _speechRate;
   bool _ready = false;
   AppLanguage _language;
@@ -90,12 +99,29 @@ class FlutterTtsSpeaker implements Speaker {
     await _tts.setVolume(1.0);
     // iOS flutter_tts does not complete its awaitSpeakCompletion result on
     // cancellation. Track completion here so Pause always releases the caller.
-    _tts.setCompletionHandler(_finishSpeech);
-    _tts.setCancelHandler(_finishSpeech);
+    _tts.setStartHandler(() {
+      if (_pendingSpeech != null) {
+        onStarted?.call();
+        onPlaybackEvent?.call(TtsPlaybackEvent.started);
+      }
+    });
+    _tts.setCompletionHandler(() {
+      if (_pendingSpeech != null) {
+        onPlaybackEvent?.call(TtsPlaybackEvent.completed);
+      }
+      _finishSpeech();
+    });
+    _tts.setCancelHandler(() {
+      if (_pendingSpeech != null) {
+        onPlaybackEvent?.call(TtsPlaybackEvent.cancelled);
+      }
+      _finishSpeech();
+    });
     _tts.setErrorHandler((message) {
       final pending = _pendingSpeech;
       _pendingSpeech = null;
       if (pending != null && !pending.isCompleted) {
+        onPlaybackEvent?.call(TtsPlaybackEvent.failed);
         pending.completeError(StateError(message));
       }
     });
@@ -130,6 +156,7 @@ class FlutterTtsSpeaker implements Speaker {
         ? const <String>['zh-HK', 'yue-HK', 'zh-TW', 'zh-CN']
         : candidates;
     for (final c in ordered) {
+      if (cantoneseOnly && c != 'zh-HK' && c != 'yue-HK') continue;
       final exact =
           available.isEmpty ||
           available.any((l) => l.toLowerCase() == c.toLowerCase());
@@ -153,8 +180,13 @@ class FlutterTtsSpeaker implements Speaker {
 
   @override
   Future<void> speak(String text) async {
+    final generation = ++_speechGeneration;
     if (!_ready) await initialize();
-    if (_resolved == null) return;
+    if (generation != _speechGeneration) return;
+    if (_resolved == null) {
+      if (cantoneseOnly) throw StateError('Cantonese voice unavailable');
+      return;
+    }
     // Recording temporarily changes the shared iOS audio session. Restore it on
     // every utterance, including when language initialization was cached.
     if (defaultTargetPlatform == TargetPlatform.iOS) {
@@ -166,6 +198,7 @@ class FlutterTtsSpeaker implements Speaker {
         ],
       );
     }
+    if (generation != _speechGeneration) return;
     _finishSpeech();
     final pending = Completer<void>();
     _pendingSpeech = pending;
@@ -176,6 +209,11 @@ class FlutterTtsSpeaker implements Speaker {
         }),
         pending.future,
       ], eagerError: true);
+    } catch (_) {
+      if (identical(_pendingSpeech, pending)) {
+        onPlaybackEvent?.call(TtsPlaybackEvent.failed);
+      }
+      rethrow;
     } finally {
       if (identical(_pendingSpeech, pending)) _pendingSpeech = null;
     }
@@ -183,6 +221,10 @@ class FlutterTtsSpeaker implements Speaker {
 
   @override
   Future<void> stop() async {
+    ++_speechGeneration;
+    if (_pendingSpeech != null) {
+      onPlaybackEvent?.call(TtsPlaybackEvent.cancelled);
+    }
     _finishSpeech();
     try {
       await _tts.stop();

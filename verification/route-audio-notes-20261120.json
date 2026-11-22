@@ -1,0 +1,40 @@
+{
+  "dateHongKong": "2026-11-20",
+  "scope": "Optional local iPhone audio notes for indoor route marks",
+  "baselineSourceCommit": "1261bf2faf4d38edf8031d8def06385cbb3ebc9d",
+  "checks": {
+    "flutterAnalyze": "No issues found",
+    "flutterTestsPassed": 608,
+    "flutterTestsSkipped": 7,
+    "swiftTypecheck": "Passed with iOS 15 deployment target and iOS 27.2 Simulator SDK",
+    "iosSimulatorDebugBuild": "Passed with flutter build ios --simulator --debug --no-pub",
+    "iosMetadataLint": "Passed for Info.plist and project.pbxproj",
+    "controllerAndStore": [
+      "Reject invalid WAV headers and the per-route audio byte overflow",
+      "Preserve the same mark's audio alongside text, through an edit and encrypted reopen",
+      "Verify a multi-megabyte version opens through the existing encrypted store and that its recording does not appear in plaintext on disk",
+      "Reject schema 8 audio mislabeled as schema 7 and write a compatible schema when the last recording is cleared",
+      "Delete the route with its versions and audio"
+    ],
+    "widget": [
+      "Opening the editor does not start the microphone; handle simulated permission denial on explicit start",
+      "End at the recording limit, preview the candidate and apply it explicitly without requesting a photo",
+      "Cancel an in-flight replacement and keep the existing note",
+      "Open a saved route and play the correct note only after confirmation and explicit activation",
+      "Stop pending replay audio on pause"
+    ]
+  },
+  "schema": {
+    "read": [1, 2, 3, 4, 5, 6, 7, 8],
+    "write8When": "There is at least one manual landmark audio note",
+    "audioFormat": "Mono PCM WAV, 16-bit little-endian, native input sample rate",
+    "secondsPerClip": 10,
+    "bytesPerClip": 1048576,
+    "rawAudioBytesPerRouteVersion": 4194304,
+    "encryptedVersionBytes": 8388608,
+    "catalogFormatChanged": false,
+    "lastDocumentedPhoneVersion": "1.11.0+29"
+  },
+  "phoneInstalled": false,
+  "humanAcceptance": "Pending iPhone microphone, audio route interruptions, playback, VoiceOver and field replay"
+}

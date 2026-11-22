@@ -1,0 +1,29 @@
+{
+  "dateHongKong": "2026-11-08",
+  "version": "1.9.3+21",
+  "trigger": "User: consent no text/voice; re-entry preparation timeout. Backend count3 completed while phone acceptance still failed.",
+  "findings": [
+    "Preparation/status/evidence previously waited on inference queue; scene signal delivery coupled to model frames.",
+    "Detector result expiry incorrectly interrupted independent scene mode."
+  ],
+  "change": [
+    "Same camera/lease, lightweight capture queue and Motion callback snapshot; one recognition job at a time.",
+    "Direct epoch acknowledgement and independent local scene stream, no per-frame JPEG or periodic inference.",
+    "One pending JPEG encoder, stop epoch/camera generation fencing; model expiry withdraws only owned detector voice.",
+    "Only one diagnostics request in flight."
+  ],
+  "checks": {
+    "flutterFullPassed": 567,
+    "flutterFullSkippedFlagOff": 3,
+    "flagOnScopedPassed": 70,
+    "analyze": "pass",
+    "nativeSimulatorPassed": 59,
+    "nativeResult": "TEST SUCCEEDED",
+    "signedBuild": "Profile passed; deep strict codesign passed; model hashes unchanged"
+  },
+  "provider": "existing Singapore endpoint/Secret2; no backend change",
+  "ledger": "count3 / spent2764 microUSD incl original unknown2458 and known135+171; halted/recovery consumed; no reset",
+  "paidInferenceRequestsByAgent": 0,
+  "phoneAcceptance": "FAILED: user confirms 1.9.3+21 installed/version verified, controls usable but no description/speech; final status quota stopped. Fourth provider attempt rejected; followup live-scene-rejection-20261108.json.",
+  "review": "Implementing-agent review, not independent. Checked queue/state ownership, epoch/generation, native blocked-model test, separate client streams, shared camera, bounded encoding and unchanged financial/auth guards."
+}

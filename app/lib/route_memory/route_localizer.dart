@@ -111,6 +111,7 @@ class RouteLocalizer extends ChangeNotifier {
       _ticket != null && !_fresh ? RouteMatchState.stale : _result;
   FloorRef? get expectedFloor => _expected;
   FloorRef? get candidateFloor => _fresh ? _candidate?.floor : null;
+  String? get candidateNodeId => _fresh ? _candidate?.nodeId : null;
   FloorRef? get actualFloor => _fresh ? _actual?.floor : null;
   String? get actualNodeId => _fresh ? _actual?.nodeId : null;
   void _clear() {

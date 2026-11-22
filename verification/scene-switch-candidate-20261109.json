@@ -1,0 +1,32 @@
+{
+  "dateHongKong": "2026-11-09",
+  "scope": "Source candidate only while owner defers human scene test",
+  "phoneVersionUnchanged": "1.10.4+28",
+  "appVersionBumped": false,
+  "phoneInstalled": false,
+  "backendDeployed": false,
+  "paidInferenceRequestsByAgent": 0,
+  "ledgerMutations": 0,
+  "changes": [
+    "Live recognition page removes manual describe and cancel scene buttons; one scene mode switch",
+    "Same explicit cloud-cost consent; cancel captures nothing, acceptance waits for fresh automatic scene frames",
+    "Off stops mode and permits routine object speech; diagnostics/copy/local speech test retained",
+    "Remove stale 50-attempt consent text; limits remain server-controlled",
+    "Independent home single-photo description entry remains unchanged"
+  ],
+  "checks": {
+    "flagOnScopedFlutter": 103,
+    "analyze": "No issues found",
+    "portraitAndDoubleTextScreenshotsReviewed": {
+      "recognition.png": "verification/ui/scene-switch-candidate-20261109.png",
+      "recognition-large-text.png": "verification/ui/scene-switch-large-text-20261109.png"
+    },
+    "nativeSwiftChanged": false,
+    "nativeTestsRerun": false
+  },
+  "limitations": [
+    "Source candidate is not a phone delivery or human acceptance",
+    "User still needs to test fixed content rejection classes on 1.10.4+28",
+    "Scene content, room/kitchen/bathroom quality, audible latency and VoiceOver remain pending"
+  ]
+}

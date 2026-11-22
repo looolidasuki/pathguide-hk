@@ -1,0 +1,14 @@
+{
+  "providerRegion": "Singapore",
+  "baseUrl": "https://ap-southeast-1.maas.qwencloudapi.com/compatible-mode/v1",
+  "model": "qwen3-vl-plus",
+  "offlineTests": 25,
+  "review": "fixed backend-only endpoint; HK URL rejected; probe shares BASE; no key in source; no automatic fallback/retry/ledger reset",
+  "secretUpdate": "operator created version 2",
+  "deployment": "ACTIVE; Singapore URL and Secret version 2 verified; anonymous callable 401; preflight disabled; selected account/max20/budget10000 verified",
+  "phoneReinstallRequired": false,
+  "agentPaidRequests": 0,
+  "existingTrial": "preserved halted, count 1, estimated reserved USD 0.002458; actual usage unknown",
+  "scope": "International, not Singapore-only inference",
+  "operationalTrialAttempts": 1
+}

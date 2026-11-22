@@ -1,0 +1,34 @@
+{
+  "dateHongKong": "2026-11-20",
+  "scope": "Optional local text notes for indoor route marks",
+  "baselineSourceCommit": "212c26425d40924ac6e991befd2d2abc8d8fe2db",
+  "checks": {
+    "flutterAnalyze": "No issues found",
+    "flutterTestsPassed": 607,
+    "flutterTestsSkipped": 7,
+    "controller": [
+      "Bind the note to the selected manual mark and reject stale selections and invalid lengths",
+      "Preserve direction, floor evidence and note through mark rename and same-floor review",
+      "Save and reopen schema 7 with existing failed mark history using the encrypted store",
+      "Clear the note when applied blank and remove it with the mark on undo",
+      "Reject a schema 7 manifest mislabeled as schema 6"
+    ],
+    "widget": [
+      "Add a note through More marks to the selected mark at double text size without taking another photo",
+      "Save and reopen the route draft, edit the same mark and cancel a changed note",
+      "Withhold note display and speech before fresh confirmation and until explicitly requested",
+      "Dispatch one note through the mocked Cantonese accessibility or English app speech path per request",
+      "Keep the opened note readable after position expiration, prevent reopening without confirmation, and clear it on pause"
+    ]
+  },
+  "schema": {
+    "read": [1, 2, 3, 4, 5, 6, 7],
+    "write7When": "There is at least one manual landmark text note",
+    "maxGraphemesPerNote": 240,
+    "maxUtf8BytesPerNote": 1024,
+    "lastDocumentedPhoneVersion": "1.11.0+29",
+    "lastDocumentedPhoneVersionReadsNewSchema": false
+  },
+  "phoneInstalled": false,
+  "humanAcceptance": "Pending iPhone audio, VoiceOver and field recording and replay"
+}

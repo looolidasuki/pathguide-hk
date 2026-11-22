@@ -1,0 +1,219 @@
+{
+  "dateHongKong": "2026-11-09",
+  "version": "1.10.1+25",
+  "userObservation": {
+    "severalScenesAudibleOn": "1.10.0+24",
+    "intermittentFormatRejection": true,
+    "exactRejectionLostAfterRestart": true,
+    "notFullWalkingQualityOrLatencyAcceptance": true
+  },
+  "confirmedStop": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T16:10:48.586Z",
+    "deploymentUpdateTime": "2026-11-08T15:59:26.124892024Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 10000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 16,
+    "spentMicroUsd": 7861,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "windowExpiresAtMs": 1794197185443,
+    "windowExpired": false,
+    "windowMaxCount": 50,
+    "nominalRemaining": 34,
+    "nextRequestReserveMicroUsd": 2458,
+    "nextRequestFitsBudget": false,
+    "configuredFingerprintMatches": true,
+    "lastResult": {
+      "status": "complete",
+      "metrics": {
+        "modelMs": 9106,
+        "estimate": {
+          "usd": 0.0005028,
+          "notBillingCap": true,
+          "inputUsdPerMillion": 0.2,
+          "outputUsdPerMillion": 1.6
+        },
+        "usage": {
+          "prompt_tokens": 410,
+          "total_tokens": 673,
+          "completion_tokens": 263
+        }
+      },
+      "requestId": "3ccf8f1f5bf1a29704b80c2b7a916e9a"
+    },
+    "rateGuardRemainingMs": 0,
+    "dailyCount": 14
+  },
+  "rootCause": {
+    "restartRestriction": "budget reserve: 7861 spent + 2458 next reserve exceeds original 10000 microUSD; count16/50, window not expired, no in-flight",
+    "formatRejection": "Unknown: older local record lost, last server record was complete. New examples/shorter requested facts and detailed safe reasons need real-device reproduction."
+  },
+  "changes": [
+    "Distinct structured allowance stop reasons with numerical limits",
+    "Read-only status after scene preparation: Auth/App Check/active account, no JPEG, provider key, model call or trial allocation",
+    "Preserve stop reason during motion, stale frames, source reconnection and mode-off",
+    "Keep latest three numerical/categorical server results across subsequent reservations and app restarts; never text/photo/observations",
+    "Allowlisted rejection detail: JSON/sentences/observation shape, category, position, detail, duplicates, content or truncation",
+    "Server-owned overview/update JSON examples and at most three requested observations; validation still caps six and rejects whole unsafe/malformed output",
+    "Owner-approved USD0.50 total / cumulative max50; updateTime CAS amended fingerprint and budget, appended audit history, and preserved all usage/unknown history and original window"
+  ],
+  "checks": {
+    "flutterDefault": {
+      "passed": 591,
+      "flagOffSkipped": 7
+    },
+    "flutterFlagOnScoped": 98,
+    "backendScopedMocked": 44,
+    "flutterAnalyze": "No issues found",
+    "privateProfileBuild": "pass",
+    "codesignDeepStrict": "pass",
+    "fourModelsUnchanged": true,
+    "nativeSwiftChanged": false,
+    "nativeTestsRerun": false,
+    "portraitPreservedControls": "verification/ui/scene-rejection-budget-local-voice-20261109.png",
+    "deployedSourceSha256": {
+      "scene_description.js": "8de9d166997092824a43aa819ad8aeae707dce7ba0accb17a35a24b3c17411d3",
+      "scene_trial.js": "7c1ef3536178c75bd17ee38ddd4b02f895319882b79075ed66a1f4f429649d7a",
+      "scene_function.js": "a3a25b28a73a2267230612baa349dab6e85e505de531fab2f54b44bd7fcd71ab"
+    }
+  },
+  "deployment": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T16:37:10.764Z",
+    "deploymentUpdateTime": "2026-11-08T16:35:15.382413860Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 16,
+    "spentMicroUsd": 7861,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "anonymousStatus": 401,
+    "currentLedgerBudgetMicroUsd": 10000,
+    "ledgerAwaitingAuditedBudgetAmendment": true
+  },
+  "ownerBudgetAuthorization": {
+    "userReply": "總預算$0.5",
+    "currency": "USD in preceding question; acknowledged before mutation",
+    "oldBudgetMicroUsd": 10000,
+    "newBudgetMicroUsd": 500000,
+    "maxRequests": 50,
+    "noUsageReset": true,
+    "expiryUnchanged": true
+  },
+  "ledgerAmendment": {
+    "checkedAtUtc": "2026-11-08T16:42:28.052Z",
+    "version": "1.10.1+25",
+    "oldBudgetMicroUsd": 10000,
+    "newBudgetMicroUsd": 500000,
+    "additionalAllowanceMicroUsd": 490000,
+    "maxRequests": 50,
+    "trialCount": 16,
+    "spentMicroUsd": 7861,
+    "nominalRemaining": 34,
+    "windowExpiresAtUtc": "2026-11-09T04:06:25.443Z",
+    "windowUnchanged": true,
+    "originalCountCostIdsUnknownHistoryUnchanged": true,
+    "paidInferenceRequestsByAgent": 0,
+    "applied": true,
+    "allowanceHistoryAppended": true
+  },
+  "phoneInstall": {
+    "bundleIdentifier": "hk.pathguide.pathguide",
+    "version": "1.10.1",
+    "bundleVersion": "25",
+    "independentInventoryVerified": true,
+    "installedInPlace": true,
+    "dataCleared": false,
+    "normalLaunchSucceeded": true,
+    "humanAcceptance": "New diagnostics/format reproduction pending"
+  },
+  "paidInferenceRequestsByAgent": 0,
+  "limitations": [
+    "Exact older format rejection cannot be reconstructed",
+    "Prompt improvement is not proven to reduce rejection rate yet",
+    "Current model response alone was 9106ms; 3–5 second audible update goal remains unaccepted",
+    "Room trial and content/latency/missed/repeated/stale speech/VoiceOver still need human testing",
+    "Private debug App Check package; no binary uploaded",
+    "Estimated stop policy is not provider invoice cap; Firebase costs separate"
+  ],
+  "release": {
+    "tag": "v1.10.1+25",
+    "sourceCommit": "7525a486d442d30673f15f50c591072fbf9d28d5",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.10.1%2B25",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "finalAllowanceState": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T16:43:11.162Z",
+    "deploymentUpdateTime": "2026-11-08T16:35:15.382413860Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 16,
+    "spentMicroUsd": 7861,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "windowExpiresAtMs": 1794197185443,
+    "windowExpired": false,
+    "windowMaxCount": 50,
+    "nominalRemaining": 34,
+    "nextRequestReserveMicroUsd": 2458,
+    "nextRequestFitsBudget": true,
+    "configuredFingerprintMatches": true,
+    "stopReason": null,
+    "lastResult": {
+      "metrics": {
+        "usage": {
+          "completion_tokens": 263,
+          "prompt_tokens": 410,
+          "total_tokens": 673
+        },
+        "estimate": {
+          "usd": 0.0005028,
+          "notBillingCap": true,
+          "inputUsdPerMillion": 0.2,
+          "outputUsdPerMillion": 1.6
+        },
+        "modelMs": 9106
+      },
+      "requestId": "3ccf8f1f5bf1a29704b80c2b7a916e9a",
+      "status": "complete"
+    },
+    "rateGuardRemainingMs": 0,
+    "dailyCount": 14
+  }
+}

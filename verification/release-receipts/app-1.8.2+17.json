@@ -1,0 +1,62 @@
+{
+  "version": "1.8.2+17",
+  "build": "signed private Profile/AOT; no public binary",
+  "checks": {
+    "flutter_tests": 552,
+    "flutter_analyze": "pass",
+    "codesign_deep_strict": "pass",
+    "four_bundled_model_hashes": "unchanged, verified",
+    "review": "release guard, credential non-publication, cancellation before upload and error/TTS paths reviewed"
+  },
+  "appCheck": {
+    "debugExchangeAccepted": true,
+    "withoutAuthBackendStatus": 401,
+    "formalDeviceCheck": "missing Apple keyId/teamId; not passed",
+    "trialCredential": "private ignored setting; revoke after trial; never published"
+  },
+  "limits": {
+    "maxCalls": 20,
+    "qwenEstimatedUsd": 0.01,
+    "hardBillingCeiling": false
+  },
+  "models": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "installation": {
+    "status": "updated in place and launched",
+    "independent_device_inventory": {
+      "version": "1.8.2",
+      "build": "17"
+    },
+    "data_clear_or_uninstall": false,
+    "connection_reset": "initial attempt; device details handshake then retry succeeded"
+  },
+  "phone_acceptance": {
+    "result": "failed first scene request; no successful description or speech verified",
+    "auth": "VALID",
+    "appCheck": "VALID",
+    "first_request_http": 503,
+    "first_request_seconds": 1.635,
+    "later_requests_http": 429,
+    "trial_attempts": 1,
+    "inFlight": false,
+    "halted": true,
+    "usage": "unknown",
+    "estimated_reserved_usd": 0.002458,
+    "actual_charge": "unconfirmed; reservation is not actual billing",
+    "upstream_root_cause": "not recoverable from existing sanitized telemetry; HTTP/transport error was collapsed to unavailable",
+    "action": "no paid retry, no ledger reset; provider usage and error cause require reconciliation"
+  },
+  "agent_paid_qwen_requests": 0,
+  "navigation_turn_signal": "not connected",
+  "source_commit": "50d022553008b0fe0cb855623aad11ed2a058cb3",
+  "release": {
+    "tag": "v1.8.2+17",
+    "remote_verified_before_install": true,
+    "prerelease": true,
+    "public_binary_assets": false
+  }
+}

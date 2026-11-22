@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart' show StringCharacters;
 
 import 'cross_floor_contract.dart';
 import 'route_media.dart';
@@ -31,11 +34,39 @@ enum FloorEvidence { unknown, confirmed, inherited, segmentConfirmed }
 
 @immutable
 class RoutePoint {
+  static const moreMarkTypes = {'escalator', 'ramp', 'reception', 'sign'};
+  static const markTypes = {
+    'landmark',
+    'junction',
+    'door',
+    'stairs',
+    'lift',
+    'toilet',
+    ...moreMarkTypes,
+  };
+  static const directions = {'left', 'right', 'straight'};
+  static const maxTextNoteLength = 240;
+  static const maxTextNoteBytes = 1024;
+  static bool validMark(String? type, String? direction) =>
+      (type == null || markTypes.contains(type)) &&
+      (direction == null ||
+          (type == 'junction' && directions.contains(direction)));
+  static bool validTextNote(String text) =>
+      text.isNotEmpty &&
+      text == text.trim() &&
+      text.length <= maxTextNoteBytes &&
+      text.characters.length <= maxTextNoteLength &&
+      utf8.encode(text).length <= maxTextNoteBytes;
+
   const RoutePoint(
     this.id,
     this.nameZh,
     this.nameEn, {
     this.floor,
+    this.markType,
+    this.direction,
+    this.textNote,
+    this.audioNote,
     FloorEvidence? floorEvidence,
     this.floorAnchorId,
     this.isFloorContextAnchor = false,
@@ -43,10 +74,49 @@ class RoutePoint {
            floorEvidence ??
            (floor == null ? FloorEvidence.unknown : FloorEvidence.confirmed);
   final String id, nameZh, nameEn;
+  final String? markType, direction, textNote;
+  final RouteAudioNote? audioNote;
   final FloorRef? floor;
   final FloorEvidence floorEvidence;
   final String? floorAnchorId;
   final bool isFloorContextAnchor;
+}
+
+enum RouteMarkFailureReason { capture, capacity }
+
+@immutable
+class RouteMarkFailure {
+  const RouteMarkFailure({
+    required this.markType,
+    this.direction,
+    required this.attemptedAtUtc,
+    required this.reason,
+  });
+
+  final String markType;
+  final String? direction;
+  final DateTime attemptedAtUtc;
+  final RouteMarkFailureReason reason;
+
+  Map<String, Object?> toMap() => {
+    'markType': markType,
+    if (direction != null) 'direction': direction,
+    'attemptedAtUtc': attemptedAtUtc.toIso8601String(),
+    'reason': reason.name,
+  };
+
+  factory RouteMarkFailure.fromMap(Map<String, dynamic> v) {
+    final time = DateTime.tryParse(v['attemptedAtUtc'] as String);
+    if (time == null || time.toIso8601String() != v['attemptedAtUtc']) {
+      throw const RouteStoreFailure(RouteProblem.invalid);
+    }
+    return RouteMarkFailure(
+      markType: v['markType'] as String,
+      direction: v['direction'] as String?,
+      attemptedAtUtc: time,
+      reason: RouteMarkFailureReason.values.byName(v['reason'] as String),
+    );
+  }
 }
 
 @immutable
@@ -77,11 +147,13 @@ class RouteDocument {
     required List<RouteSegment> edges,
     this.source = RouteContentSource.synthetic,
     List<CapturedRouteView> views = const [],
+    List<RouteMarkFailure> markFailures = const [],
     this.featureRevision = 'p0-synthetic-v1',
     this.preprocessRevision = 'none-synthetic',
   }) : views = List.unmodifiable(views),
        nodes = List.unmodifiable(nodes),
-       edges = List.unmodifiable(edges) {
+       edges = List.unmodifiable(edges),
+       markFailures = List.unmodifiable(markFailures) {
     validate();
   }
   final String id, name, buildingId, featureRevision, preprocessRevision;
@@ -89,6 +161,12 @@ class RouteDocument {
   final List<CapturedRouteView> views;
   final List<RoutePoint> nodes;
   final List<RouteSegment> edges;
+  final List<RouteMarkFailure> markFailures;
+  static const maxMarkFailures = 64;
+  int get audioNoteBytes =>
+      nodes.fold(0, (sum, n) => sum + (n.audioNote?.bytes.length ?? 0));
+  int get encodedAudioNoteLength =>
+      nodes.fold(0, (sum, n) => sum + (n.audioNote?.encoded.length ?? 0));
   static bool validId(String id) =>
       RegExp(r'^[A-Za-z0-9_-]{1,80}$').hasMatch(id);
   bool get compatible => source == RouteContentSource.synthetic
@@ -98,11 +176,19 @@ class RouteDocument {
             preprocessRevision == 'upright-jpeg-v1';
 
   void validate() {
-    if ((source == RouteContentSource.synthetic && views.isNotEmpty) ||
+    if ((source == RouteContentSource.synthetic &&
+            (views.isNotEmpty || markFailures.isNotEmpty)) ||
         (source == RouteContentSource.captured &&
             (featureRevision == 'p0-synthetic-v1' ||
                 preprocessRevision == 'none-synthetic')) ||
-        views.length > RouteMediaBounds.viewsPerRoute) {
+        views.length > RouteMediaBounds.viewsPerRoute ||
+        markFailures.length > maxMarkFailures ||
+        audioNoteBytes > RouteMediaBounds.audioBytesPerRoute ||
+        markFailures.any(
+          (f) =>
+              !f.attemptedAtUtc.isUtc ||
+              !RoutePoint.validMark(f.markType, f.direction),
+        )) {
       throw const RouteStoreFailure(RouteProblem.invalid);
     }
     final identities = <String>{}, images = <String>{};
@@ -131,7 +217,12 @@ class RouteDocument {
       throw const RouteStoreFailure(RouteProblem.invalid);
     }
     for (final n in nodes) {
-      if (!validId(n.id) ||
+      if ((n.markType != null && source != RouteContentSource.captured) ||
+          !RoutePoint.validMark(n.markType, n.direction) ||
+          (n.textNote != null &&
+              (n.markType == null || !RoutePoint.validTextNote(n.textNote!))) ||
+          (n.audioNote != null && n.markType == null) ||
+          !validId(n.id) ||
           n.nameZh.length > 120 ||
           n.nameEn.length > 120 ||
           (n.floor != null &&
@@ -197,6 +288,8 @@ class RouteDocument {
             n.floorEvidence == FloorEvidence.inherited ||
             n.floorEvidence == FloorEvidence.segmentConfirmed,
       );
+  bool get _hasMarkMetadata =>
+      markFailures.isNotEmpty || nodes.any((n) => n.markType != null);
 
   bool get complete {
     if (nodes.length < 2 ||
@@ -233,12 +326,24 @@ class RouteDocument {
   Map<String, Object?> toMap() => {
     'schemaVersion': source == RouteContentSource.synthetic
         ? 1
+        : nodes.any((n) => n.audioNote != null)
+        ? 8
+        : nodes.any((n) => n.textNote != null)
+        ? 7
+        : markFailures.isNotEmpty
+        ? 6
+        : nodes.any((n) => RoutePoint.moreMarkTypes.contains(n.markType))
+        ? 5
+        : _hasMarkMetadata
+        ? 4
         : _hasProvenance
         ? 3
         : 2,
     'source': source.name,
     if (source == RouteContentSource.captured)
       'views': [for (final view in views) view.toMap()],
+    if (markFailures.isNotEmpty)
+      'markFailures': [for (final failure in markFailures) failure.toMap()],
     'direction': 'recorded',
     'id': id,
     'name': name,
@@ -249,9 +354,16 @@ class RouteDocument {
       for (final n in nodes)
         {
           'id': n.id,
-          if (_hasProvenance) 'floorEvidence': n.floorEvidence.name,
-          if (_hasProvenance) 'floorAnchor': n.floorAnchorId,
-          if (_hasProvenance) 'floorContextAnchor': n.isFloorContextAnchor,
+          if (_hasMarkMetadata) 'markType': n.markType,
+          if (_hasMarkMetadata) 'markDirection': n.direction,
+          if (n.textNote != null) 'textNote': n.textNote,
+          if (n.audioNote != null) 'audioNote': n.audioNote!.encoded,
+          if (_hasProvenance || _hasMarkMetadata)
+            'floorEvidence': n.floorEvidence.name,
+          if (_hasProvenance || _hasMarkMetadata)
+            'floorAnchor': n.floorAnchorId,
+          if (_hasProvenance || _hasMarkMetadata)
+            'floorContextAnchor': n.isFloorContextAnchor,
           'zh': n.nameZh,
           'en': n.nameEn,
           'floor': n.floor == null
@@ -283,17 +395,43 @@ class RouteDocument {
   }
 
   factory RouteDocument.fromMap(Map<String, dynamic> v) {
+    final schema = v['schemaVersion'];
+    final hasFloorEvidence = [3, 4, 5, 6, 7, 8].contains(schema);
+    final hasMarks = [4, 5, 6, 7, 8].contains(schema);
     final synthetic =
-        v['schemaVersion'] == 1 &&
-        v['source'] == 'synthetic' &&
-        !v.containsKey('views');
+        schema == 1 && v['source'] == 'synthetic' && !v.containsKey('views');
     final captured =
-        [2, 3].contains(v['schemaVersion']) && v['source'] == 'captured';
+        [2, 3, 4, 5, 6, 7, 8].contains(schema) && v['source'] == 'captured';
     if ((!synthetic && !captured) || v['direction'] != 'recorded') {
       throw const RouteStoreFailure(RouteProblem.incompatible);
     }
-    if (v['schemaVersion'] != 3 &&
-        (v['nodes'] as List).any(
+    final rawFailures = v['markFailures'];
+    final hasFailures = v.containsKey('markFailures');
+    if ((schema == 6 && !hasFailures) ||
+        (hasFailures &&
+            ((schema != 6 && schema != 7 && schema != 8) ||
+                rawFailures is! List ||
+                rawFailures.isEmpty ||
+                rawFailures.length > maxMarkFailures))) {
+      throw const RouteStoreFailure(RouteProblem.incompatible);
+    }
+    final nodes = v['nodes'] as List;
+    final noteNodes = nodes.where((n) => n is Map && n.containsKey('textNote'));
+    final audioNodes = nodes.where(
+      (n) => n is Map && n.containsKey('audioNote'),
+    );
+    if ((schema == 7 && noteNodes.isEmpty) ||
+        (noteNodes.isNotEmpty &&
+            ((schema != 7 && schema != 8) ||
+                noteNodes.any((n) => n['textNote'] is! String))) ||
+        (schema == 8
+            ? audioNodes.isEmpty ||
+                  audioNodes.any((n) => n['audioNote'] is! String)
+            : audioNodes.isNotEmpty)) {
+      throw const RouteStoreFailure(RouteProblem.incompatible);
+    }
+    if (!hasFloorEvidence &&
+        nodes.any(
           (n) =>
               n is Map &&
               [
@@ -302,6 +440,17 @@ class RouteDocument {
                 'floorContextAnchor',
               ].any(n.containsKey),
         )) {
+      throw const RouteStoreFailure(RouteProblem.incompatible);
+    }
+    if (nodes.any(
+      (n) =>
+          n is Map &&
+          ((!hasMarks &&
+                  (n.containsKey('markType') ||
+                      n.containsKey('markDirection'))) ||
+              (schema == 4 &&
+                  RoutePoint.moreMarkTypes.contains(n['markType']))),
+    )) {
       throw const RouteStoreFailure(RouteProblem.incompatible);
     }
     return RouteDocument(
@@ -316,24 +465,38 @@ class RouteDocument {
                 ),
             ]
           : const [],
+      markFailures: hasFailures
+          ? [
+              for (final failure in rawFailures as List)
+                RouteMarkFailure.fromMap(
+                  Map<String, dynamic>.from(failure as Map),
+                ),
+            ]
+          : const [],
       id: v['id'] as String,
       name: v['name'] as String,
       buildingId: v['buildingId'] as String,
       featureRevision: v['featureRevision'] as String,
       preprocessRevision: v['preprocessRevision'] as String,
       nodes: [
-        for (final n in v['nodes'] as List)
+        for (final n in nodes)
           RoutePoint(
             n['id'] as String,
             n['zh'] as String,
             n['en'] as String,
-            floorEvidence: v['schemaVersion'] == 3
+            markType: hasMarks ? n['markType'] as String? : null,
+            direction: hasMarks ? n['markDirection'] as String? : null,
+            textNote: n['textNote'] as String?,
+            audioNote: n['audioNote'] == null
+                ? null
+                : RouteAudioNote.fromBase64(n['audioNote'] as String),
+            floorEvidence: hasFloorEvidence
                 ? _decodeFloorEvidence(n['floorEvidence'])
                 : null,
-            isFloorContextAnchor: v['schemaVersion'] == 3
+            isFloorContextAnchor: hasFloorEvidence
                 ? (n['floorContextAnchor'] as bool? ?? false)
                 : false,
-            floorAnchorId: v['schemaVersion'] == 3
+            floorAnchorId: hasFloorEvidence
                 ? n['floorAnchor'] as String?
                 : null,
             floor: n['floor'] == null

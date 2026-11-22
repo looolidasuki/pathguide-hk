@@ -12,6 +12,7 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
   private let channel: FlutterMethodChannel
   private var pending: FlutterResult?
   private var requestId = ""
+  private var includeGeneral = false
   private var operation = UUID()
   private var completingRequest = false
   private weak var picker: UIViewController?
@@ -87,6 +88,7 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
     finishingCapture = false
     pending = result; requestId = id
     isSpeechRequest = call.method == "listenMenuQuery"
+    includeGeneral = args["includeGeneral"] as? Bool == true
     if isSpeechRequest { authorizeSpeech(id: id, allowNetwork: args["allowNetwork"] as? Bool == true); return }
     guard #available(iOS 16.0, *) else { fail("unsupported", "繁體中文菜單辨識需要 iOS 16 或以上。"); return }
     if args["source"] as? String == "library" { openLibrary() }
@@ -281,12 +283,13 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
     }
   }
   private func recognize(_ images: [UIImage], truncated: Bool) {
-    let id = requestId
+    let id = requestId, general = includeGeneral
     channel.invokeMethod("recognizing", arguments: ["requestId": id])
     work.async { [weak self] in
       guard let self else { return }
       do {
-        var all: [[String: Any]] = []; var limited = truncated
+        var all: [[String: Any]] = [], original: [[String: Any]] = []
+        var limited = truncated, readingLimited = truncated, menuUnavailable = false
         for (index, image) in images.enumerated() {
           // Draw UIImage to honour EXIF orientation without saving any temporary file.
           let pixelWidth = image.size.width * image.scale
@@ -296,25 +299,47 @@ final class MenuPlugin: NSObject, FlutterPlugin, VNDocumentCameraViewControllerD
           let format = UIGraphicsImageRendererFormat(); format.scale = 1; format.opaque = true
           let upright = UIGraphicsImageRenderer(size: size, format: format).image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
           guard let cg = upright.cgImage else { throw NSError(domain: "MenuOCR", code: 1) }
-          let results = try MenuOCR.recognize(cg, cancelled: {
-            var stale = false
-            DispatchQueue.main.sync { stale = self.requestId != id || self.pending == nil }
-            return stale
-          }, publish: { request in
-            DispatchQueue.main.sync {
-              if self.requestId == id && self.pending != nil { self.textRequest = request }
-              else { request.cancel() }
+          func read(general: Bool) throws -> [MenuOCRLine] {
+            try MenuOCR.recognize(cg, cancelled: {
+              var stale = false
+              DispatchQueue.main.sync { stale = self.requestId != id || self.pending == nil }
+              return stale
+            }, publish: { request in
+              DispatchQueue.main.sync {
+                if self.requestId == id && self.pending != nil { self.textRequest = request }
+                else { request.cancel() }
+              }
+            }, general: general)
+          }
+          if general {
+            let lines = try read(general: true)
+            readingLimited = readingLimited || lines.count > 300
+            for line in lines.prefix(300) {
+              var value = line.map; value["page"] = index + 1; original.append(value)
             }
-          })
+          }
+          let results: [MenuOCRLine]
+          do { results = try read(general: false) }
+          catch {
+            guard general, !(error is CancellationError) else { throw error }
+            menuUnavailable = true
+            continue
+          }
           if results.count > 300 { limited = true }
           for line in results.prefix(300) {
             var value = line.map; value["page"] = index + 1; all.append(value)
           }
         }
-        let output: [String: Any] = ["ocrVersion": MenuOCR.version, "lines": all, "pages": images.count, "truncated": limited,
+        var output: [String: Any] = ["ocrVersion": MenuOCR.version, "lines": all, "pages": images.count, "truncated": limited,
           "warnings": images.contains(where: { min($0.size.width * $0.scale, $0.size.height * $0.scale) < 700 })
             ? ["圖片解像度偏低，密集細字及價錢可能讀錯；建議近距離分區重拍。"] : []]
-        DispatchQueue.main.async { if self.requestId == id { self.complete(output) } }
+        if general {
+          output["readingLines"] = original
+          output["readingLimited"] = readingLimited
+          output["menuUnavailable"] = menuUnavailable
+        }
+        let reply = output
+        DispatchQueue.main.async { if self.requestId == id { self.complete(reply) } }
       } catch {
         DispatchQueue.main.async { if self.requestId == id { self.fail("ocr_failed", "未能辨識照片，請保持文字清晰、減少反光後重拍。") } }
       }

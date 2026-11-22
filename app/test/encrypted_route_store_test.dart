@@ -58,21 +58,6 @@ RouteDocument document({
 Matcher fails(RouteProblem problem) =>
     isA<RouteStoreFailure>().having((e) => e.problem, 'problem', problem);
 
-
-// Windows 允許「刪除已打開的檔案」嗎？不可以（POSIX 可以）。
-// 下面這些測試刻意在 store 仍持有 `.lock` 時刪檔／模擬崩潰，
-// 在 Windows 上必然得到 PathAccessException(errno 32) → RouteStoreFailure(io)。
-// Android/iOS 是 POSIX，行為正確；所以只在 Windows 跳過，並寫明真正的原因，
-// 不要用「需要 Keychain」之類的假理由（會蓋掉真 bug）。
-const _winLockSkip =
-    'Windows 無法刪除已打開的 .lock（POSIX 允許；Android/iOS 不受影響）';
-
-void destructiveTest(String name, Future<void> Function() body) =>
-    test(name, body, skip: Platform.isWindows ? _winLockSkip : null);
-
-void destructiveWidgetTest(String name, WidgetTesterCallback body) =>
-    testWidgets(name, body, skip: Platform.isWindows);
-
 void main() {
   late Directory root;
   late MemoryRouteVault vault;
@@ -227,7 +212,7 @@ void main() {
       );
     },
   );
-  destructiveTest(
+  test(
     'corrupt active version preserved; explicit verified older rollback works',
     () async {
       await put();
@@ -255,7 +240,7 @@ void main() {
       expect((await store.read('route-a')).version, 1);
     },
   );
-  destructiveTest('failure before catalog switch leaves stable active version and orphan ignored', () async {
+  test('failure before catalog switch leaves stable active version and orphan ignored', () async {
     await put();
     final broken = await EncryptedRouteStore.open(
       root: root,
@@ -433,7 +418,7 @@ void main() {
       expect((await store.read('other')).version, 1);
     },
   );
-  destructiveTest(
+  test(
     'route namespace and key do not touch photo queue or another library',
     () async {
       final photo = File('${root.path}/private_photo_queue_v1/keep.enc');
@@ -460,7 +445,7 @@ void main() {
     await expectLater(put(doc: bad), throwsA(fails(RouteProblem.invalid)));
     expect((await store.list()).routes, isEmpty);
   });
-  destructiveTest('explicit pruning retains active, verified fallback and draft, with monotonic versions', () async {
+  test('explicit pruning retains active, verified fallback and draft, with monotonic versions', () async {
     for (var i = 0; i < 4; i++) {
       await put(revision: i);
     }

@@ -1,0 +1,150 @@
+{
+  "dateHongKong": "2026-11-09",
+  "version": "1.10.2+26",
+  "build": "signed private Profile; registered private App Check debug configuration",
+  "codesign": "deep strict pass",
+  "appHashes": {
+    "Runner": "30131747042a10f7b1484b10351bc5b00f6efc36ecd8061ed29ba214eb318fc4",
+    "Frameworks/App.framework/App": "b543be3b3707d118ce8f900078bf7be8eff9cdfbfc26b42a80f34bdb447b2646"
+  },
+  "modelHashes": {
+    "detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf"
+  },
+  "modelsUnchanged": true,
+  "privateBinaryUploaded": false,
+  "phoneDataCleared": false,
+  "phoneInstall": "Installed in place after immutable source tag/prerelease verification; initial transport reset, retry succeeded. Independent inventory verified 1.10.2 / build26 and normal launch succeeded. No uninstall/data clear.",
+  "phoneAcceptance": "Pending room/kitchen/bathroom content, rejection details, audible update latency and VoiceOver; no paid inference by agent",
+  "allowanceChanged": false,
+  "phoneInventory": {
+    "bundleIdentifier": "hk.pathguide.pathguide",
+    "version": "1.10.2",
+    "bundleVersion": "26",
+    "independentInventoryVerified": true,
+    "installedInPlace": true,
+    "dataCleared": false,
+    "normalLaunchSucceeded": true
+  },
+  "release": {
+    "tag": "v1.10.2+26",
+    "sourceCommit": "50981ed40202f594136f381b091fa73eef7b5f92",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.10.2%2B26",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "finalAllowanceState": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T19:16:30.274Z",
+    "deploymentUpdateTime": "2026-11-08T19:12:43.226358058Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 32,
+    "spentMicroUsd": 13331,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "windowExpiresAtMs": 1794197185443,
+    "windowExpired": false,
+    "windowMaxCount": 50,
+    "nominalRemaining": 18,
+    "nextRequestReserveMicroUsd": 2458,
+    "nextRequestFitsBudget": true,
+    "configuredFingerprintMatches": true,
+    "stopReason": null,
+    "lastResult": {
+      "status": "complete",
+      "requestId": "505957433004eb4d5e0a24dd9150c746",
+      "rejectionDetail": "text-content",
+      "receivedAtMs": 1794164471409,
+      "metrics": {
+        "estimate": {
+          "inputUsdPerMillion": 0.2,
+          "notBillingCap": true,
+          "usd": 0.00021620000000000002,
+          "outputUsdPerMillion": 1.6
+        },
+        "usage": {
+          "prompt_tokens": 457,
+          "completion_tokens": 78,
+          "total_tokens": 535
+        },
+        "modelMs": 2403
+      },
+      "rejectionReason": "disallowed-content"
+    },
+    "recentResults": [
+      {
+        "requestId": "2a46f977a7d21c24a876e14a42d20872",
+        "status": "complete",
+        "receivedAtMs": 1794164454243,
+        "metrics": {
+          "modelMs": 2268,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 89,
+            "total_tokens": 546
+          },
+          "estimate": {
+            "usd": 0.00023380000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "0d502b62f6ed97e1007b2f22488ea4e5",
+        "status": "complete",
+        "receivedAtMs": 1794164463871,
+        "metrics": {
+          "modelMs": 2510,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 82,
+            "total_tokens": 539
+          },
+          "estimate": {
+            "usd": 0.00022260000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "505957433004eb4d5e0a24dd9150c746",
+        "status": "complete",
+        "receivedAtMs": 1794164471409,
+        "metrics": {
+          "modelMs": 2403,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 78,
+            "total_tokens": 535
+          },
+          "estimate": {
+            "usd": 0.00021620000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      }
+    ],
+    "rateGuardRemainingMs": 0,
+    "dailyCount": 30
+  }
+}

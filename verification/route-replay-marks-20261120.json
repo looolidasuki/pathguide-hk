@@ -1,0 +1,26 @@
+{
+  "dateHongKong": "2026-11-20",
+  "scope": "Indoor route replay using local schema 4 manual marks and recorded directions",
+  "baselineSourceCommit": "a11b2f31c2ba52b0d08d272b0fff408ed6970013",
+  "lastDocumentedPhoneVersion": "1.11.0+29",
+  "checks": {
+    "flutterAnalyze": "No issues found",
+    "flutterTestsPassed": 602,
+    "flutterTestsSkipped": 7,
+    "controller": [
+      "Read saved left, right and straight for fresh confirmed walk segments",
+      "Suppress direction on wrong floor, wrong facing, ambiguous or different landmark, expired position, target change, and pause or resume",
+      "Keep floor transition and arrival checks separate from recorded walk directions",
+      "Highlight a confirmed manual mark and retain unmarked points for position matching"
+    ],
+    "widget": [
+      "Keep generated direction names out of the selector and preserve custom names",
+      "Show the confirmed prompt by the capture action at 320x568 with double text size",
+      "Send one Cantonese screen reader announcement or one English TTS utterance through mocked platform channels",
+      "Withdraw the displayed direction and stop pending app speech on pause"
+    ]
+  },
+  "storageSchemaChanged": false,
+  "phoneInstalled": false,
+  "humanAcceptance": "Pending iPhone audio, actual VoiceOver, and independent same-floor and cross-floor replay"
+}

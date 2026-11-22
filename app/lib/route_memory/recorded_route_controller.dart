@@ -11,16 +11,18 @@ import 'route_observation_source.dart';
 import 'route_landmark_client.dart';
 import 'route_localizer.dart';
 import 'route_frame_quality.dart';
+import 'route_learning_store.dart';
 
 enum RecordedRouteMode { library, record, replay }
 
 /// One screen owns camera, analysis jobs and store writes. Every asynchronous
-/// operation is fenced; replay never calls save or retains new camera frames.
+/// operation is fenced. Replay writes only to the optional learning store.
 class RecordedRouteController extends ChangeNotifier {
   RecordedRouteController({
     required this.store,
     RouteObservationSource? source,
     RouteLandmarkClient? analyzer,
+    this.openLearningStore,
   }) : source = source ?? RouteObservationSource(),
        analyzer = analyzer ?? RouteLandmarkClient() {
     _events = this.source.events.listen(
@@ -47,12 +49,114 @@ class RecordedRouteController extends ChangeNotifier {
   final EncryptedRouteStore store;
   final RouteObservationSource source;
   final RouteLandmarkClient analyzer;
+  final Future<RouteLearningStore> Function()? openLearningStore;
+  RouteLearningStore? _learningStore;
+  String? _learningTrip;
+  bool _savingLearningFrame = false;
+  bool _withdrawingLearning = false;
+  bool get learningEnabled =>
+      _learningTrip != null &&
+      !_withdrawingLearning &&
+      !learningWithdrawalFailed;
+  bool get learningBusy => _withdrawingLearning;
+  bool learningWithdrawalFailed = false;
+  bool learningSaveFailed = false;
+
+  Future<RouteLearningStore> learningStore() async =>
+      _learningStore ??= await openLearningStore!();
+
+  void enableLearning() {
+    if (openLearningStore == null ||
+        !replayAvailable ||
+        finished ||
+        !_foreground ||
+        _disposed ||
+        _withdrawingLearning ||
+        _learningTrip != null) {
+      return;
+    }
+    learningSaveFailed = false;
+    _learningTrip = _newId();
+    _changed();
+  }
+
+  Future<void> withdrawLearning() async {
+    final trip = _learningTrip;
+    if (trip == null || _withdrawingLearning) return;
+    _withdrawingLearning = true;
+    learningWithdrawalFailed = false;
+    _changed();
+    try {
+      // No store is opened by opt-in alone.
+      await _learningStore?.deleteTrip(trip);
+      _learningTrip = null;
+      learningSaveFailed = false;
+    } catch (_) {
+      learningWithdrawalFailed = true;
+    } finally {
+      _withdrawingLearning = false;
+      _changed();
+    }
+  }
+
+  Future<void> _keepLearningFrame(
+    String trip,
+    int op,
+    RouteKeyframe frame,
+    LandmarkAnalysis analysis,
+    String nodeId,
+    RouteMatchState prediction,
+    String? predictedNode,
+  ) async {
+    if (_savingLearningFrame) return;
+    final route = _id!, version = _captureVersion;
+    bool isCurrent() =>
+        _current(op) && _running && learningEnabled && _learningTrip == trip;
+    _savingLearningFrame = true;
+    try {
+      if (!await RouteFrameQuality.usable(frame) || !isCurrent()) return;
+      final session = frame.observation['session'];
+      final sequence = frame.observation['sequence'];
+      if (session is! String || sequence is! int) return;
+      final storage = await learningStore();
+      if (!isCurrent()) return;
+      await storage.add(
+        routeId: route,
+        routeVersion: version,
+        tripId: trip,
+        session: session,
+        sequence: sequence,
+        requestedNode: nodeId,
+        result: prediction.name,
+        predictedNode: predictedNode,
+        jpeg: frame.bytes,
+        feature: analysis.feature,
+        featureProfile: RouteLocalizer.featureRevision,
+        preprocessProfile: RouteLocalizer.preprocessRevision,
+        isCurrent: isCurrent,
+      );
+    } on LearningStoreFailure catch (error) {
+      if (isCurrent() && !['cancelled', 'duplicate'].contains(error.code)) {
+        learningSaveFailed = true;
+        _changed();
+      }
+    } catch (_) {
+      if (isCurrent()) {
+        learningSaveFailed = true;
+        _changed();
+      }
+    } finally {
+      _savingLearningFrame = false;
+    }
+  }
+
   StreamSubscription<RouteCaptureStatus>? _events;
   RecordedRouteMode mode = RecordedRouteMode.library;
   List<RouteLibraryEntry> entries = const [];
   List<RoutePoint> _nodes = [];
   List<RouteSegment> _edges = [];
   List<CapturedRouteView> _views = [];
+  List<RouteMarkFailure> _markFailures = [];
   Map<String, Uint8List> _media = {};
   String? _id;
   String _name = '', _building = '';
@@ -162,6 +266,10 @@ class RecordedRouteController extends ChangeNotifier {
         n.id,
         n.nameZh,
         n.nameEn,
+        markType: n.markType,
+        direction: n.direction,
+        textNote: n.textNote,
+        audioNote: n.audioNote,
         floor: floor,
         floorEvidence: FloorEvidence.segmentConfirmed,
         floorAnchorId: anchorId,
@@ -243,6 +351,8 @@ class RecordedRouteController extends ChangeNotifier {
       !_reloadRequired &&
       mode == RecordedRouteMode.record;
   bool get canCapture => canEdit && _running;
+  bool get canSaveDraft =>
+      canEdit && (_nodes.isNotEmpty || _markFailures.isNotEmpty);
   bool get canCheck =>
       !_disposed &&
       _foreground &&
@@ -252,9 +362,26 @@ class RecordedRouteController extends ChangeNotifier {
       !finished;
   String get name => _name;
   List<RoutePoint> get nodes => List.unmodifiable(_nodes);
+  List<RouteMarkFailure> get markFailures => List.unmodifiable(_markFailures);
   String? get actualNodeId => _localizer?.actualNodeId;
   FloorRef? get actualFloor => _localizer?.actualFloor;
   FloorRef? get expectedFloor => _localizer?.expectedFloor;
+  RoutePoint? get confirmedReplayMark {
+    final index = _index;
+    if (!canCheck || index == null) return null;
+    final point = _nodes[index];
+    return point.id == actualNodeId && point.markType != null ? point : null;
+  }
+
+  String? get replayDirection {
+    final point = confirmedReplayMark;
+    if (point == null || _index! >= _edges.length) return null;
+    final edge = _edges[_index!];
+    return edge.confirmed && edge.mode == ConnectorMode.walk
+        ? point.direction
+        : null;
+  }
+
   RoutePoint? get nextPoint => _index != null && _index! + 1 < _nodes.length
       ? _nodes[_index! + 1]
       : null;
@@ -270,6 +397,7 @@ class RecordedRouteController extends ChangeNotifier {
           edges: _edges,
           source: RouteContentSource.captured,
           views: _views,
+          markFailures: _markFailures,
           featureRevision: RouteLocalizer.featureRevision,
           preprocessRevision: RouteLocalizer.preprocessRevision,
         );
@@ -359,6 +487,7 @@ class RecordedRouteController extends ChangeNotifier {
     _nodes = [];
     _edges = [];
     _views = [];
+    _markFailures = [];
     _media = {};
     selected = null;
     _dirty = false;
@@ -451,6 +580,29 @@ class RecordedRouteController extends ChangeNotifier {
     return (frame, value);
   }
 
+  void _recordMarkFailure(
+    String type,
+    String? direction,
+    DateTime attemptedAtUtc,
+    RouteMarkFailureReason reason,
+  ) {
+    if (_markFailures.length == RouteDocument.maxMarkFailures) {
+      _markFailures.removeAt(0);
+    }
+    _markFailures.add(
+      RouteMarkFailure(
+        markType: type,
+        direction: direction,
+        attemptedAtUtc: attemptedAtUtc,
+        reason: reason,
+      ),
+    );
+    _dirty = true;
+    notice = reason == RouteMarkFailureReason.capacity
+        ? 'markCapacity'
+        : 'markFailed';
+  }
+
   Future<bool> recordLandmark(
     String name,
     String floor, {
@@ -460,17 +612,31 @@ class RecordedRouteController extends ChangeNotifier {
     bool automatic = false,
     bool inheritContext = false,
     bool connectionConfirmed = true,
+    String? markType,
+    String? direction,
   }) async {
+    if (!RoutePoint.validMark(markType, direction)) return false;
     if (!canCapture || name.trim().isEmpty || name.length > 120) return false;
     final existing = nodeId == null
         ? null
         : _nodes.indexWhere((n) => n.id == nodeId);
     if (existing != null && existing < 0) return false;
+    final attemptedAtUtc = markType != null && nodeId == null && !automatic
+        ? DateTime.now().toUtc()
+        : null;
     if (_views.length >= (automatic ? 48 : 64) ||
         (nodeId != null &&
             _views.where((v) => v.nodeId == nodeId).length >= 4)) {
       problem = 'capacity';
       notice = 'error';
+      if (attemptedAtUtc != null) {
+        _recordMarkFailure(
+          markType!,
+          direction,
+          attemptedAtUtc,
+          RouteMarkFailureReason.capacity,
+        );
+      }
       _changed();
       return false;
     }
@@ -525,7 +691,11 @@ class RecordedRouteController extends ChangeNotifier {
           }
         }
       }
-      final id = nodeId ?? 'n-${_nodes.length + 1}';
+      var serial = 1;
+      while (_nodes.any((n) => n.id == 'n-$serial')) {
+        serial++;
+      }
+      final id = nodeId ?? 'n-$serial';
       if (_views.any((v) => v.nodeId == id && v.imageSha == value.imageSha)) {
         notice = 'duplicate';
         return false;
@@ -559,6 +729,8 @@ class RecordedRouteController extends ChangeNotifier {
             id,
             name.trim(),
             automatic ? 'Landmark ${_nodes.length + 1}' : name.trim(),
+            markType: markType,
+            direction: direction,
             floor: f,
             floorEvidence: inherited ? FloorEvidence.inherited : null,
             floorAnchorId: inherited ? _recordingAnchor : null,
@@ -596,6 +768,14 @@ class RecordedRouteController extends ChangeNotifier {
           }
         } else {
           _error(e);
+          if (attemptedAtUtc != null) {
+            _recordMarkFailure(
+              markType!,
+              direction,
+              attemptedAtUtc,
+              RouteMarkFailureReason.capture,
+            );
+          }
         }
       }
     } finally {
@@ -605,6 +785,98 @@ class RecordedRouteController extends ChangeNotifier {
       }
     }
     return false;
+  }
+
+  Future<bool> mark(String type, String label, {String? direction}) async {
+    if (!canCapture || mode != RecordedRouteMode.record) return false;
+    final count = _nodes.where((n) => n.markType == type).length + 1;
+    return recordLandmark(
+      '$label $count',
+      '',
+      inheritContext: true,
+      markType: type,
+      direction: direction,
+    );
+  }
+
+  bool get canUndoMark =>
+      canEdit &&
+      mode == RecordedRouteMode.record &&
+      _nodes.any((n) => n.markType != null);
+  bool undoLastMark() {
+    if (!canUndoMark) return false;
+    final index = _nodes.lastIndexWhere((n) => n.markType != null);
+    final removed = _nodes.removeAt(index);
+    final oldEdges = List<RouteSegment>.of(_edges);
+    _edges.clear();
+    for (var i = 1; i < _nodes.length; i++) {
+      final matching = oldEdges.where(
+        (e) => e.fromId == _nodes[i - 1].id && e.toId == _nodes[i].id,
+      );
+      _edges.add(
+        matching.isNotEmpty
+            ? matching.first
+            : RouteSegment(_nodes[i - 1].id, _nodes[i].id, ConnectorMode.walk),
+      );
+    }
+    _views.removeWhere((v) => v.nodeId == removed.id);
+    final used = _views.expand((v) => [v.imageSha, v.featureSha]).toSet();
+    _media.removeWhere((key, _) => !used.contains(key));
+    _dirty = true;
+    notice = 'markUndone';
+    _changed();
+    return true;
+  }
+
+  bool updateMarkNote(RoutePoint mark, String input) {
+    final text = input.trim();
+    final note = text.isEmpty ? null : text;
+    if (note != null && !RoutePoint.validTextNote(note)) return false;
+    return _updateMarkNotes(mark, textNote: note, audioNote: mark.audioNote);
+  }
+
+  bool updateMarkAudioNote(RoutePoint mark, RouteAudioNote? note) {
+    final otherBytes = _nodes.fold<int>(
+      0,
+      (sum, point) =>
+          sum +
+          (identical(point, mark) ? 0 : point.audioNote?.bytes.length ?? 0),
+    );
+    if (otherBytes + (note?.bytes.length ?? 0) >
+        RouteMediaBounds.audioBytesPerRoute) {
+      return false;
+    }
+    return _updateMarkNotes(mark, textNote: mark.textNote, audioNote: note);
+  }
+
+  bool _updateMarkNotes(
+    RoutePoint mark, {
+    required String? textNote,
+    required RouteAudioNote? audioNote,
+  }) {
+    if (!canEdit || mark.markType == null) return false;
+    final index = _nodes.indexOf(mark);
+    if (index < 0) return false;
+    if (mark.textNote == textNote && identical(mark.audioNote, audioNote)) {
+      return true;
+    }
+    _nodes[index] = RoutePoint(
+      mark.id,
+      mark.nameZh,
+      mark.nameEn,
+      floor: mark.floor,
+      markType: mark.markType,
+      direction: mark.direction,
+      textNote: textNote,
+      audioNote: audioNote,
+      floorEvidence: mark.floorEvidence,
+      floorAnchorId: mark.floorAnchorId,
+      isFloorContextAnchor: mark.isFloorContextAnchor,
+    );
+    _dirty = true;
+    notice = 'noteEdited';
+    _changed();
+    return true;
   }
 
   void updateNode(
@@ -636,6 +908,10 @@ class RecordedRouteController extends ChangeNotifier {
         previous.id,
         name.trim(),
         name.trim(),
+        markType: previous.markType,
+        direction: previous.direction,
+        textNote: previous.textNote,
+        audioNote: previous.audioNote,
         floor: f,
         floorEvidence: preserve ? previous.floorEvidence : null,
         floorAnchorId: preserve ? previous.floorAnchorId : null,
@@ -655,7 +931,15 @@ class RecordedRouteController extends ChangeNotifier {
           if (n.floorAnchorId == null) continue;
           final anchor = _nodes.indexWhere((p) => p.id == n.floorAnchorId);
           if (anchor > index) continue;
-          _nodes[j] = RoutePoint(n.id, n.nameZh, n.nameEn);
+          _nodes[j] = RoutePoint(
+            n.id,
+            n.nameZh,
+            n.nameEn,
+            markType: n.markType,
+            direction: n.direction,
+            textNote: n.textNote,
+            audioNote: n.audioNote,
+          );
           final e = _edges[j - 1];
           _edges[j - 1] = RouteSegment(
             e.fromId,
@@ -696,7 +980,7 @@ class RecordedRouteController extends ChangeNotifier {
   }
 
   Future<void> save({required bool activate, String? name}) async {
-    if (!canEdit || _nodes.isEmpty) return;
+    if (!canSaveDraft) return;
     if (name != null) {
       if (name.trim().isEmpty || name.length > 120) return;
       _name = name.trim();
@@ -735,6 +1019,7 @@ class RecordedRouteController extends ChangeNotifier {
     } catch (e) {
       if (_current(op)) {
         _error(e);
+        notice = 'saveFailed';
         if (e is RouteStoreFailure &&
             [
               RouteProblem.outcomeUnknown,
@@ -787,6 +1072,7 @@ class RecordedRouteController extends ChangeNotifier {
       _nodes = List.of(doc.nodes);
       _edges = List.of(doc.edges);
       _views = List.of(doc.views);
+      _markFailures = List.of(doc.markFailures);
       _media = Map.of(media);
       selected = entry;
       _revision = entry.revision;
@@ -843,14 +1129,14 @@ class RecordedRouteController extends ChangeNotifier {
     }
   }
 
-  Future<void> checkPosition(
+  Future<bool> checkPosition(
     String nodeId,
     String floor, {
     required bool directionConfirmed,
   }) async {
-    if (!canCheck || _localizer == null) return;
+    if (!canCheck || _localizer == null) return false;
     final candidates = _nodes.where((n) => n.id == nodeId).toList();
-    if (candidates.length != 1) return;
+    if (candidates.length != 1) return false;
     final node = candidates.single;
     _localizer!.pause();
     if (_transition != null) {
@@ -858,7 +1144,7 @@ class RecordedRouteController extends ChangeNotifier {
       if (edge.toId != nodeId) {
         notice = 'wrongNode';
         _changed();
-        return;
+        return false;
       }
       _localizer!.expectFloor(
         node.floor,
@@ -873,9 +1159,10 @@ class RecordedRouteController extends ChangeNotifier {
         !directionConfirmed) {
       notice = !directionConfirmed ? 'wrongDirection' : 'wrongFloor';
       _changed();
-      return;
+      return false;
     }
     final op = _epoch, watch = Stopwatch()..start();
+    final trip = learningEnabled ? _learningTrip : null;
     _busy = true;
     problem = null;
     notice = 'checking';
@@ -888,7 +1175,7 @@ class RecordedRouteController extends ChangeNotifier {
           _media[v.featureSha] ??
               (throw const RouteStoreFailure(RouteProblem.corrupt)),
       ]);
-      if (!_current(op) || !_running) return;
+      if (!_current(op) || !_running) return false;
       final ticket = _localizer!.beginObservation(
         frameAge:
             Duration(milliseconds: (frame.observation['ageMs'] as num).ceil()) +
@@ -908,20 +1195,36 @@ class RecordedRouteController extends ChangeNotifier {
         preprocess: RouteLocalizer.preprocessRevision,
         ocr: value.text,
       );
-      if (_localizer!.result != RouteMatchState.candidate) {
-        notice = _localizer!.result.name;
-        return;
+      final prediction = _localizer!.result;
+      if (trip != null &&
+          ['candidate', 'unknown', 'ambiguous'].contains(prediction.name)) {
+        unawaited(
+          _keepLearningFrame(
+            trip,
+            op,
+            frame,
+            value,
+            nodeId,
+            prediction,
+            _localizer!.candidateNodeId,
+          ),
+        );
+      }
+      if (prediction != RouteMatchState.candidate) {
+        notice = prediction.name;
+        return false;
       }
       _localizer!.confirmFloor(node.floor!);
       _localizer!.confirmExit(directionConfirmed: true);
       if (_localizer!.actualNodeId != nodeId) {
         _localizer!.pause();
         notice = 'wrongNode';
-        return;
+        return false;
       }
       _index = _nodes.indexOf(node);
       _transition = null;
       notice = atArrival ? 'arrival' : 'confirmed';
+      return true;
     } catch (e) {
       if (_current(op)) {
         _localizer?.pause();
@@ -933,6 +1236,7 @@ class RecordedRouteController extends ChangeNotifier {
         _changed();
       }
     }
+    return false;
   }
 
   bool enterConnector() {
@@ -955,6 +1259,13 @@ class RecordedRouteController extends ChangeNotifier {
     notice = 'transitioning';
     _changed();
     return true;
+  }
+
+  void clearReplayPosition() {
+    if (!canCheck || actualNodeId == null) return;
+    _localizer!.pause();
+    notice = 'ready';
+    _changed();
   }
 
   Future<void> confirmArrival() async {
@@ -1009,16 +1320,15 @@ class RecordedRouteController extends ChangeNotifier {
     _busy = true;
     _changed();
     try {
-      await store.delete(entry.id, expectedRevision: entry.revision);
+      await store.delete(
+        entry.id,
+        expectedRevision: entry.revision,
+        beforeDelete: openLearningStore == null
+            ? null
+            : () async => (await learningStore()).deleteRoute(entry.id),
+      );
       if (!_current(op)) return;
-      _id = null;
-      _media.clear();
-      _nodes = [];
-      _edges = [];
-      _views = [];
-      _dirty = false;
-      selected = null;
-      mode = RecordedRouteMode.library;
+      _clearSelection();
       notice = 'deleted';
     } catch (e) {
       if (_current(op)) _error(e);
@@ -1041,10 +1351,8 @@ class RecordedRouteController extends ChangeNotifier {
     try {
       await store.rollback(entry.id, version, expectedRevision: entry.revision);
       if (_current(op)) {
+        _clearSelection();
         notice = 'rolledBack';
-        mode = RecordedRouteMode.library;
-        selected = null;
-        _media.clear();
       }
     } catch (e) {
       if (_current(op)) _error(e);
@@ -1058,6 +1366,9 @@ class RecordedRouteController extends ChangeNotifier {
   }
 
   void _clearSelection() {
+    _learningTrip = null;
+    learningWithdrawalFailed = false;
+    learningSaveFailed = false;
     _automaticTimer?.cancel();
     automaticRecording = false;
     _localizer?.dispose();
@@ -1066,6 +1377,7 @@ class RecordedRouteController extends ChangeNotifier {
     _nodes = [];
     _edges = [];
     _views = [];
+    _markFailures = [];
     _media.clear();
     selected = null;
     _dirty = false;

@@ -11,6 +11,8 @@ import '../settings/app_settings.dart';
 import '../tts/announcer.dart' show Speaker;
 import '../tts/flutter_tts_speaker.dart';
 import 'menu_controller.dart';
+import 'menu_document.dart';
+import 'reading_sections.dart';
 import 'menu_reader.dart';
 
 /// 線上語音是哪一家（**廠商名**，讓句子自然接上「的線上語音服務」）。
@@ -32,11 +34,13 @@ class MenuPage extends StatefulWidget {
     super.key,
     required this.settings,
     required this.onBack,
+    this.generalReading = false,
     this.reader,
     this.speaker,
   });
   final AppSettings settings;
   final VoidCallback onBack;
+  final bool generalReading;
   final MenuReader? reader;
   final Speaker? speaker;
   @override
@@ -45,7 +49,7 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
   late final MenuReadingController _menu = MenuReadingController(
-    widget.reader ?? NativeMenuReader(),
+    widget.reader ?? NativeMenuReader(includeGeneral: widget.generalReading),
   );
   late final Speaker _speaker =
       widget.speaker ??
@@ -58,6 +62,9 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
   String? _pendingReadout;
   int _voiceGeneration = 0;
   int _visibleLimit = 30;
+  late bool _showMenu = !widget.generalReading;
+  String _word = '';
+  String? _lastSection;
   @override
   void initState() {
     super.initState();
@@ -75,7 +82,7 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     if (state == AppLifecycleState.resumed) {
       final pending = _pendingReadout;
       _pendingReadout = null;
-      if (pending != null) unawaited(_say(pending));
+      if (pending != null) unawaited(_say(pending, literal: true));
     } else {
       unawaited(_stop());
       // An iOS permission sheet uses inactive. Keep its eventual response until resumed.
@@ -104,8 +111,8 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     if (mounted) setState(() {});
   }
 
-  Future<void> _say(String text) async {
-    text = context.tr(text);
+  Future<void> _say(String text, {bool literal = false}) async {
+    if (!literal) text = context.tr(text);
     final stopping = _stop();
     final generation = _speechGeneration;
     await stopping;
@@ -116,7 +123,8 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     }
     _outputBusy = true;
     try {
-      if (MediaQuery.accessibleNavigationOf(context)) {
+      if (MediaQuery.accessibleNavigationOf(context) &&
+          MediaQuery.supportsAnnounceOf(context)) {
         await SemanticsService.sendAnnouncement(
           View.of(context),
           text,
@@ -160,10 +168,14 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     await _stop();
     if (!mounted || !_foreground || generation != _voiceGeneration) return;
     _query.clear();
+    _word = '';
+    _lastSection = null;
+    _showMenu = !widget.generalReading || source == MenuImageSource.scanner;
     _visibleLimit = 30;
     FocusManager.instance.primaryFocus?.unfocus();
     await _menu.read(source);
     if (!mounted || generation != _voiceGeneration) return;
+    if (widget.generalReading) return;
     if (_menu.state == MenuState.failed ||
         _menu.document?.entries.isEmpty == true) {
       await _say(_menu.message);
@@ -216,10 +228,13 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
   static String _onlineVoiceVendor() => onlineVoiceVendorFor(defaultTargetPlatform);
 
   /// 這個平台不支援菜單閱讀時，要說出**為什麼**與**在哪些平台可用**。
-  static String _unsupportedReason() => switch (defaultTargetPlatform) {
-    TargetPlatform.iOS => '菜單閱讀在 iPhone 需要 iOS 16 或以上。',
+  static String _unsupportedReason(bool generalReading) =>
+      switch (defaultTargetPlatform) {
+    TargetPlatform.iOS => generalReading
+        ? '閱讀文字支援 iOS 16 或以上的 iPhone。'
+        : '菜單閱讀在 iPhone 需要 iOS 16 或以上。',
     TargetPlatform.android => '這部 Android 裝置未提供可用的文字辨識服務。',
-    _ => '菜單閱讀目前支援 iPhone 與 Android。',
+    _ => '文字及菜單閱讀目前支援 iPhone 與 Android。',
   };
   void _search() {
     ++_voiceGeneration;
@@ -241,23 +256,99 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
     super.dispose();
   }
 
+  String _readingStatus(MenuDocument? document) {
+    if (_menu.state == MenuState.acquiring) return '正在開啟相機或相簿。';
+    if (_menu.state == MenuState.recognizing) return '正在手機上辨識文字。';
+    if (_menu.state == MenuState.failed) return _menu.message;
+    if (document == null) return '拍攝或選取一張照片。';
+    if (document.readingLines.isEmpty) return '暫未讀到文字，請重拍或選另一張照片。';
+    return '辨識完成。請選擇要讀出的文字。';
+  }
+
+  List<Widget> _readingResults(MenuDocument document) {
+    final result = readingSections(document.readingLines);
+    final query = _word.trim().toLowerCase();
+    final matches = result.lines
+        .where((line) => line.text.toLowerCase().contains(query))
+        .toList();
+    return [
+      if (document.readingLimited ||
+          document.warnings.isNotEmpty ||
+          result.lines.any((line) => line.confidence < .5))
+        const AppText('可能只讀到部分文字，可查看現有內容或重拍。'),
+      if (result.uncertainOrder) const AppText('版面次序待核對，請逐區閱讀。'),
+      if (result.lines.isNotEmpty) ...[
+        TextFormField(
+          initialValue: _word,
+          decoration: InputDecoration(labelText: context.tr('找字詞')),
+          onChanged: (value) => setState(() {
+            _word = value;
+            _visibleLimit = 30;
+          }),
+        ),
+        if (_lastSection case final text?)
+          TextButton(
+            onPressed: () => _say(text, literal: true),
+            child: const AppText('重讀上一段'),
+          ),
+        if (matches.isEmpty) const AppText('找不到相符字詞。'),
+        for (final line in matches.take(_visibleLimit))
+          Card(
+            child: ListTile(
+              title: Text(line.text),
+              subtitle: AppText(line.confidence < .5 ? '文字待核對' : '讀出此段'),
+              onTap: () {
+                setState(() => _lastSection = line.text);
+                unawaited(_say(line.text, literal: true));
+              },
+            ),
+          ),
+        if (matches.length > _visibleLimit)
+          OutlinedButton(
+            onPressed: () => setState(() => _visibleLimit += 30),
+            child: const AppText('顯示更多文字'),
+          ),
+      ],
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final document = _menu.document;
     final results = _menu.results;
     return Scaffold(
       appBar: AppBar(
-        title: const AppText('菜單閱讀'),
+        title: AppText(widget.generalReading ? '閱讀文字' : '菜單閱讀'),
         leading: BackButton(onPressed: widget.onBack),
       ),
       bottomNavigationBar: SafeArea(
         top: false,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
-          child: OutlinedButton.icon(
-            onPressed: _speaking || _outputBusy ? () => _stop() : null,
-            icon: const Icon(Icons.stop_circle_outlined),
-            label: const AppText('停止 App 朗讀'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (widget.generalReading && document != null)
+                OutlinedButton(
+                  onPressed: _menu.busy
+                      ? null
+                      : () {
+                          _pendingReadout = null;
+                          unawaited(_stop());
+                          setState(() {
+                            _showMenu = !_showMenu;
+                            _visibleLimit = 30;
+                          });
+                        },
+                  child: AppText(_showMenu ? '返回文字結果' : '菜單查價'),
+                ),
+              OutlinedButton.icon(
+                onPressed: _speaking || _outputBusy ? () => _stop() : null,
+                icon: const Icon(Icons.stop_circle_outlined),
+                label: const AppText('停止 App 朗讀'),
+              ),
+            ],
           ),
         ),
       ),
@@ -266,14 +357,20 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
           key: const ValueKey('menu-page'),
           padding: const EdgeInsets.all(20),
           children: [
-            const AppText('先拍攝菜單，再講「我想食牛腩飯」。App 會搜尋已辨識文字，讀出可確認的標示價錢。'),
+            if (!widget.generalReading)
+              const AppText('先拍攝菜單，再講「我想食牛腩飯」。App 會搜尋已辨識文字，讀出可確認的標示價錢。'),
             const SizedBox(height: 12),
             if (!_menu.reader.supported)
-              AppText(_unsupportedReason()),
+              AppText(_unsupportedReason(widget.generalReading)),
             Semantics(
               // Result speech has one explicit output path; do not announce it twice.
-              liveRegion: false,
-              child: AppText(_menu.message, key: const ValueKey('menu-status')),
+              liveRegion: widget.generalReading && !_showMenu,
+              child: AppText(
+                widget.generalReading && !_showMenu
+                    ? _readingStatus(document)
+                    : _menu.message,
+                key: const ValueKey('menu-status'),
+              ),
             ),
             if (_speechMessage != null) AppText(_speechMessage!),
             if (_menu.state == MenuState.listening) ...[
@@ -294,8 +391,9 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
                 onPressed: () async {
                   ++_voiceGeneration;
                   _pendingReadout = null;
+                  final cancelling = _menu.cancel();
                   await _stop();
-                  await _menu.cancel();
+                  await cancelling;
                 },
                 child: const AppText('取消目前操作'),
               ),
@@ -306,7 +404,11 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
                   ? () => _read(MenuImageSource.camera)
                   : null,
               icon: const Icon(Icons.document_scanner_outlined),
-              label: AppText(document == null ? '拍攝菜單' : '重新拍攝菜單'),
+              label: AppText(
+                widget.generalReading
+                    ? (document == null ? '拍攝文字' : '重新拍攝文字')
+                    : (document == null ? '拍攝菜單' : '重新拍攝菜單'),
+              ),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -314,19 +416,26 @@ class _MenuPageState extends State<MenuPage> with WidgetsBindingObserver {
                   ? () => _read(MenuImageSource.library)
                   : null,
               icon: const Icon(Icons.photo_library_outlined),
-              label: const AppText('選取一張菜單照片'),
+              label: AppText(widget.generalReading ? '選取照片' : '選取一張菜單照片'),
             ),
-            TextButton(
-              key: const ValueKey('scan-menu'),
-              onPressed: _menu.reader.supported && !_menu.busy
-                  ? () => _read(MenuImageSource.scanner)
-                  : null,
-              child: const AppText('文件掃描（選用，可拍多頁）'),
-            ),
-            const AppText(
-              '拍攝時將菜單文字放入鏡頭，盡量保持平穩及避免反光。密集菜單可近距離分區拍攝。使用系統相機拍照，再選擇使用照片；照片只用於本次讀字，不加入訓練上傳。',
-            ),
-            if (document != null) ...[
+            if (_showMenu)
+              TextButton(
+                key: const ValueKey('scan-menu'),
+                onPressed: _menu.reader.supported && !_menu.busy
+                    ? () => _read(MenuImageSource.scanner)
+                    : null,
+                child: const AppText('文件掃描（選用，可拍多頁）'),
+              ),
+            if (!widget.generalReading)
+              const AppText(
+                '拍攝時將菜單文字放入鏡頭，盡量保持平穩及避免反光。密集菜單可近距離分區拍攝。使用系統相機拍照，再選擇使用照片；照片只用於本次讀字，不加入訓練上傳。',
+              ),
+            if (widget.generalReading && document != null) ...[
+              if (!_showMenu) ..._readingResults(document),
+              if (_showMenu && document.menuUnavailable)
+                const AppText('部分菜單內容未能辨識。'),
+            ],
+            if (document != null && _showMenu) ...[
               const SizedBox(height: 20),
               FilledButton.icon(
                 key: const ValueKey('voice-menu-search'),

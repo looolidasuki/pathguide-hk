@@ -1,0 +1,336 @@
+{
+  "dateHongKong": "2026-11-09",
+  "version": "1.10.2+26",
+  "scope": "Complex kitchen/bathroom rejection fixes; no private-image replay or paid inference",
+  "confirmedOffline": {
+    "recursiveFirestoreMergeLeavesOldRejectionKeys": true,
+    "normalNounsRejectedByOldGuards": true,
+    "specificScreenshotTriggersKnown": false
+  },
+  "regressionBeforeFix": {
+    "backendFailed": [
+      "recent result replacement under recursive merge",
+      "synthetic kitchen/bathroom accepted fixtures"
+    ],
+    "phoneFailed": [
+      "synthetic kitchen/bathroom accepted fixtures"
+    ]
+  },
+  "changes": [
+    "Replace entire lastResult and recentResults through explicit Firestore mergeFields, preserving other counters",
+    "Keep backend and phone 米/層 noun exceptions identical; all other restrictions still inspect the original complete text",
+    "Clarify kitchen/bathroom nouns use existing other category and merge same-position other objects; no structural normalization or enum expansion"
+  ],
+  "syntheticFixtures": {
+    "path": "app/test/fixtures/scene_validation.json",
+    "acceptedScenes": 5,
+    "rejectedTextCases": 26,
+    "rejectedObservationCases": 8,
+    "privateContent": false
+  },
+  "checks": {
+    "flutterDefault": {
+      "passed": 594,
+      "flagOffSkipped": 7
+    },
+    "flutterFlagOnScoped": 101,
+    "backendScopedMocked": 48,
+    "flutterAnalyze": "No issues found",
+    "realFirestoreSdkSerialization": {
+      "networkRequests": 0,
+      "updateMask": [
+        "lastResult",
+        "recentResults"
+      ]
+    },
+    "nativeSwiftChanged": false,
+    "nativeTestsRerun": false,
+    "privateProfileBuild": "pass",
+    "codesignDeepStrict": "pass",
+    "fourModelsUnchanged": true,
+    "deployedSourceSha256": {
+      "scene_description.js": "3dcc9352a1a8b21169dbaf46339624507a70ea0e30f4af25da9a062d0c90bb58",
+      "scene_trial.js": "7c1ef3536178c75bd17ee38ddd4b02f895319882b79075ed66a1f4f429649d7a",
+      "scene_function.js": "a3a25b28a73a2267230612baa349dab6e85e505de531fab2f54b44bd7fcd71ab",
+      "scene_entry.js": "e16a40d71fbf629826a705ae10672df41faff24f47a0dbf739a9ab5baf9f8f10",
+      "function_entry.js": "73830c21c00871bf1896215960ac52938042eadc30a44b6b31305283f15866b7"
+    }
+  },
+  "readOnlyAllowanceBefore": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T19:07:47.439Z",
+    "deploymentUpdateTime": "2026-11-08T16:35:15.382413860Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 32,
+    "spentMicroUsd": 13331,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "windowExpiresAtMs": 1794197185443,
+    "windowExpired": false,
+    "windowMaxCount": 50,
+    "nominalRemaining": 18,
+    "nextRequestReserveMicroUsd": 2458,
+    "nextRequestFitsBudget": true,
+    "configuredFingerprintMatches": true,
+    "stopReason": null,
+    "lastResult": {
+      "status": "complete",
+      "requestId": "505957433004eb4d5e0a24dd9150c746",
+      "rejectionDetail": "text-content",
+      "metrics": {
+        "usage": {
+          "completion_tokens": 78,
+          "total_tokens": 535,
+          "prompt_tokens": 457
+        },
+        "estimate": {
+          "inputUsdPerMillion": 0.2,
+          "usd": 0.00021620000000000002,
+          "notBillingCap": true,
+          "outputUsdPerMillion": 1.6
+        },
+        "modelMs": 2403
+      },
+      "rejectionReason": "disallowed-content",
+      "receivedAtMs": 1794164471409
+    },
+    "recentResults": [
+      {
+        "requestId": "2a46f977a7d21c24a876e14a42d20872",
+        "status": "complete",
+        "receivedAtMs": 1794164454243,
+        "metrics": {
+          "modelMs": 2268,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 89,
+            "total_tokens": 546
+          },
+          "estimate": {
+            "usd": 0.00023380000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "0d502b62f6ed97e1007b2f22488ea4e5",
+        "status": "complete",
+        "receivedAtMs": 1794164463871,
+        "metrics": {
+          "modelMs": 2510,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 82,
+            "total_tokens": 539
+          },
+          "estimate": {
+            "usd": 0.00022260000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "505957433004eb4d5e0a24dd9150c746",
+        "status": "complete",
+        "receivedAtMs": 1794164471409,
+        "metrics": {
+          "modelMs": 2403,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 78,
+            "total_tokens": 535
+          },
+          "estimate": {
+            "usd": 0.00021620000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      }
+    ],
+    "rateGuardRemainingMs": 0,
+    "dailyCount": 30
+  },
+  "paidInferenceRequestsByAgent": 0,
+  "ledgerMutationsByAgent": 0,
+  "privatePhotosReadOrUploaded": false,
+  "limitations": [
+    "Actual screenshots do not reveal which sentence or field failed; fixes address confirmed code defects, not proven screenshot root causes",
+    "Strict schema/sentence/content validation remains; malformed or unsafe answers still reject in full",
+    "Existing stale raw lastResult is not migrated; safe read filters by status, next settled result replaces the complete map",
+    "Kitchen/bathroom content, room regression, audible latency and VoiceOver still require human acceptance",
+    "No additional budget, request count or trial-window extension"
+  ],
+  "deployment": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T19:13:59.533Z",
+    "deploymentUpdateTime": "2026-11-08T19:12:43.226358058Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 32,
+    "spentMicroUsd": 13331,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "anonymousStatus": 401,
+    "currentLedgerBudgetMicroUsd": 500000,
+    "ledgerAwaitingAuditedBudgetAmendment": false
+  },
+  "phoneInstall": {
+    "bundleIdentifier": "hk.pathguide.pathguide",
+    "version": "1.10.2",
+    "bundleVersion": "26",
+    "independentInventoryVerified": true,
+    "installedInPlace": true,
+    "dataCleared": false,
+    "normalLaunchSucceeded": true
+  },
+  "release": {
+    "tag": "v1.10.2+26",
+    "sourceCommit": "50981ed40202f594136f381b091fa73eef7b5f92",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.10.2%2B26",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "readOnlyAllowanceAfter": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T19:16:30.274Z",
+    "deploymentUpdateTime": "2026-11-08T19:12:43.226358058Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 50,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 32,
+    "spentMicroUsd": 13331,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "windowExpiresAtMs": 1794197185443,
+    "windowExpired": false,
+    "windowMaxCount": 50,
+    "nominalRemaining": 18,
+    "nextRequestReserveMicroUsd": 2458,
+    "nextRequestFitsBudget": true,
+    "configuredFingerprintMatches": true,
+    "stopReason": null,
+    "lastResult": {
+      "status": "complete",
+      "requestId": "505957433004eb4d5e0a24dd9150c746",
+      "rejectionDetail": "text-content",
+      "receivedAtMs": 1794164471409,
+      "metrics": {
+        "estimate": {
+          "inputUsdPerMillion": 0.2,
+          "notBillingCap": true,
+          "usd": 0.00021620000000000002,
+          "outputUsdPerMillion": 1.6
+        },
+        "usage": {
+          "prompt_tokens": 457,
+          "completion_tokens": 78,
+          "total_tokens": 535
+        },
+        "modelMs": 2403
+      },
+      "rejectionReason": "disallowed-content"
+    },
+    "recentResults": [
+      {
+        "requestId": "2a46f977a7d21c24a876e14a42d20872",
+        "status": "complete",
+        "receivedAtMs": 1794164454243,
+        "metrics": {
+          "modelMs": 2268,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 89,
+            "total_tokens": 546
+          },
+          "estimate": {
+            "usd": 0.00023380000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "0d502b62f6ed97e1007b2f22488ea4e5",
+        "status": "complete",
+        "receivedAtMs": 1794164463871,
+        "metrics": {
+          "modelMs": 2510,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 82,
+            "total_tokens": 539
+          },
+          "estimate": {
+            "usd": 0.00022260000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      },
+      {
+        "requestId": "505957433004eb4d5e0a24dd9150c746",
+        "status": "complete",
+        "receivedAtMs": 1794164471409,
+        "metrics": {
+          "modelMs": 2403,
+          "usage": {
+            "prompt_tokens": 457,
+            "completion_tokens": 78,
+            "total_tokens": 535
+          },
+          "estimate": {
+            "usd": 0.00021620000000000002,
+            "inputUsdPerMillion": 0.2,
+            "outputUsdPerMillion": 1.6,
+            "notBillingCap": true
+          }
+        }
+      }
+    ],
+    "rateGuardRemainingMs": 0,
+    "dailyCount": 30
+  },
+  "ledgerUnchangedDuringWork": true,
+  "humanAcceptance": "Pending room/kitchen/bathroom content, exact rejection detail, related audible onset, stale/repeated/missing narration and VoiceOver."
+}

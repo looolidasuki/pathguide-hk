@@ -1,0 +1,30 @@
+{
+  "dateHongKong": "2026-11-10",
+  "scope": "VoiceOver-first route marking research and integration plan",
+  "userBaseline": "iOS VoiceOver is enabled during app use",
+  "sourceAudit": [
+    "EnvironmentSpeaker already selects announcement or TTS",
+    "Recognition uses accessibleNavigation plus supportsAnnounce and reader-change handling",
+    "Route journey feedback currently uses a status liveRegion; no unified output adapter or mark-type/direction feedback",
+    "Standard route controls already have labels and 56px minimum height; no proven reader-focus restoration",
+    "Existing route widget/double-text tests are not full VoiceOver device acceptance"
+  ],
+  "primarySources": [
+    "https://developer.apple.com/documentation/uikit/supporting-voiceover-in-your-app",
+    "https://api.flutter.dev/flutter/semantics/SemanticsService/sendAnnouncement.html",
+    "https://docs.flutter.dev/ui/accessibility/assistive-technologies"
+  ],
+  "planned": [
+    "standard activation; exploration must not capture",
+    "stable control order and accessible roles/states",
+    "preserve reader focus and restore after modal",
+    "one feedback path per event; no assumed control of system reader queue",
+    "device Screen Curtain and screenshot-after-reader-enabled checks"
+  ],
+  "implementationChanged": false,
+  "testsRerun": false,
+  "phoneOperations": 0,
+  "paidInferenceRequests": 0,
+  "humanAcceptance": "Pending",
+  "userButtonFeedbackClarification": "Activating stairs marking gives audible stairs feedback; distinguish acknowledgement from capture success; single audio route, no duplicate TTS"
+}

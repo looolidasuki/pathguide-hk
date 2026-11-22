@@ -1,0 +1,125 @@
+{
+  "date_hong_kong": "2026-11-07",
+  "repository": "actiondarr/pathguide",
+  "branch": "feature/cross-platform-navigation",
+  "base_commit": "79a1b56af4044cabcc59b364dbf3714dc329d0da",
+  "scope": "Manual one-photo scene description source checkpoint; not a deployed service or phone release",
+  "executed_on": "macOS; no Windows, iOS build, native runtime or physical-phone acceptance in this task",
+  "prior_local_state": {
+    "trial_files_present_but_untracked": [
+      "scripts/qwen_vl_trial.py",
+      "scripts/test_qwen_vl_trial.py",
+      "verification/qwen-vl-trial-offline-20261107.json"
+    ],
+    "design_records": "Qwen interaction, role separation, hardware and ID48 limitations existed in dirty canonical documents; relevant sections included in this checkpoint",
+    "user_reported_trial": "User received cloud text on Mac; 256-token length termination. No actual usage, cost or latency supplied.",
+    "historical_trial_json": "Kept unchanged as historical snapshot; its no-account/key status is superseded by user report, not by an agent paid test",
+    "unrelated_changes": "Photo review/workbench, data pipeline, route/CSDI document edits and other dirty work preserved and excluded from checkpoint"
+  },
+  "checks": [
+    {
+      "command": "flutter test --no-pub --reporter expanded",
+      "cwd": "app",
+      "passed": 544,
+      "isolated_staged_source": true,
+      "log_sha256": "ee8fabdf5107b04631ebf2b8e96097cd9870194ad53712ce892dd95b52949d0e"
+    },
+    {
+      "command": "flutter analyze --no-pub",
+      "cwd": "app",
+      "status": "pass: no issues",
+      "isolated_staged_source": true
+    },
+    {
+      "command": "node --test backend/functions/test/*.test.cjs",
+      "cwd": "repository root",
+      "passed": 23,
+      "new_scene_tests": 12,
+      "isolated_staged_source": true
+    },
+    {
+      "command": "python3 -m unittest discover -s scripts -p test_qwen_vl_trial.py -v",
+      "cwd": "repository root",
+      "passed": 10,
+      "isolated_staged_source": true
+    },
+    {
+      "command": "git diff --cached --check",
+      "status": "pass"
+    },
+    {
+      "check": "S0-S7 retained in all three technical documents and new evidence links present",
+      "status": "pass"
+    },
+    {
+      "check": "staged-source key-pattern scan; backend pre-existing content unchanged prefix",
+      "status": "pass"
+    }
+  ],
+  "review": {
+    "performed_by": "implementing agent; no independent reviewer or subagent claimed",
+    "axes": [
+      "Identity, secret isolation, bounded protocol, no content persistence, non-retry paid requests and deletion-safe telemetry",
+      "Camera ownership, complete-output speech gate, cancel/background/exit generations, navigation priority and delayed TTS initialization"
+    ],
+    "fixes": [
+      "Late TTS after stop during initialization/audio restoration blocked by generation",
+      "Rejected answers omit text but retain valid usage",
+      "Missing usage/rates stay null instead of zero cost",
+      "Privacy screen reader label distinguishes cloud photo analysis from local recognition",
+      "Manual page controls remain fixed at double text size"
+    ],
+    "limitation": "Output word rules and synthetic fixtures do not establish real scene accuracy or complete semantic safety"
+  },
+  "runtime_contract": {
+    "service": "existing Firebase callable describeScene in asia-east2; requires Google Auth, expectedUid, active profile and App Check",
+    "provider": "qwen3-vl-plus at Singapore QwenCloud endpoint; thinking disabled; non-streaming, max_tokens=512",
+    "image": "JPEG only, 512 KiB, width/height at most 1280, decode pixel bound; strip metadata",
+    "bounds": "30 s upstream fetch/body, 32 KiB response, 40 s callable; transactional per-UID 45 s exclusion window and 20 attempts/UTC day",
+    "cancellation": "Local invalidation stops speech and suppresses late result; callable is not remotely cancelled; no automatic paid retry. Provider billing can continue after local timeout/cancel.",
+    "result": "Only complete stop + two or three full sentences, <=240 UTF-16 units and conservative content checks; rejected replies have no partial text",
+    "telemetry": "Capture and callable round trip measured separately; backend modelMs/usage/estimate; native TTS start event is not acoustic timing",
+    "storage": "No original image, full model reply, request body or Key persisted/logged. Latest safe backend metrics and bounded quota IDs under users/{uid}/private/sceneDescriptionLimit.",
+    "price": "Operator-configured per-million rates only. Missing usage/rates -> null. Estimate is not a billing cap. No US$5 budget configured."
+  },
+  "not_executed": {
+    "paid_provider_requests_by_agent": 0,
+    "real_images_uploaded_by_agent": 0,
+    "deployment": false,
+    "secret_configuration": false,
+    "app_release_or_install": false,
+    "ios_build_or_native_tests": false,
+    "phone_or_voiceover_acceptance": false,
+    "real_provider_quality_latency_usage_or_cost_measurement": false,
+    "firebase_emulator": "Not run: java -version reports no Java runtime. Firestore concurrency and rules need emulator/account verification; transaction seam tests are offline mocks."
+  },
+  "remaining": [
+    "Live significant-turn signal is NOT connected. invalidate(turn/journey) tests only test the seam. Standalone UI discloses this and requires stationary use/manual cancellation before turning.",
+    "Description is a standalone task, not integrated into an active navigation journey. No automatic mode, LiDAR unknown-obstacle implementation or YOLO training.",
+    "Android/desktop native frame acquisition unsupported by existing RouteObservationSource. iOS source reused but this integration still needs actual device validation.",
+    "Operator must select an image and explicit paid-test allowance, confirm account region/data policy/rates, configure backend Secret Manager and separately approve deployment.",
+    "Mac/iPhone build, version tag/prerelease checkpoint, physical camera, Cantonese voice, VoiceOver/background/cancel tests and real result quality remain unexecuted; exact steps in frontend/backend documents."
+  ],
+  "staged_source_sha256": {
+    "app/lib/l10n/english.dart": "3597c2fe000135b1483a7b56f8ca934236ca34a1798542dfc4057751aaf5a4b5",
+    "app/lib/scene/scene_backend.dart": "5883ba8321bd44bc7898807621ce45d61f752d2a58d1d2147843f432a060bc79",
+    "app/lib/scene/scene_controller.dart": "41f09c750b04c3593f8c76111f0fb14d21bc92faf862bafa2ee035fb2f4fbb98",
+    "app/lib/scene/scene_page.dart": "b73e63139db57c2f1dd5b15f365dbd2ee4c2afc80fa8f04ac9defb2a292e4a8f",
+    "app/lib/tts/flutter_tts_speaker.dart": "b308790fde6e89d7efccff5c8944afbf6f8bcc18dfc390c8ae39e21653978859",
+    "app/lib/ui/app_shell.dart": "ae6ed09abdb587eaf26d66e4cf395ee52a7ce757f914f20334b68bd953270a66",
+    "app/lib/ui/task_home_page.dart": "781ab0dda65c45ff83a8aa77de3f8e9aa87b98a96d5980c81b1ccaaa4c179306",
+    "app/test/flutter_tts_speaker_test.dart": "7a948cd84d1e426f526db948d0d8195a494fa46cb3b7dee22fcd15f7d3b516e3",
+    "app/test/scene_description_test.dart": "bd20c37aaa6667a76bbfea2712d0713cad6c6dc63a45abec0f5706fa4d13ac19",
+    "app/test/task_entry_test.dart": "f12ba3d3e45253f5f19b8ced0a7648a1cc938d5f860b476d213e845e8468ad88",
+    "backend/functions/index.js": "0188e056b3bb710b89c65eb836def5fa1ef999681562947bef8f5573ae3cdf62",
+    "backend/functions/scene_description.js": "357c036ac89d7af4e29e083e62d9e2e13d3135d50e6062148cea1d3c6573f92c",
+    "backend/functions/test/scene_description.test.cjs": "c3a006184781d4299a3a273b1ee9a59ade7059c30201addd1a67f413a821b7b4",
+    "docs/APP-FEATURES.zh-HK.md": "adfeb46318102e430ac13f0eb95994d7932391f04d47bd5c1362750760a9a9af",
+    "docs/BACKEND-DESIGN.zh-HK.md": "2d2a0371bb5933efeac74c6d10664eef7aeceef4023248f602003cc133c3e00f",
+    "docs/DATASET-REVIEW.zh-HK.md": "d87a9a94b07d985b9974796ecbbde03b90e0ad79ef4c855de940aa80746c588c",
+    "docs/FRONTEND-DESIGN.zh-HK.md": "e606a7e18dfc1e0292568f84af80023df2a13cadeb9f4378784000036b733a2f",
+    "scripts/qwen_vl_trial.py": "dc09eab7774dc7910b543e1799665b85a2e2c040ea53e2ff66ed2532291b2fdf",
+    "scripts/test_qwen_vl_trial.py": "116e85ec6cbffdfb6d5cc0acaf5e62d4c78398037934331df6ae99bbffaa6a14",
+    "verification/qwen-vl-trial-offline-20261107.json": "4ab9653cc3997b76d7d4767cd826dba85b9bb0ca44112fbe0dc1bfc75051d89b"
+  }
+}

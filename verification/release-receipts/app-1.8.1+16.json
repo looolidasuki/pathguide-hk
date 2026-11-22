@@ -1,0 +1,97 @@
+{
+  "version": "1.8.1+16",
+  "release": {
+    "tag": "v1.8.1+16",
+    "commit": "5f4c672167559b350fffafbe3e6f5614f1fc68cc",
+    "remote_tag_and_prerelease": "verified before update installation",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.8.1%2B16"
+  },
+  "build": {
+    "status": "signed Release, codesign deep/strict and model hashes verified",
+    "runtime_flags": [
+      "SCENE_DESCRIPTION_ENABLED=true",
+      "SCENE_DESCRIPTION_TRIAL=true"
+    ],
+    "app_hashes": {
+      "Runner": "8ec006cc4d66abd833bbc4fdab1b52076dabea7afbb92807e172c2a766587fa8",
+      "Frameworks/App.framework/App": "976d367bb6d80e08473eddc0d91e17d9b2fb4cae9e4ef79a0d3d30cad1140868"
+    }
+  },
+  "models": {
+    "app/assets/models/detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf",
+    "app/assets/models/detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "app/assets/models/detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "app/assets/models/detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0"
+  },
+  "checks": {
+    "flutter": 545,
+    "trial_flag_scene_tests": 16,
+    "flutter_analyze": "pass",
+    "native_simulator_passed_cases": 53,
+    "native_xcodebuild": "TEST SUCCEEDED",
+    "backend_scoped_tests": 22,
+    "backend_all_local_tests": 38,
+    "signed_ios_build": "pass",
+    "codesign_deep_strict": "pass",
+    "live_firestore_check": {
+      "status": "passed rerun",
+      "concurrentWinners": 1,
+      "persistedAttempts": 20,
+      "twentyFirst": "blocked",
+      "providerRequests": 0,
+      "syntheticFixtureCleanup": "completed"
+    },
+    "isolated_backend_all_tests": 33,
+    "standalone_production_install": "pnpm 11.25.0 install --prod --frozen-lockfile passed with explicit three-package lifecycle approval",
+    "standalone_functions_framework": "5.0.5 clean-install HTTP startup and anonymous 401 probe passed; no provider key or Qwen request",
+    "live_firestore_rules": "Inspected deployed rules: default-deny covers trial ledger and private counter; older photo-rule differences preserved, no rules deployment"
+  },
+  "backend": {
+    "state": "ACTIVE",
+    "region": "asia-east2",
+    "providerRegion": "Hong Kong",
+    "model": "qwen3-vl-plus",
+    "runtime": "nodejs22",
+    "entryPoint": "describeScene",
+    "maxInstances": 2,
+    "timeout": 40,
+    "selectedAccountMatches": true,
+    "trialMaxRequests": 20,
+    "qwenEstimatedBudgetUsd": 0.01,
+    "providerSecretVersion": "1",
+    "anonymousProbe": {
+      "httpStatus": 401,
+      "status": "UNAUTHENTICATED"
+    },
+    "operationalTrialAttempts": 0,
+    "paidProviderCallsByAgent": 0,
+    "updateTime": "2026-11-07T19:12:06.173926917Z",
+    "build": "projects/56961018114/locations/asia-east2/builds/6005efb8-0481-4d77-a457-4aec6bb72009",
+    "verifiedAtUtc": "2026-11-07T19:43:55.630162+00:00"
+  },
+  "backend_source_commit": "ae4e798442b7ec799aeb0631041d58969338ee6f",
+  "delivery": {
+    "status": "updated_installed_and_normal_launch_succeeded",
+    "device": "iPhone 15 Pro Max",
+    "device_inventory_version": "1.8.1",
+    "device_inventory_build": "16",
+    "data_preservation": "update only; no uninstall or clear",
+    "first_attempt": "CoreDevice connection reset, succeeded after USB reconnect/unlock"
+  },
+  "acceptance": "pending actual room photo/voice feedback; not field navigation acceptance",
+  "budget": {
+    "scene": "room table, chairs and door only",
+    "max_attempts": 20,
+    "qwen_budget_usd": 0.01,
+    "firebase_fees": "separate",
+    "selected_google_account": "bound by ignored deployment UID setting; identity not in this public receipt"
+  },
+  "phone_acceptance_followup": {
+    "result": "user reported service unavailable",
+    "auth": "VALID",
+    "appCheck": "INVALID",
+    "qwenRequests": 0,
+    "formalDeviceCheck": "missing Apple keyId/teamId; not accepted",
+    "next": "user authorized official debug engineering trial 1.8.2+17"
+  }
+}

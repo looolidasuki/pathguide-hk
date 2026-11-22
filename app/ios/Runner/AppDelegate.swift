@@ -37,6 +37,9 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "PathGuideRouteCameraPlugin") {
       RouteCameraPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "PathGuideRouteNoteAudioPlugin") {
+      RouteNoteAudioPlugin.register(with: registrar)
+    }
   }
 }
 

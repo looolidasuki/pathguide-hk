@@ -11,9 +11,10 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('用相機辨識支援的物件，聽取簡短結果。'), findsOneWidget);
     expect(find.text('搜尋戶外目的地，或錄製室內路標路線。'), findsOneWidget);
-    expect(find.text('拍攝菜單，查詢菜名及價格。'), findsOneWidget);
+    expect(find.text('拍攝或選圖，閱讀文字或查詢菜單價錢。'), findsOneWidget);
     expect(find.text('室內路線工具（試驗）'), findsNothing);
     expect(find.text('首頁'), findsNothing);
+    expect(find.text('描述前方'), findsNothing);
     await t.tap(find.text('設定與使用教學'));
     await t.pumpAndSettle();
     expect(find.text('開發測試'), findsOneWidget);
@@ -31,19 +32,19 @@ void main() {
     (t) async {
       await t.pumpWidget(PathGuideApp(settings: AppSettings.memory()));
       await t.pumpAndSettle();
-      await t.tap(find.text('菜單閱讀與語音搜尋'));
+      await t.tap(find.text('閱讀文字'));
       await t.pumpAndSettle();
       expect(find.text('開始前'), findsOneWidget);
-      expect(find.text('拍攝或選取菜單，再用文字或語音查詢。'), findsOneWidget);
+      expect(find.text('拍攝或選取照片，再選擇要讀出的文字。'), findsOneWidget);
       await t.tap(find.text('略過說明'));
       await t.pumpAndSettle();
-      expect(find.text('菜單閱讀'), findsOneWidget);
+      expect(find.text('閱讀文字'), findsOneWidget);
       await t.tap(find.byTooltip('返回'));
       await t.pumpAndSettle();
-      await t.tap(find.text('菜單閱讀與語音搜尋'));
+      await t.tap(find.text('閱讀文字'));
       await t.pumpAndSettle();
       expect(find.text('開始前'), findsNothing);
-      expect(find.text('菜單閱讀'), findsOneWidget);
+      expect(find.text('閱讀文字'), findsOneWidget);
       await t.pumpWidget(const SizedBox());
     },
   );

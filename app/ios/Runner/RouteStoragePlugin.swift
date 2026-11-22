@@ -55,15 +55,23 @@ final class RouteProtectedFiles {
   }
   func mkdir(_ path: String) throws {
     let url = try target(path, directory: true)
-    try fm.createDirectory(at: url, withIntermediateDirectories: false,
-      attributes: [.protectionKey: FileProtectionType.complete, .posixPermissions: 0o700])
+    do {
+      try fm.createDirectory(at: url, withIntermediateDirectories: false,
+        attributes: [.protectionKey: FileProtectionType.complete, .posixPermissions: 0o700])
+    } catch let error as CocoaError where error.code == .fileWriteFileExists {
+      guard try fm.attributesOfItem(atPath: url.path)[.type] as? FileAttributeType == .typeDirectory else {
+        throw error
+      }
+    }
     try protect(url)
   }
-  func write(path: String, data: Data) throws {
-    guard data.count <= 2 * 1024 * 1024 else { throw CocoaError(.fileWriteOutOfSpace) }
+  func write(path: String, data: Data, routeVersion: Bool = false) throws {
     let url = try target(path)
     // Only unique temporary names may be written. A stable file is immutable.
     guard path.hasSuffix(".tmp") else { throw CocoaError(.fileWriteInvalidFileName) }
+    let versionPayload = routeVersion && path.contains("/") && path.hasSuffix(".enc.tmp")
+    let limit = (versionPayload ? 8 : 2) * 1024 * 1024
+    guard data.count <= limit else { throw CocoaError(.fileWriteOutOfSpace) }
     try data.write(to: url, options: [.withoutOverwriting, .completeFileProtection])
     try protect(url)
     let handle = try FileHandle(forWritingTo: url)
@@ -113,8 +121,9 @@ final class RouteStoragePlugin: NSObject, FlutterPlugin {
     registrar.addMethodCallDelegate(plugin, channel: channel)
   }
   private func files(_ scope: String) throws -> RouteProtectedFiles {
-    guard ["library", "probe"].contains(scope) else { throw CocoaError(.fileWriteInvalidFileName) }
-    return RouteProtectedFiles(root: support.appendingPathComponent(scope == "library" ? "route_memory_v1" : "route_memory_probe_v1"))
+    let directories = ["library": "route_memory_v1", "probe": "route_memory_probe_v1", "learning": "route_learning_v1"]
+    guard let directory = directories[scope] else { throw CocoaError(.fileWriteInvalidFileName) }
+    return RouteProtectedFiles(root: support.appendingPathComponent(directory))
   }
   func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
     if call.method == "probePhase" {
@@ -133,7 +142,11 @@ final class RouteStoragePlugin: NSObject, FlutterPlugin {
           try self.files(args["scope"] as? String ?? "").mkdir(args["path"] as? String ?? "")
         case "write":
           guard let bytes = args["bytes"] as? FlutterStandardTypedData else { throw CocoaError(.fileWriteUnknown) }
-          try self.files(args["scope"] as? String ?? "").write(path: args["path"] as? String ?? "", data: bytes.data)
+          let scope = args["scope"] as? String ?? ""
+          try self.files(scope).write(
+            path: args["path"] as? String ?? "",
+            data: bytes.data,
+            routeVersion: scope != "learning" && args["routeVersion"] as? Bool == true)
         case "move":
           try self.files(args["scope"] as? String ?? "").move(from: args["from"] as? String ?? "", to: args["to"] as? String ?? "")
         case "inspect": response = try self.files(args["scope"] as? String ?? "").inspect()

@@ -99,21 +99,6 @@ RouteDocument capturedDocument() {
   return RouteDocument.fromMap(v);
 }
 
-
-// Windows 允許「刪除已打開的檔案」嗎？不可以（POSIX 可以）。
-// 下面這些測試刻意在 store 仍持有 `.lock` 時刪檔／模擬崩潰，
-// 在 Windows 上必然得到 PathAccessException(errno 32) → RouteStoreFailure(io)。
-// Android/iOS 是 POSIX，行為正確；所以只在 Windows 跳過，並寫明真正的原因，
-// 不要用「需要 Keychain」之類的假理由（會蓋掉真 bug）。
-const _winLockSkip =
-    'Windows 無法刪除已打開的 .lock（POSIX 允許；Android/iOS 不受影響）';
-
-void destructiveTest(String name, Future<void> Function() body) =>
-    test(name, body, skip: Platform.isWindows ? _winLockSkip : null);
-
-void destructiveWidgetTest(String name, WidgetTesterCallback body) =>
-    testWidgets(name, body, skip: Platform.isWindows);
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   late Directory testRoot;
@@ -301,7 +286,7 @@ void main() {
   );
 
   for (final cancel in ['pause', 'delete']) {
-    destructiveTest('$cancel cancels media waiting before catalog publication', () async {
+    test('$cancel cancels media waiting before catalog publication', () async {
       await put();
       final reached = Completer<void>(), release = Completer<void>();
       final slow = await EncryptedRouteStore.open(
@@ -346,7 +331,7 @@ void main() {
     });
   }
 
-  destructiveTest('a crash after media write preserves old pointer; explicit cleanup removes orphans', () async {
+  test('a crash after media write preserves old pointer; explicit cleanup removes orphans', () async {
     await put();
     final filesBefore = await testStore.directory
         .list(recursive: true)
@@ -383,7 +368,7 @@ void main() {
     );
   });
 
-  destructiveTest('tampered image blocks latest version; explicit rollback recovers and delete removes all media', () async {
+  test('tampered image blocks latest version; explicit rollback recovers and delete removes all media', () async {
     await put();
     final before = (await testStore.directory.list(recursive: true).toList())
         .map((f) => f.path)

@@ -1,0 +1,32 @@
+{
+  "date_hong_kong": "2026-11-07",
+  "scope": "Backend manual scene description switches from Singapore-only to Hong Kong-only default and allowlist",
+  "base_url": "https://cn-hongkong.maas.qwencloudapi.com/compatible-mode/v1",
+  "model": "qwen3-vl-plus",
+  "enable_thinking": false,
+  "secret_name": "DASHSCOPE_API_KEY",
+  "checks": {
+    "scene_tests_passed": 12,
+    "isolated_backend_regression_tests_passed": 23,
+    "staged_diff_check": "pass",
+    "review": "Fixed trusted endpoint preserved; literal Hong Kong URL asserted; Singapore mismatch refused before fetch; unrelated dirty work excluded"
+  },
+  "paid_requests": 0,
+  "key_read_or_set_by_agent": false,
+  "deployed": false,
+  "phone_build_or_install": false,
+  "remaining": [
+    "User must set Hong Kong key in backend Secret Manager",
+    "Change any deployed QWEN_VL_BASE_URL override from Singapore to Hong Kong and redeploy only after authorization",
+    "Workspace inference scope and actual regional model access require account verification",
+    "No measured Hong Kong latency, cost or scene quality; no phone acceptance"
+  ],
+  "historical_evidence": "scene-description-offline-20261107.json remains the Singapore implementation snapshot; this record supersedes only its provider endpoint setting",
+  "source_sha256": {
+    "backend/functions/scene_description.js": "797977c6098d08d0a17adf6c2a3cf9aa8fc28211742a9128ac06252ae19eab6c",
+    "backend/functions/test/scene_description.test.cjs": "d6519b7296c6b5bfe05d5d0cd92e3c855669d0e9fe7d3047df7ce79ae985f4bc",
+    "docs/BACKEND-DESIGN.zh-HK.md": "fc5a41cb1e617ae0af190163bc4467669efe198adaea8fe7499729f991c5144c",
+    "docs/DATASET-REVIEW.zh-HK.md": "66b0e160a18c4eb561dcfc1c25ddeae46bd625c95d470cc1f155f4a0875ff197",
+    "docs/FRONTEND-DESIGN.zh-HK.md": "191e3b805813f840c62d09b6ad5b0a67712de3f5b67eed53a5c34b649bc5540c"
+  }
+}

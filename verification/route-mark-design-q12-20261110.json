@@ -1,0 +1,29 @@
+{
+  "dateHongKong": "2026-11-10",
+  "phase": "Design Q1-Q13 aligned; no implementation",
+  "ownerAccepted": [
+    "Q1 background samples plus manual important-point marks",
+    "Q2 one press delegates capture; generated type/index name, successful audible feedback, undo, optional later rename",
+    "Q3 six primary landmark types; other facilities/audio/text under More",
+    "Q4 direction keys record a location-bound replay action relative to recording direction; not instant localization",
+    "Q5 fixed left/right/straight keys each capture a junction plus direction in one action",
+    "Q6 failed capture gives short failure feedback and retains failure record; never backfill from a later location",
+    "Q7 undo only the latest manual mark and its direction; preserve other marks and automatic samples",
+    "Q8 minimal floor confirmation at start and actual floor changes; unknown can keep recording/saving a draft",
+    "Q9 first version replays in recorded direction; reverse needs separate recording or verification",
+    "Q10 optional local audio/text notes bound to a mark, heard on request after position confirmation; not cloud transcription or commands",
+    "Q11 manual marks/directions are replay highlights; background samples aid localization; no forced location merge",
+    "Q12 no queued duplicate capture while busy; brief recording-in-progress feedback",
+    "Q13 clarification: basic route recording requires no typing, only button selections and confirmations; optional text note remains voluntary"
+  ],
+  "notAcceptedYet": [],
+  "implementationChanged": false,
+  "privateImageCopiedOrUploaded": false,
+  "paidInferenceRequests": 0,
+  "newPhoneVersion": false,
+  "implementationPending": [
+    "version-compatible local mark/direction/note contracts",
+    "button-based recording flow and accessible feedback",
+    "failure/undo/busy/save-reopen regression and human acceptance"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "dateHongKong": "2026-11-20",
+  "issue": 20,
+  "baselineSourceCommit": "4bd944749c630de8c80201a2fe72bc2aecd2bc90",
+  "scope": "iPhone opt-in replay landmark candidate collection and local human review",
+  "checks": {
+    "flutterAnalyze": "No issues found",
+    "flutterTestsPassed": 617,
+    "flutterTestsSkipped": 7,
+    "iosSimulatorDebugBuild": "Passed",
+    "gitDiffCheck": "Passed",
+    "automatedCases": [
+      "Default replay never opens the learning store; opening a route resets opt-in",
+      "Opt-in reuses existing replay evidence and preserves the original prediction and requested landmark separately",
+      "Withdrawal and background block a candidate at the encrypted catalog commit",
+      "Withdrawal and route deletion remove linked candidates; ordinary replay position and route versions remain independent of candidate writes",
+      "Failed candidate storage leaves an otherwise successful landmark check intact",
+      "Per-trip and per-route limits, deduplication, seven-day expiry, revision conflict, encrypted reopen and tamper detection",
+      "Chinese and English review controls at 320 by 568 with 2x text, photo semantics label, and save a separate needs-information decision"
+    ]
+  },
+  "storagePolicy": {
+    "maximumPerTrip": 12,
+    "maximumPerRoute": 24,
+    "maximumAcrossRoutes": 48,
+    "maximumDiskBytes": 67108864,
+    "retentionDays": 7,
+    "physicalExpiryCleanup": "On candidate add or review access",
+    "uploadsOrModelUpdates": false
+  },
+  "device": {
+    "currentInstalledVersionQueriedViaCoreDevice": "1.12.0+30",
+    "checkpointInstalled": false,
+    "humanAcceptance": "Pending on-device camera, protected store and reopen, VoiceOver, deletion and field review"
+  }
+}

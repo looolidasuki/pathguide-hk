@@ -1,0 +1,35 @@
+{
+  "version": "1.9.0+18",
+  "buildMode": "private signed Profile with existing registered test App Check credential; formal DeviceCheck not accepted",
+  "build": "flutter build ios --profile --no-pub with ignored Firebase/App Check config and SCENE_DESCRIPTION_ENABLED/TRIAL=true",
+  "codesign": "deep strict passed",
+  "bundleId": "hk.pathguide.pathguide",
+  "appHashes": {
+    "Runner": "eb23be848166c88a1b8d2c5bd4121dde273600475614316ca89ea4042111ebac",
+    "Frameworks/App.framework/App": "25aa345de2be2b7d75b5630ab89f659112ada8da8d03e3a2cdaaf56fd9d2b25b"
+  },
+  "modelHashes": {
+    "detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf"
+  },
+  "modelsUnchanged": true,
+  "phoneInstall": "updated existing app after device-info reconnected; installed inventory independently confirms 1.9.0 build 18; normal launch succeeded",
+  "phoneAcceptance": "integrated scene/motion/VoiceOver pending; standalone 1.8.2+17 already passed",
+  "privateBinaryUploaded": false,
+  "release": {
+    "tag": "v1.9.0+18",
+    "sourceCommit": "fb57220f49f08a08625de9bb042ccef3a623a99e",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.0%2B18",
+    "remoteTagPeeledCommitVerified": true,
+    "prerelease": true,
+    "assets": []
+  },
+  "phoneDataCleared": false,
+  "installedVersionVerified": {
+    "version": "1.9.0",
+    "build": "18"
+  },
+  "launch": "success"
+}

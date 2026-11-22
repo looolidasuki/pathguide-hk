@@ -1,0 +1,22 @@
+{
+  "dateHongKong": "2026-11-20",
+  "scope": "General text reading and same-image menu prices on iPhone",
+  "baselineSourceCommit": "c2e05145abfb362d94abf63c4df46e7a5b092ac9",
+  "checks": {
+    "flutterAnalyze": "No issues found",
+    "flutterTestsPassed": 609,
+    "flutterTestsSkipped": 7,
+    "iosSimulatorDebugBuild": "Passed",
+    "widget": [
+      "Open Read text from Home and show the updated first-use introduction",
+      "Expose partial and uncertain order notices while keeping separate OCR regions",
+      "Speak only on activation, repeat the last selected region, and filter by text",
+      "Switch between text and menu prices using one image request",
+      "Clear the previous result and repeat target on retake",
+      "Preserve the existing menu voice-search and camera tests"
+    ]
+  },
+  "privacy": "OCR results stay in the reading session. Both paths analyze the same in-memory image. The app adds no photo export, upload, or persistence.",
+  "phoneInstalled": false,
+  "humanAcceptance": "Pending iPhone camera and picker, multilingual OCR quality, column order and VoiceOver readout"
+}

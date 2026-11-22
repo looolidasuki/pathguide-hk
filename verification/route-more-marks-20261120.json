@@ -1,0 +1,33 @@
+{
+  "dateHongKong": "2026-11-20",
+  "scope": "More marks panel for indoor route recording",
+  "baselineSourceCommit": "f65c2b1989f9e6bb8be449fb568b9773dc61d837",
+  "markTypes": ["escalator", "ramp", "reception", "sign"],
+  "checks": {
+    "flutterAnalyze": "No issues found",
+    "flutterTestsPassed": 603,
+    "flutterTestsSkipped": 7,
+    "controller": [
+      "Persist all four facility types with existing encrypted route media",
+      "Keep inherited floor evidence and require review before publishing the segment",
+      "Confirm the typed mark on replay without adding a recorded direction",
+      "Undo the last facility mark only",
+      "Reject a schema 5 facility manifest mislabeled as schema 4"
+    ],
+    "widget": [
+      "Open and cancel at 320x568 with double text size without requesting another capture",
+      "Suspend background sampling while the dialog is open and disable choices if recording pauses",
+      "Capture once on selection, including a duplicate activation during dismissal",
+      "Announce mark type and success once each through the mocked accessibility channel",
+      "Return Flutter keyboard focus to More marks and reopen the saved encrypted draft"
+    ]
+  },
+  "schema": {
+    "read": [1, 2, 3, 4, 5],
+    "write5When": "At least one of the four new facility marks exists",
+    "lastDocumentedPhoneVersion": "1.11.0+29",
+    "lastDocumentedPhoneVersionReadsNewSchema": false
+  },
+  "phoneInstalled": false,
+  "humanAcceptance": "Pending iPhone VoiceOver focus, app audio, and field recording and replay"
+}

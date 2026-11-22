@@ -1,0 +1,50 @@
+{
+  "dateHongKong": "2026-11-08",
+  "version": "1.9.4+22",
+  "build": "signed private Profile",
+  "appCheck": "same previously registered private debug configuration; credentials excluded from repository/assets",
+  "codesign": "deep strict passed",
+  "appHashes": {
+    "Runner": "28dbd8eb0de1d67ee961efdbcc336087322297e3e75607822dfd2fda7206cada",
+    "Frameworks/App.framework/App": "c6e7b7d680ded02341e916f0074d6122249e992c3e23777b17556048c0be5fe6"
+  },
+  "modelHashes": {
+    "detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf"
+  },
+  "modelsUnchanged": true,
+  "phoneInstall": "Updated in place; independent devicectl inventory verified 1.9.4 / build 22, normal launch succeeded; no uninstall/data clear. Phone functional acceptance pending.",
+  "phoneAcceptance": "FAILED: backend complete, user reports no visible description or audible speech. Subsequent quota request overwrote the local trace; followup live-scene-speech-20261108.json.",
+  "privateBinaryUploaded": false,
+  "phoneDataCleared": false,
+  "release": {
+    "tag": "v1.9.4+22",
+    "sourceCommit": "af38b02d88bd3787ccd61f9be01cc444f928a0d7",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.4%2B22",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "recoveryGrant": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T11:25:23.073Z",
+    "deploymentUpdateTime": "2026-11-08T10:27:52.373495352Z",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "originalCountCostIdsUnchanged": true,
+    "priorRecoveryArchived": true,
+    "trialCount": 5,
+    "spentMicroUsd": 3125,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "rejected",
+    "recoveryStatus": "ready",
+    "recoveryExpiresAtUtc": "2026-11-08T13:25:21.597Z",
+    "paidInferenceRequestsByAgent": 0
+  }
+}

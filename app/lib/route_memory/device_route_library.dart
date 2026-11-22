@@ -2,11 +2,13 @@ import 'route_library_controller.dart';
 import 'encrypted_route_store.dart';
 import 'route_package.dart';
 import 'cross_floor_mock_fixtures.dart';
+import 'route_learning_store.dart';
 
 /// P1 buttons persist an explicitly synthetic structure, never captured truth.
 class DeviceRouteLibrary implements RouteLibraryBackend {
-  DeviceRouteLibrary(this.store);
+  DeviceRouteLibrary(this.store, {this.openLearningStore});
   final EncryptedRouteStore store;
+  final Future<RouteLearningStore> Function()? openLearningStore;
   @override
   Future<RouteLibraryListing> list() => store.list();
   @override
@@ -73,8 +75,13 @@ class DeviceRouteLibrary implements RouteLibraryBackend {
   Future<void> rollback(String id, int version, int expectedRevision) =>
       store.rollback(id, version, expectedRevision: expectedRevision);
   @override
-  Future<void> delete(String id, int expectedRevision) =>
-      store.delete(id, expectedRevision: expectedRevision);
+  Future<void> delete(String id, int expectedRevision) => store.delete(
+    id,
+    expectedRevision: expectedRevision,
+    beforeDelete: openLearningStore == null
+        ? null
+        : () async => (await openLearningStore!()).deleteRoute(id),
+  );
   @override
   Future<void> cleanup() async {
     await store.pruneHistory();

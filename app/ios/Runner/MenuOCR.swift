@@ -16,14 +16,14 @@ struct MenuOCRLine {
 struct MenuOCR {
   static let version = "2026-10-23.price-crops.1"
   static func recognize(_ image: CGImage, cancelled: () -> Bool,
-                        publish: (VNRecognizeTextRequest) -> Void) throws -> [MenuOCRLine] {
+                        publish: (VNRecognizeTextRequest) -> Void, general: Bool = false) throws -> [MenuOCRLine] {
     // Horizontal overlapping regions retain full dish-to-price rows. Splitting
     // vertically at assumed column boundaries can cut dishes in half.
     let regions = [CGRect(x: 0, y: 0, width: 1, height: 1),
                    CGRect(x: 0, y: 0, width: 1, height: 0.55),
                    CGRect(x: 0, y: 0.45, width: 1, height: 0.55)]
     var lines: [MenuOCRLine] = []
-    for region in regions {
+    for region in (general ? Array(regions.prefix(1)) : regions) {
       if cancelled() { throw CancellationError() }
       let pixels = CGRect(x: region.minX * CGFloat(image.width), y: region.minY * CGFloat(image.height),
                           width: region.width * CGFloat(image.width), height: region.height * CGFloat(image.height)).integral
@@ -45,7 +45,7 @@ struct MenuOCR {
       let supported = try request.supportedRecognitionLanguages()
       guard supported.contains("zh-Hant") else { throw NSError(domain: "MenuOCRLanguage", code: 1) }
       request.recognitionLanguages = ["zh-Hant", "en-US"].filter { supported.contains($0) }
-      request.usesLanguageCorrection = true
+      request.usesLanguageCorrection = !general
       request.minimumTextHeight = 0.006
       publish(request)
       if cancelled() { request.cancel(); throw CancellationError() }
@@ -62,6 +62,7 @@ struct MenuOCR {
         let text = candidate.string.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !text.isEmpty else { continue }
         let next = MenuOCRLine(text: String(text.prefix(1000)), box: box, confidence: candidate.confidence)
+        if general { lines.append(next); continue }
         if let index = lines.firstIndex(where: { overlaps($0.box, box) }) {
           let old = lines[index]
           if old.text == "價錢辨識有分歧，請重拍" { continue }
@@ -82,6 +83,7 @@ struct MenuOCR {
         } else { lines.append(next) }
       }
     }
+    if general { return lines }
     // Price circles and small coloured numerals need a separate contextual pass.
     // Keep their label and add a white border; isolated numerals can be rotated
     // or misread by OCR. Never manufacture a currency symbol from a bare number.

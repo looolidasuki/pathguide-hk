@@ -1,0 +1,20 @@
+{
+  "version": "1.9.3+21",
+  "buildMode": "private signed Profile with existing registered trial App Check config",
+  "codesign": "deep strict passed",
+  "appHashes": {
+    "Runner": "fc99f715e650b20b9b74494c5d50bf7f54c2dc8b15df8f29a76a36f971f31477",
+    "Frameworks/App.framework/App": "91c6d818ab1b613f0bc81929fffa8cb46989495a153743fcf86b1b07f5861333"
+  },
+  "modelHashes": {
+    "detector.tflite": "a6366b71e3bd8c2cc1adff8e8777dac03b08f1dbbefd67422bddcfed42a2a4a0",
+    "detector.json": "172db9ff4f637fd4d6188a736d436533577a9ca015775961cdb0bb637f2ed327",
+    "detector-hk9.tflite": "8bbfa43b1fe2b440e608652e75fa86d15e571031c45b7b21f30689852468e3c9",
+    "detector-hk9.json": "020c57899aeb91c8fedc0421f76a73c39c7aa79e1a90de6e353d69f98c1367bf"
+  },
+  "modelsUnchanged": true,
+  "phoneInstall": "User confirmed 1.9.3+21 installed and version verified on 2026-11-08.",
+  "phoneAcceptance": "FAILED: controls usable, no description/speech, quota stopped; fourth backend result rejected. See live-scene-rejection-20261108.json.",
+  "privateBinaryUploaded": false,
+  "phoneDataCleared": false
+}

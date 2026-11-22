@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-22",
+  "appVersion": "1.12.1+31",
+  "tag": "v1.12.1+31-android-sync.1",
+  "type": "upstream-sync",
+  "previousCheckpoint": {
+    "tag": "v1.8.0+15-android-sync.2",
+    "appVersion": "1.8.0+15"
+  },
+  "change": {
+    "upstreamSnapshot": "actiondarr/pathguide feature/cross-platform-navigation @ cd4f255 (tag v1.12.1+31)",
+    "method": "git apply --3way of upstream diff v1.8.0+15..cd4f255 (143 files, 82 commits); local changes kept by three-way merge",
+    "conflictsResolved": {
+      "app/lib/menu/menu_page.dart": "upstream split the unsupported text into general reading vs menu; kept platform-aware _unsupportedReason, now taking generalReading",
+      "docs/*.zh-HK.md (4 files)": "upstream rewrote all four docs; took upstream versions and re-appended this line's three Android maintenance entries at the end of FRONTEND-DESIGN"
+    },
+    "keptFromThisLine": [
+      "scripts/ tests/ data/ (python pipeline)",
+      "configs/classes.json v6 + class_aliases.json",
+      "Android MenuPlugin.kt, quick settings tile, four-locale app_name, FileProvider",
+      "menu_reader supports Android; menu_page platform-aware vendor wording"
+    ],
+    "androidWorkAddedInThisSync": [
+      "MenuPlugin.kt honours includeGeneral and returns readingLines/readingLimited/menuUnavailable (upstream 1.12 general text reading contract)"
+    ],
+    "windowsFixes": {
+      "route_learning_store.dart": "same .lock endsWith('/.lock') bug as encrypted_route_store, introduced upstream in 1.12; fixed with last path segment",
+      "orphanCleanup": "encrypted_route_store and route_learning_store compared '/'-joined keep paths with backslash paths from Directory.list, deleting kept records on Windows; now compares with Platform.pathSeparator (no-op on Android/iOS)",
+      "testSkipsRevoked": "the 8 route store tests previously skipped on Windows ('cannot delete open .lock') were actually failing because of the orphan cleanup path mismatch; skips removed and tests restored to upstream form",
+      "testOnlyFixes": "route_learning_store_test used path.split('/') and endsWith('/catalog.enc'); switched to uri.pathSegments"
+    },
+    "overlayScript": "scripts/apply_android_overlay.ps1 section 8 rewritten to pin the lib fixes instead of test skips; menu_page anchors updated; default SourceRef -> v1.12.1+31-android-sync.1; -Check reports 32 items ready"
+  },
+  "verification": {
+    "flutterTestsPassed": 620,
+    "flutterTestsSkipped": 7,
+    "flutterTestsSkippedReason": "upstream scene-mode tests gated on SCENE_DESCRIPTION_ENABLED",
+    "pythonTestsPassed": 476,
+    "pythonTestsSkipped": 1,
+    "flutterAnalyze": "No issues found",
+    "androidDebugApkBuilt": true,
+    "deviceInstalled": false,
+    "iosBuildRun": false,
+    "androidManualTestRun": false
+  },
+  "androidParityAfterSync": {
+    "liveRecognition": "VisionPlugin.kt (LiteRT); not device-verified",
+    "navigation": "NavigationPlugin.kt (Places + fused location); Routes backend not wired; not device-verified",
+    "menuAndGeneralReading": "MenuPlugin.kt (ML Kit Chinese) incl. includeGeneral; not device-verified",
+    "routeStorage": "missing (hk.pathguide/route_storage); Dart gates route learning to iOS",
+    "routeCamera": "missing (hk.pathguide/route_camera)",
+    "routeLandmark": "missing (hk.pathguide/route_landmark); no Android image descriptor chosen yet",
+    "routeNoteAudio": "missing (hk.pathguide/route_note_audio); Dart gates audio notes to iOS",
+    "depth": "missing (hk.pathguide/depth); upstream iOS-only (ARKit)",
+    "sceneMode": "Dart + backend; Android camera sharing and App Check not exercised"
+  },
+  "knownLimitations": [
+    "No Android device used; none of the Android-side work has been exercised on hardware.",
+    "Repository path contains a space; tests were run through a temporary space-free junction and the APK through a temporary subst P: drive.",
+    "Nothing pushed; upstream refs were fetched into refs/upstream/* in the local repository only."
+  ]
+}

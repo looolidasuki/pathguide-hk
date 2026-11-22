@@ -1,0 +1,86 @@
+{
+  "dateHongKong": "2026-11-08",
+  "version": "1.9.5+23",
+  "phoneReport": {
+    "previousVersion": "1.9.4+22",
+    "backendComplete": true,
+    "visibleDescription": false,
+    "audibleSpeech": false,
+    "laterCopiedReport": "different request: resource-exhausted, 389ms, no model metrics; original local trace overwritten",
+    "rootCauseOnPhone": "not established; later turn delta is not evidence of the earlier successful request"
+  },
+  "serverReadback": {
+    "trialCount": 6,
+    "spentMicroUsd": 3296,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "latest": {
+      "modelMs": 1548,
+      "promptTokens": 367,
+      "completionTokens": 61,
+      "totalTokens": 428,
+      "estimatedMicroUsd": 171
+    }
+  },
+  "confirmedCodeDefect": "Existing scene channel returned without speech whenever an environment utterance owned output; not claimed as the proven phone cause.",
+  "change": [
+    "Bounded three-second wait for local alert, current/generation revalidation, no waiting behind navigation or paid retry.",
+    "Eight-second bounded local synthetic Cantonese speech probe, no capture/backend calls, same scene output pipeline.",
+    "Native playback callbacks and explicit suppression/interruption/route diagnostics; callbacks are not acoustic proof.",
+    "Three previous numerical diagnostic reports in UID-isolated process memory; no photos, description text or credentials retained; no disk persistence.",
+    "Description precedes diagnostic expansion; existing test controls remain."
+  ],
+  "checks": {
+    "flutterPassed": 576,
+    "flagOffSkipped": 5,
+    "flagOnScopedPassed": 94,
+    "analyze": "pass",
+    "native": "unchanged; baseline not rerun",
+    "portraitVisual": "390x844 local probe screenshot inspected; copy and pause accessible; synthetic native start/completion events verified in integration test",
+    "signedProfileBuild": "pass",
+    "codesign": "deep strict pass",
+    "fourModelsUnchanged": true
+  },
+  "backendChange": false,
+  "newPaidGrant": true,
+  "paidInferenceRequestsByAgent": 0,
+  "phoneAcceptance": "Local fixed speech audible per user; real scene text/speech and automatic walking flow remain pending.",
+  "review": "Implementing-agent review, no independent agent. Checked priority ownership, cancellation, validity after native stop, bounded timeouts, identity-scoped memory and no content retained in reports.",
+  "release": {
+    "tag": "v1.9.5+23",
+    "sourceCommit": "e34a8f209ee5b8a633abad9cffb7b0af3cfd404b",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.5%2B23",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "phoneInstall": "Installed in place after user unlocked phone; independent devicectl inventory verified 1.9.5 / build 23 and normal launch succeeded. No uninstall/data clear. Initial connection reset then iOS locked-device rejection preserved as installation history.",
+  "localSpeechAcceptance": {
+    "dateHongKong": "2026-11-08",
+    "version": "1.9.5+23",
+    "userConfirmation": "有聲",
+    "scope": "Local fixed synthetic speech through scene output path; not a new cloud scene description or automatic walking-mode acceptance."
+  },
+  "integratedRecoveryGrant": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T14:13:38.708Z",
+    "deploymentUpdateTime": "2026-11-08T10:27:52.373495352Z",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "originalCountCostIdsUnchanged": true,
+    "priorRecoveryArchived": true,
+    "trialCount": 6,
+    "spentMicroUsd": 3296,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "ready",
+    "recoveryExpiresAtUtc": "2026-11-08T16:13:37.182Z",
+    "paidInferenceRequestsByAgent": 0
+  }
+}

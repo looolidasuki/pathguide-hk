@@ -1,0 +1,144 @@
+{
+  "dateHongKong": "2026-11-08",
+  "scope": "one administrator-granted phone recovery; original stopped ledger retained",
+  "offlineTestsPassed": 28,
+  "review": "Implementing-agent review: grant exact-balance/expiry/consumption, transactional reservation, hard stop after settlement, original UID/App Check/limits unchanged; no independent review.",
+  "agentPaidInferenceRequests": 0,
+  "phoneAcceptance": {
+    "functionalFlow": "passed on user phone 1.8.2+17",
+    "userConfirmation": "已有描述，而且廣東話讀出正常",
+    "confirmed": [
+      "description displayed",
+      "Cantonese playback normal"
+    ],
+    "sceneAccuracy": "not separately scored; no broader quality claim",
+    "timing": "server modelMs=1799; capture-to-speech time not provided",
+    "remainingScope": "Recognition/navigation in-screen entry integration is separate and not claimed delivered."
+  },
+  "deployment": {
+    "state": "ACTIVE",
+    "region": "asia-east2",
+    "providerRegion": "Singapore",
+    "model": "qwen3-vl-plus",
+    "runtime": "nodejs22",
+    "entryPoint": "describeScene",
+    "maxInstances": 2,
+    "timeout": 40,
+    "selectedAccountMatches": true,
+    "trialMaxRequests": 20,
+    "qwenEstimatedBudgetUsd": 0.01,
+    "providerSecretVersion": "2",
+    "anonymousProbe": {
+      "httpStatus": 401,
+      "status": "UNAUTHENTICATED"
+    },
+    "operationalTrialAttempts": 1,
+    "paidProviderCallsByAgent": 0,
+    "updateTime": "2026-11-07T20:46:10.087271987Z",
+    "build": "projects/56961018114/locations/asia-east2/builds/224a4d68-1e49-4e3f-9a2f-a72108c7ad65"
+  },
+  "originalUsage": "unknown; 2458 microUSD conservative estimate retained; rounded console $0.00 is not zero-cost proof",
+  "liveFirestoreRecoveryCheck": {
+    "result": "pass",
+    "concurrentWinners": 1,
+    "unknownCostRetained": true,
+    "stopAfterKnownSuccess": true,
+    "qwenRequests": 0,
+    "syntheticFixturesCleaned": true
+  },
+  "providerConsole": {
+    "monthlySpendDisplayedUsd": "0.00",
+    "zeroCostProven": false,
+    "singaporeHistoricalSuccess": {
+      "localDateTime": "2026-11-07 21:19:36",
+      "model": "qwen3-vl-plus",
+      "httpStatus": 200,
+      "promptTokens": 242,
+      "completionTokens": 256,
+      "totalTokens": 498,
+      "latencySeconds": 3.93,
+      "phoneAcceptance": false
+    },
+    "originalHongKongUsage": "still unknown; conservative estimate retained"
+  },
+  "recoveryGrant": {
+    "checkedAtUtc": "2026-11-07T20:46:48.319Z",
+    "deploymentUpdateTime": "2026-11-07T20:46:10.087271987Z",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "originalFieldsUnchanged": true,
+    "trialCount": 1,
+    "spentMicroUsd": 2458,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "usage-unknown",
+    "recoveryStatus": "ready",
+    "recoveryExpiresAtUtc": "2026-11-08T08:46:46.688Z",
+    "paidInferenceRequestsByAgent": 0
+  },
+  "phoneBackendResult": {
+    "trialCount": 2,
+    "spentMicroUsd": 2593,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "lastResult": {
+      "mapValue": {
+        "fields": {
+          "metrics": {
+            "mapValue": {
+              "fields": {
+                "estimate": {
+                  "mapValue": {
+                    "fields": {
+                      "outputUsdPerMillion": {
+                        "doubleValue": 1.6
+                      },
+                      "inputUsdPerMillion": {
+                        "doubleValue": 0.2
+                      },
+                      "usd": {
+                        "doubleValue": 0.000135
+                      },
+                      "notBillingCap": {
+                        "booleanValue": true
+                      }
+                    }
+                  }
+                },
+                "usage": {
+                  "mapValue": {
+                    "fields": {
+                      "completion_tokens": {
+                        "integerValue": "51"
+                      },
+                      "prompt_tokens": {
+                        "integerValue": "267"
+                      },
+                      "total_tokens": {
+                        "integerValue": "318"
+                      }
+                    }
+                  }
+                },
+                "modelMs": {
+                  "integerValue": "1799"
+                }
+              }
+            }
+          },
+          "status": {
+            "stringValue": "complete"
+          }
+        }
+      }
+    },
+    "checkedAtUtc": "2026-11-07T20:47:44.744Z"
+  },
+  "currentOperationalTrialAttempts": 2,
+  "originalUnknownCostMicroUsd": 2458,
+  "secondAttemptEstimateMicroUsd": 135,
+  "combinedConservativeEstimateMicroUsd": 2593
+}

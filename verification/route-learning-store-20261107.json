@@ -1,0 +1,23 @@
+{
+  "date": "2026-11-07",
+  "issue": "https://github.com/actiondarr/pathguide/issues/20",
+  "parent": "https://github.com/actiondarr/pathguide/issues/19",
+  "stage": "L1 storage foundation only; ticket remains open",
+  "checks": {
+    "flutter_suite_before_final_tamper_test": 523,
+    "final_focused_store_tests": 8,
+    "flutter_analyze": "passed",
+    "swift_parse": "passed",
+    "diff_check": "passed"
+  },
+  "not_implemented": [
+    "journey integration",
+    "capture opt-in and review UI",
+    "automatic expiry scheduling",
+    "cloud upload",
+    "snapshot and training",
+    "model delivery"
+  ],
+  "phone_release": false,
+  "real_data_collected": false
+}

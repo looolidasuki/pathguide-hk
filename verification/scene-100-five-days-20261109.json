@@ -1,0 +1,77 @@
+{
+  "dateHongKong": "2026-11-09",
+  "version": "1.10.3+27",
+  "ownerRequest": "把許可加到100次, 五天後到期",
+  "maxRequests": 100,
+  "durationDays": 5,
+  "budgetMicroUsd": 500000,
+  "priorUsageMustRemain": true,
+  "checks": {
+    "backend": 49,
+    "flagOnFlutterScoped": 102,
+    "analyze": "pass",
+    "signedProfile": "pass",
+    "codesignDeepStrict": "pass",
+    "fourModelsUnchanged": true,
+    "nativeSwiftChanged": false,
+    "deployedSourceSha256": {
+      "scene_trial.js": "3ddcf8fafac799320db482f2c13d1735fd4e5cdab5e0ac2ee8514bf020d88ae1",
+      "scene_description.js": "3dcc9352a1a8b21169dbaf46339624507a70ea0e30f4af25da9a062d0c90bb58",
+      "scene_function.js": "a3a25b28a73a2267230612baa349dab6e85e505de531fab2f54b44bd7fcd71ab"
+    }
+  },
+  "deployment": {
+    "state": "ACTIVE",
+    "entryPoint": "describeScene",
+    "timeoutSeconds": 40,
+    "maxInstances": 2,
+    "checkedAtUtc": "2026-11-08T19:21:39.922Z",
+    "deploymentUpdateTime": "2026-11-08T19:21:22.437723716Z",
+    "region": "asia-east2",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "maxRequests": 100,
+    "budgetMicroUsd": 500000,
+    "paidInferenceRequestsByAgent": 0,
+    "trialCount": 32,
+    "spentMicroUsd": 13331,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "windowStatus": "ready",
+    "anonymousStatus": 401,
+    "currentLedgerBudgetMicroUsd": 500000,
+    "ledgerAwaitingAuditedBudgetAmendment": true
+  },
+  "ledgerAmendment": {
+    "checkedAtUtc": "2026-11-08T19:22:40.869Z",
+    "maxRequests": 100,
+    "budgetMicroUsd": 500000,
+    "trialCount": 32,
+    "spentMicroUsd": 13331,
+    "remaining": 68,
+    "expiresAtUtc": "2026-11-13T19:22:40.869Z",
+    "expiresAtHongKong": "2026-11-14 03:22:40",
+    "paidInferenceRequestsByAgent": 0,
+    "applied": true,
+    "originalCountCostIdsUnknownHistoryPreserved": true
+  },
+  "paidInferenceRequestsByAgent": 0,
+  "release": {
+    "tag": "v1.10.3+27",
+    "sourceCommit": "40fab8be36e02ec871d7338d762e3ab83e495e43",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.10.3%2B27",
+    "remotePeeledTagAndPrereleaseVerifiedBeforeInstall": true,
+    "privateBinaryUploaded": false
+  },
+  "phoneInstall": {
+    "version": "1.10.3",
+    "bundleVersion": "27",
+    "independentInventoryVerified": true,
+    "normalLaunchSucceeded": true,
+    "installedInPlace": true,
+    "dataCleared": false
+  }
+}

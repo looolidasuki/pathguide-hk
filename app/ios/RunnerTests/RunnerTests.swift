@@ -1,6 +1,7 @@
 import Flutter
 import AVFoundation
 import CoreVideo
+import CoreImage
 import CryptoKit
 import CoreLocation
 import MapKit
@@ -10,6 +11,101 @@ import UIKit
 import XCTest
 
 class RunnerTests: XCTestCase {
+  func testSceneControlAndJpegStayResponsiveWhileRecognitionIsBlocked() throws {
+    let entered = expectation(description: "recognition blocked"), unblock = DispatchSemaphore(value: 0)
+    let plugin = VisionPlugin(messenger: NavigationTestMessenger(), cameraAuthorizationStatus: { .authorized },
+      cameraCoordinator: CameraCoordinator(), captureStart: { true }, captureStop: {}, motionAvailability: { false },
+      recognitionWork: { _ in entered.fulfill(); _ = unblock.wait(timeout: .now() + 10) })
+    defer { unblock.signal() }
+    let started = expectation(description: "camera owned")
+    plugin.handle(FlutterMethodCall(methodName: "startPreview", arguments: nil)) { _ in started.fulfill() }
+    wait(for: [started], timeout: 3)
+    let pixels = try routePixels()
+    plugin.enqueueCameraFrame(pixels)
+    wait(for: [entered], timeout: 3)
+    let enabled = expectation(description: "control ack bypasses blocked model")
+    plugin.handle(FlutterMethodCall(methodName: "setSceneObservation", arguments: ["enabled": true])) { value in
+      XCTAssertEqual((value as? [String: Any])?["enabled"] as? Bool, true); enabled.fulfill()
+    }
+    wait(for: [enabled], timeout: 1)
+    let jpeg = expectation(description: "photo bypasses blocked model")
+    plugin.handle(FlutterMethodCall(methodName: "captureSceneFrame", arguments: nil)) { value in
+      XCTAssertNotNil(value as? FlutterStandardTypedData); jpeg.fulfill()
+    }
+    plugin.enqueueCameraFrame(pixels)
+    wait(for: [jpeg], timeout: 2)
+    unblock.signal()
+    let released = expectation(description: "stop drains both queues")
+    plugin.release { _ in released.fulfill() }
+    wait(for: [released], timeout: 3)
+  }
+
+  func testLiveScenePreparationAcknowledgementMatchesOwnedCameraAndRelease() {
+    let plugin = VisionPlugin(messenger: NavigationTestMessenger(), cameraAuthorizationStatus: { .authorized },
+      cameraCoordinator: CameraCoordinator(), captureStart: { true }, captureStop: {})
+    let started = expectation(description: "vision owns camera")
+    plugin.handle(FlutterMethodCall(methodName: "startPreview", arguments: nil)) { value in
+      XCTAssertEqual((value as? [String: Any])?["started"] as? Bool, true); started.fulfill()
+    }
+    wait(for: [started], timeout: 5)
+    let enabled = expectation(description: "scene enabled and acknowledged")
+    plugin.handle(FlutterMethodCall(methodName: "setSceneObservation", arguments: ["enabled": true])) { value in
+      XCTAssertEqual((value as? [String: Any])?["enabled"] as? Bool, true)
+      XCTAssertNotNil((value as? [String: Any])?["epoch"] as? Int)
+      plugin.handle(FlutterMethodCall(methodName: "status", arguments: nil)) { state in
+        XCTAssertEqual((state as? [String: Any])?["sceneObservationEnabled"] as? Bool, true)
+        enabled.fulfill()
+      }
+    }
+    wait(for: [enabled], timeout: 5)
+    let released = expectation(description: "release clears scene state")
+    plugin.release { _ in
+      plugin.handle(FlutterMethodCall(methodName: "status", arguments: nil)) { state in
+        XCTAssertEqual((state as? [String: Any])?["sceneObservationEnabled"] as? Bool, false)
+        released.fulfill()
+      }
+    }
+    wait(for: [released], timeout: 5)
+  }
+
+  func testLiveSceneCannotEnableMotionWithoutOwningTheCamera() {
+    let plugin = VisionPlugin(messenger: NavigationTestMessenger(), cameraCoordinator: CameraCoordinator())
+    var replies = 0
+    plugin.handle(FlutterMethodCall(methodName: "setSceneObservation", arguments: ["enabled": true])) { value in
+      replies += 1
+      XCTAssertEqual((value as? FlutterError)?.code, "not_running")
+    }
+    XCTAssertEqual(replies, 1)
+  }
+
+  func testLiveSceneJpegIsUprightBoundedAndHasNoLocationMetadata() throws {
+    let pixels = try routePixels(width: 1280, height: 720)
+    let jpeg = try XCTUnwrap(IOSSceneSignal.jpeg(pixels, context: CIContext(options: [.useSoftwareRenderer: true])))
+    XCTAssertLessThanOrEqual(jpeg.count, 524288)
+    let source = try XCTUnwrap(CGImageSourceCreateWithData(jpeg as CFData, nil))
+    let properties = try XCTUnwrap(CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any])
+    XCTAssertEqual(properties[kCGImagePropertyPixelHeight] as? Int, 512)
+    XCTAssertEqual(properties[kCGImagePropertyPixelWidth] as? Int, 288)
+    XCTAssertNil(properties[kCGImagePropertyGPSDictionary])
+  }
+
+  func testLiveSceneGridComesFromUncroppedLumaAndRejectsUnsupportedBuffers() throws {
+    var value: CVPixelBuffer?
+    XCTAssertEqual(CVPixelBufferCreate(nil, 32, 16,
+      kCVPixelFormatType_420YpCbCr8BiPlanarFullRange, nil, &value), kCVReturnSuccess)
+    let buffer = try XCTUnwrap(value)
+    CVPixelBufferLockBaseAddress(buffer, [])
+    let bytes = try XCTUnwrap(CVPixelBufferGetBaseAddressOfPlane(buffer, 0)).assumingMemoryBound(to: UInt8.self)
+    let stride = CVPixelBufferGetBytesPerRowOfPlane(buffer, 0)
+    for y in 0..<16 { for x in 0..<32 { bytes[y*stride+x] = UInt8(y*4+x*2) } }
+    CVPixelBufferUnlockBaseAddress(buffer, [])
+    let grid = try XCTUnwrap(IOSSceneSignal.luminance(buffer))
+    XCTAssertEqual(grid.count, 64)
+    XCTAssertEqual(grid.first, 6)
+    XCTAssertEqual(grid.last, 118)
+    XCTAssertNil(IOSSceneSignal.luminance(try routePixels()))
+  }
+
   func testRoutePreviewBindsOnlyRunningSessionAndDetachesBeforeStop() {
     let driver = RouteTestDriver()
     driver.previewSession = AVCaptureSession()
@@ -103,6 +199,31 @@ class RunnerTests: XCTestCase {
     #endif
     XCTAssertEqual(audit["allExcludedFromBackup"] as? Bool, true)
     XCTAssertEqual(audit["files"] as? Int, 2) // lock and catalog
+  }
+
+  func testRouteStorageReusesDirectoryForAnotherVersion() throws {
+    let base = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: base) }
+    let storage = RouteProtectedFiles(root: base)
+    try storage.prepare()
+    let folder = String(repeating: "a", count: 64)
+    let first = folder + "/" + String(repeating: "b", count: 32) + ".enc"
+    try storage.mkdir(folder)
+    try storage.write(path: first + ".tmp", data: Data([1]))
+    try storage.move(from: first + ".tmp", to: first)
+
+    try storage.mkdir(folder)
+    let second = folder + "/" + String(repeating: "c", count: 32) + ".enc"
+    let version = Data(count: 8 * 1024 * 1024)
+    XCTAssertThrowsError(try storage.write(path: second + ".tmp", data: version))
+    XCTAssertThrowsError(try storage.write(
+      path: String(repeating: "d", count: 32) + ".tmp", data: version, routeVersion: true))
+    XCTAssertThrowsError(try storage.write(
+      path: second + ".tmp", data: version + Data([1]), routeVersion: true))
+    try storage.write(path: second + ".tmp", data: version, routeVersion: true)
+    try storage.move(from: second + ".tmp", to: second)
+    XCTAssertEqual(try Data(contentsOf: base.appendingPathComponent(first)), Data([1]))
+    XCTAssertEqual(try Data(contentsOf: base.appendingPathComponent(second)), version)
   }
 
 

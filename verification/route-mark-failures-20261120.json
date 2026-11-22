@@ -1,0 +1,33 @@
+{
+  "dateHongKong": "2026-11-20",
+  "scope": "Indoor recording failure history for typed manual mark attempts",
+  "baselineSourceCommit": "9fc8dbcd22deb7d738c0d79abbb4553439fc0f15",
+  "checks": {
+    "flutterAnalyze": "No issues found",
+    "flutterTestsPassed": 606,
+    "flutterTestsSkipped": 7,
+    "controller": [
+      "Capture and analysis failures leave the camera available and add only attempt metadata",
+      "Explicit retry creates a fresh mark and undo preserves the failure history",
+      "Busy presses and a capture cancelled by pause do not create failure entries",
+      "Capacity feedback and retained history require no additional camera capture",
+      "A route with only failed marks survives encrypted draft save, reopen and deletion",
+      "A complete route with failure history can still be published and reopened for replay",
+      "A schema 6 failure manifest mislabeled as schema 5 is rejected"
+    ],
+    "widget": [
+      "Announce a failed first mark once through the mocked accessibility channel",
+      "Finish and save from the normal recording control without a successful mark",
+      "Reopen the saved draft from the library and expand its failure history"
+    ]
+  },
+  "schema": {
+    "read": [1, 2, 3, 4, 5, 6],
+    "write6When": "The route contains at least one failed mark attempt",
+    "maxFailedAttemptsPerRoute": 64,
+    "lastDocumentedPhoneVersion": "1.11.0+29",
+    "lastDocumentedPhoneVersionReadsNewSchema": false
+  },
+  "phoneInstalled": false,
+  "humanAcceptance": "Pending iPhone speech, VoiceOver and field retry and reopen"
+}

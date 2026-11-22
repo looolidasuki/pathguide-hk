@@ -1,0 +1,199 @@
+{
+  "accepted": [
+    {
+      "sentences": [
+        "左邊有米缸。",
+        "右邊有多層架。"
+      ],
+      "observations": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "白色米缸"
+        },
+        {
+          "category": "other",
+          "position": "right",
+          "detail": "金屬多層架"
+        }
+      ]
+    },
+    {
+      "sentences": [
+        "中間有洗手盆同馬桶。",
+        "右邊有洗衣機。"
+      ],
+      "observations": [
+        {
+          "category": "other",
+          "position": "centre",
+          "detail": "洗手盆同馬桶"
+        },
+        {
+          "category": "other",
+          "position": "right",
+          "detail": "洗衣機"
+        }
+      ]
+    },
+    {
+      "sentences": [
+        "左邊有櫃同爐具。",
+        "中間見到層架同層板。"
+      ],
+      "observations": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "櫃同爐具"
+        },
+        {
+          "category": "other",
+          "position": "centre",
+          "detail": "木層架同層板"
+        }
+      ]
+    },
+    {
+      "sentences": [
+        "左邊有米桶同米袋。",
+        "右邊有米白色櫃。"
+      ],
+      "observations": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "米桶同米袋"
+        },
+        {
+          "category": "other",
+          "position": "right",
+          "detail": "米白色櫃"
+        }
+      ]
+    },
+    {
+      "sentences": [
+        "枱上有米飯同粟米。",
+        "旁邊有玉米。"
+      ],
+      "observations": []
+    }
+  ],
+  "rejectedText": [
+    "前方有米缸，距離三米。",
+    "層架距離兩公尺。",
+    "左邊有米缸，門距離三厘米。",
+    "多層架旁邊有門，距離三公里。",
+    "前方有米缸，門有三米遠。",
+    "多層架位於三樓。",
+    "多層架位於第三層。",
+    "米缸在樓上。",
+    "米缸旁邊安全。",
+    "多層架前面可以通行。",
+    "米缸旁邊可通過。",
+    "米缸旁邊向左行。",
+    "多層架旁邊靠右行。",
+    "避開米缸。",
+    "繞過多層架。",
+    "請走去米缸。",
+    "米缸在目的地。",
+    "門闊三呎，旁邊有米缸。",
+    "米缸距離三meters。",
+    "米缸距離三metres。",
+    "米缸距離３米。",
+    "米缸有3個。",
+    "层架旁邊有门。",
+    "米缸。向右行。",
+    "米缸\n旁邊有門。",
+    "<米缸>。"
+  ],
+  "rejectedObservations": [
+    {
+      "items": [
+        {
+          "category": "cupboard",
+          "position": "left",
+          "detail": "木櫃"
+        }
+      ],
+      "detail": "observation-category"
+    },
+    {
+      "items": [
+        {
+          "category": "other",
+          "position": "front",
+          "detail": "洗手盆"
+        }
+      ],
+      "detail": "observation-position"
+    },
+    {
+      "items": [
+        {
+          "category": "other",
+          "position": "centre",
+          "detail": "洗手盆。"
+        }
+      ],
+      "detail": "observation-detail"
+    },
+    {
+      "items": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "櫃"
+        },
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "爐具"
+        }
+      ],
+      "detail": "observation-duplicate"
+    },
+    {
+      "items": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "米缸",
+          "extra": "私隱"
+        }
+      ],
+      "detail": "observation-fields"
+    },
+    {
+      "items": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "米缸距離三米"
+        }
+      ],
+      "detail": "observation-content"
+    },
+    {
+      "items": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "多層架旁邊安全通行"
+        }
+      ],
+      "detail": "observation-content"
+    },
+    {
+      "items": [
+        {
+          "category": "other",
+          "position": "left",
+          "detail": "木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木木"
+        }
+      ],
+      "detail": "observation-detail"
+    }
+  ]
+}

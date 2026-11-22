@@ -10,8 +10,16 @@ class RouteFilePolicy {
   final String scope;
   final Directory directory;
 
-  static Future<RouteFilePolicy> open({bool probe = false}) async {
-    final scope = probe ? 'probe' : 'library';
+  static Future<RouteFilePolicy> open({
+    bool probe = false,
+    bool learning = false,
+  }) async {
+    if (probe && learning) throw ArgumentError('Conflicting storage scope');
+    final scope = learning
+        ? 'learning'
+        : probe
+        ? 'probe'
+        : 'library';
     final path = await channel.invokeMethod<String>('prepare', {
       'scope': scope,
     });
@@ -36,11 +44,12 @@ class RouteFilePolicy {
     'mkdir',
     {'scope': scope, 'path': _relative(dir.path)},
   );
-  Future<void> write(File file, List<int> bytes) =>
+  Future<void> write(File file, List<int> bytes, {bool routeVersion = false}) =>
       channel.invokeMethod<void>('write', {
         'scope': scope,
         'path': _relative(file.path),
         'bytes': Uint8List.fromList(bytes),
+        if (routeVersion) 'routeVersion': true,
       });
   Future<void> rename(File source, String destination) =>
       channel.invokeMethod<void>('move', {

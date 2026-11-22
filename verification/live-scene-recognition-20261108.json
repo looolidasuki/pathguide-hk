@@ -1,0 +1,79 @@
+{
+  "dateHongKong": "2026-11-08",
+  "version": "1.9.0+18",
+  "scope": "manual and opt-in change-triggered scene descriptions inside live recognition; navigation-page integration excluded",
+  "checks": {
+    "flutterFullPassed": 562,
+    "flutterFullSkippedFlagOff": 1,
+    "flagOnScopedPassed": 46,
+    "analyze": "pass",
+    "nativeSimulator": {
+      "passed": 57,
+      "result": "TEST SUCCEEDED",
+      "scope": "includes camera-owner guard, local grid and upright bounded JPEG / no GPS metadata"
+    },
+    "visualQa": "synthetic normal and 2x text PNGs inspected; scene controls scroll, fixed pause remains visible",
+    "signedProfileBuild": "passed",
+    "codesign": "deep strict passed",
+    "models": "all four hashes unchanged"
+  },
+  "policy": {
+    "cloudPollTimer": false,
+    "stableMs": 1200,
+    "cooldownSeconds": 45,
+    "localSessionAttemptCap": 3,
+    "motionMaxAgeMs": 500,
+    "frameMaxAgeMs": 1000,
+    "descriptionDeadlineSeconds": 20,
+    "nativeJpegDeadlineSeconds": 2,
+    "importantGridDifference": 0.12,
+    "importantAttitudeDegrees": 15,
+    "singleInFlight": true,
+    "automaticStartsOff": true,
+    "restartAutoAfterInterruption": false,
+    "semanticDeltaDetection": false,
+    "sentenceDedup": "exact full sentence match only"
+  },
+  "provider": "existing Singapore fixed URL / Secret 2; no backend source or deployment change",
+  "ledger": "count 2, spentMicroUsd 2593 incl original unknown reservation 2458, halted; no reset",
+  "phoneAcceptance": "FAILED on 1.9.0+18: user reports no trigger/disabled controls; screenshot confirms active vision preview, both scene controls disabled, generic paused status; paid attempts remain 2. Preparation recovery candidate tracked separately.",
+  "paidInferenceRequestsByAgent": 0,
+  "review": "Implementing-agent review; no independent review. Checked camera borrowing, encoder epoch/deadline, stale motion/frame rejection, cancellation, speech priority, bounded attempts and unchanged server ledger. Parameters uncalibrated on handset.",
+  "release": {
+    "tag": "v1.9.0+18",
+    "sourceCommit": "fb57220f49f08a08625de9bb042ccef3a623a99e",
+    "url": "https://github.com/actiondarr/pathguide/releases/tag/v1.9.0%2B18",
+    "remoteTagPeeledCommitVerified": true,
+    "prerelease": true,
+    "assets": []
+  },
+  "phoneInstall": "1.9.0+18 update installed; device inventory verified version/build; normal launch succeeded; no uninstall/data clear",
+  "controlledPhoneTest": "one-attempt CAS recovery armed within original 20 requests / 10000 microUSD allowance; prior recovery archived, count/cost/IDs unchanged; no agent inference",
+  "ledgerReadback": {
+    "trialCount": 2,
+    "spentMicroUsd": 2593,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "consumed",
+    "checkedAtUtc": "2026-11-08T01:58:59.395Z"
+  },
+  "recoveryGrant": {
+    "checkedAtUtc": "2026-11-08T08:51:11.596Z",
+    "deploymentUpdateTime": "2026-11-07T20:46:10.087271987Z",
+    "secretVersion": "2",
+    "providerRegion": "Singapore",
+    "selectedAccountVerified": true,
+    "originalCountCostIdsUnchanged": true,
+    "priorRecoveryArchived": true,
+    "trialCount": 2,
+    "spentMicroUsd": 2593,
+    "halted": true,
+    "inFlight": false,
+    "lastStatus": "complete",
+    "recoveryStatus": "ready",
+    "recoveryExpiresAtUtc": "2026-11-08T20:51:10.082Z",
+    "paidInferenceRequestsByAgent": 0
+  },
+  "followupEvidence": "live-scene-preparation-20261108.json"
+}

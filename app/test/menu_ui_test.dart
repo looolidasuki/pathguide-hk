@@ -38,6 +38,7 @@ void main() {
     FakeMenuReader reader,
     MenuTestSpeaker speaker, {
     double scale = 1,
+    bool generalReading = false,
   }) async {
     ThemeData theme = buildAppTheme();
     if (preview.isNotEmpty && Platform.isMacOS) {
@@ -77,6 +78,7 @@ void main() {
             child: child!,
           ),
           home: MenuPage(
+            generalReading: generalReading,
             settings: AppSettings.memory(),
             reader: reader,
             speaker: speaker,
@@ -91,6 +93,83 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('capture-menu')));
     await tester.pumpAndSettle();
   }
+
+  testWidgets(
+    'general reading keeps partial regions and switches modes without retaking',
+    (tester) async {
+      final menu = sampleMenu();
+      final reader = FakeMenuReader()
+        ..document = MenuDocument(
+          entries: menu.entries,
+          original: menu.original,
+          pages: 1,
+          truncated: false,
+          readingLimited: true,
+          readingLines: const [
+            MenuLine(
+              text: 'Exit A',
+              page: 1,
+              left: .1,
+              top: .2,
+              width: .24,
+              height: .03,
+              confidence: .9,
+            ),
+            MenuLine(
+              text: '告示',
+              page: 1,
+              left: .6,
+              top: .2,
+              width: .25,
+              height: .03,
+              confidence: .3,
+            ),
+          ],
+        );
+      final speaker = MenuTestSpeaker();
+      await open(tester, reader, speaker, generalReading: true);
+      Future<void> tap(String text) async {
+        final target = find.text(text);
+        await tester.scrollUntilVisible(
+          target,
+          100,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(target);
+        await tester.pumpAndSettle();
+      }
+
+      await read(tester);
+      expect(speaker.utterances, isEmpty);
+      expect(find.text('版面次序待核對，請逐區閱讀。'), findsOneWidget);
+      expect(find.text('可能只讀到部分文字，可查看現有內容或重拍。'), findsOneWidget);
+      await tap('Exit A');
+      expect(speaker.utterances, ['Exit A']);
+      await tap('重讀上一段');
+      expect(speaker.utterances, ['Exit A', 'Exit A']);
+      await tester.enterText(find.byType(TextFormField), '告示');
+      await tester.pumpAndSettle();
+      expect(find.text('Exit A'), findsNothing);
+      await tester.ensureVisible(find.text('菜單查價'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('菜單查價'));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const ValueKey('voice-menu-search')), findsOneWidget);
+      expect(reader.reads, 1);
+      await tester.ensureVisible(find.text('返回文字結果'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('返回文字結果'));
+      await tester.pumpAndSettle();
+      expect(find.widgetWithText(ListTile, '告示'), findsOneWidget);
+      reader.document = null;
+      await tester.ensureVisible(find.byKey(const ValueKey('capture-menu')));
+      await tester.pumpAndSettle();
+      await read(tester);
+      expect(find.text('告示'), findsNothing);
+      expect(find.text('重讀上一段'), findsNothing);
+      await tester.pumpWidget(const SizedBox());
+    },
+  );
 
   testWidgets(
     'spoken dish automatically searches and reads price without another confirmation',
@@ -244,7 +323,10 @@ void main() {
     'VoiceOver uses announcement only, without competing result live region',
     (tester) async {
       tester.platformDispatcher.accessibilityFeaturesTestValue =
-          const FakeAccessibilityFeatures(accessibleNavigation: true);
+          const FakeAccessibilityFeatures(
+            accessibleNavigation: true,
+            supportsAnnounce: true,
+          );
       addTearDown(
         tester.platformDispatcher.clearAccessibilityFeaturesTestValue,
       );
