@@ -25,6 +25,8 @@ class MainActivity : FlutterActivity() {
         // 室內錄路（Android）：相機關鍵幀與路標特徵，對應 iOS 的 RouteCamera／RouteLandmark。
         flutterEngine.plugins.add(RouteCameraPlugin(this))
         flutterEngine.plugins.add(RouteLandmarkPlugin(this))
+        // 路標錄音備註（Android）：對應 iOS RouteNoteAudioPlugin，只錄入記憶體。
+        flutterEngine.plugins.add(RouteNoteAudioPlugin(this))
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

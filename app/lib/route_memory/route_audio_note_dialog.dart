@@ -5,12 +5,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'route_media.dart';
+import 'route_platform_profile.dart';
 
 class RouteNoteAudio {
   static const channel = MethodChannel('hk.pathguide/route_note_audio');
   static int _nextOwner = 0;
+
+  /// iOS: RouteNoteAudioPlugin.swift; Android: RouteNoteAudioPlugin.kt.
+  /// Android uses the real host OS (not defaultTargetPlatform, which is
+  /// android in host tests) so widget tests keep their iOS expectations.
   static bool get supported =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.iOS || RoutePlatform.isAndroid);
 
   final _owner = 'route-note-${++_nextOwner}';
   Map<String, Object> get _args => {'owner': _owner};

@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.12.1+31-android-sync.7'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.8'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -138,6 +138,10 @@ $overlayFiles = @(
     'app/lib/tts/speech_latency.dart',
     'app/test/speech_latency_test.dart',
     'app/test/daily_detection_threshold_test.dart',
+    'app/android/app/src/main/kotlin/hk/pathguide/pathguide/RouteNoteWav.kt',
+    'app/android/app/src/main/kotlin/hk/pathguide/pathguide/RouteNoteAudioPlugin.kt',
+    'app/android/app/src/test/kotlin/hk/pathguide/pathguide/RouteNoteWavTest.kt',
+    'app/test/route_note_audio_android_test.dart',
     'app/android/app/src/test/resources/camera_preprocess/cases.txt',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.expected_f32le',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.raw_rgb',
@@ -1871,6 +1875,66 @@ Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨�
     '      _detections = detections;',
     '      _readback = resultSummary(',
     '        detections,'
+) -join $LF)
+
+# ================================================================ 15. 2026-11-23 Android 路標錄音備註
+#
+# RouteNoteAudioPlugin.kt／RouteNoteWav.kt（新增檔）對應 iOS RouteNoteAudioPlugin.swift：只錄入記憶體、PCM WAV、10 秒上限。
+# Dart 閘門以真實主機作業系統開放 Android，主機測試的 defaultTargetPlatform 不會誤開。
+# 補丁由 scripts/gen_overlay_section.py 產生並驗證逐字重現。
+
+Patch-Overlay 'app/android/app/src/main/kotlin/hk/pathguide/pathguide/MainActivity.kt' 'MainActivity.kt: 2026-11-23 Android 路標錄音備註 1' `
+    (@(
+    '        flutterEngine.plugins.add(RouteLandmarkPlugin(this))',
+    '        // 路標錄音備註（Android）：對應 iOS RouteNoteAudioPlugin，只錄入記憶體。',
+    '        flutterEngine.plugins.add(RouteNoteAudioPlugin(this))'
+) -join $LF) `
+    '        flutterEngine.plugins.add(RouteLandmarkPlugin(this))' `
+    (@(
+    '        flutterEngine.plugins.add(RouteLandmarkPlugin(this))',
+    '        // 路標錄音備註（Android）：對應 iOS RouteNoteAudioPlugin，只錄入記憶體。',
+    '        flutterEngine.plugins.add(RouteNoteAudioPlugin(this))'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_audio_note_dialog.dart' 'route_audio_note_dialog.dart: 2026-11-23 Android 路標錄音備註 1' `
+    (@(
+    'import ''route_media.dart'';',
+    'import ''route_platform_profile.dart'';',
+    '',
+    'class RouteNoteAudio {',
+    '  static const channel = MethodChannel(''hk.pathguide/route_note_audio'');',
+    '  static int _nextOwner = 0;',
+    '',
+    '  /// iOS: RouteNoteAudioPlugin.swift; Android: RouteNoteAudioPlugin.kt.',
+    '  /// Android uses the real host OS (not defaultTargetPlatform, which is',
+    '  /// android in host tests) so widget tests keep their iOS expectations.',
+    '  static bool get supported =>',
+    '      !kIsWeb &&',
+    '      (defaultTargetPlatform == TargetPlatform.iOS || RoutePlatform.isAndroid);'
+) -join $LF) `
+    (@(
+    'import ''route_media.dart'';',
+    '',
+    'class RouteNoteAudio {',
+    '  static const channel = MethodChannel(''hk.pathguide/route_note_audio'');',
+    '  static int _nextOwner = 0;',
+    '  static bool get supported =>',
+    '      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;'
+) -join $LF) `
+    (@(
+    'import ''route_media.dart'';',
+    'import ''route_platform_profile.dart'';',
+    '',
+    'class RouteNoteAudio {',
+    '  static const channel = MethodChannel(''hk.pathguide/route_note_audio'');',
+    '  static int _nextOwner = 0;',
+    '',
+    '  /// iOS: RouteNoteAudioPlugin.swift; Android: RouteNoteAudioPlugin.kt.',
+    '  /// Android uses the real host OS (not defaultTargetPlatform, which is',
+    '  /// android in host tests) so widget tests keep their iOS expectations.',
+    '  static bool get supported =>',
+    '      !kIsWeb &&',
+    '      (defaultTargetPlatform == TargetPlatform.iOS || RoutePlatform.isAndroid);'
 ) -join $LF)
 
 # ================================================================ 結果
