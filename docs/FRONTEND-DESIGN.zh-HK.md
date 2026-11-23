@@ -12,17 +12,17 @@
 
 ## 現版 App 可以做甚麼
 
-最近有收據的 iPhone 工程預發版為 **1.12.0+30**，已原位安裝、獨立核對版本，並在使用者信任開發者後正常啟動。開發分支本輪 Flutter 測試 617 項通過、7 項略過，靜態分析及 iOS Simulator 建置通過。錄路收音、VoiceOver、場景內容及實地任務仍有真人驗收項目。[版本收據](../verification/release-receipts/app-1.12.0+30.json) · [工程證據](../verification/route-learning-integration-20261120.json)
+最近有收據的 iPhone 工程預發版為 **1.12.1+31**，已原位安裝、獨立核對版本並正常啟動；雲端場景授權、實際語音及 VoiceOver 未驗。[1.12.1+31 收據](../verification/release-receipts/app-1.12.1+31.json)。Android 由本倉庫另行移植，現況見各列「Android」及[本倉庫維護紀錄](#android-fork-log)。開發分支本輪 Flutter 測試 617 項通過、7 項略過，靜態分析及 iOS Simulator 建置通過。錄路收音、VoiceOver、場景內容及實地任務仍有真人驗收項目。[版本收據](../verification/release-receipts/app-1.12.0+30.json) · [工程證據](../verification/route-learning-integration-20261120.json)
 
 首頁先選任務。首次開啟即時辨識、路線導航或菜單會顯示教學。相機按任務使用，首頁本身不開相機。設定保存繁體中文／English、粵語播報速度及首次教學狀態。[首頁](../app/lib/ui/task_home_page.dart) · [任務入口](../app/lib/ui/app_shell.dart)
 
 | 現版入口 | 已有行為及使用條件 | 仍待驗證或接通 |
 |---|---|---|
-| 即時辨識 | 進頁後申請相機權限。本機顯示物件框及播報，可暫停。訪客可用。預設十類模型屬試驗版 | 門、行人等有誤認／漏認。系統截圖後全頁無回應的回報仍未定位。 [模型品質](DATASET-REVIEW.zh-HK.md#quality-state) |
+| 即時辨識 | 進頁後申請相機權限。本機顯示物件框及播報，可暫停。訪客可用。預設十類模型屬試驗版。日常模式畫框與播報用同一門檻（0.70，未校準）。Android：CameraX＋LiteRT，前處理已與離線評估一致，Redmi 真機約 2.6 fps | 門、行人等有誤認／漏認。系統截圖後全頁無回應的回報仍未定位。 [模型品質](DATASET-REVIEW.zh-HK.md#quality-state) |
 | 即時辨識 → 場景模式 | 已裝機的 1.12.0+30 漏帶場景設定，開關隱藏。開發分支提供帶場景設定的私人 iPhone 建置，首頁移除「描述前方」 | 最近有紀錄的許可已到期。雲端服務、帳號及有效許可須另核，複雜內容、轉向、實際起音及 VoiceOver 待複驗。 [場景服務](BACKEND-DESIGN.zh-HK.md#scene-contract) |
 | 路線導航 → 搜尋目的地 | iPhone 可搜尋、預覽步行路線、開始／暫停／繼續，並可開啟導航中的物件辨識 | 偏離重算、到入口、定位不足、返回前景與讀屏需逐項驗收。Android 服務需另行配置及驗證 |
-| 路線導航 → 錄製新路線／我的路線 | 用普通相機錄製，按類型／方向補記，保存及重開路線。資料齊備時可沿錄製方向逐點重認。開發分支已接通方向提示、更多標記、失敗紀錄、文字／iPhone 錄音備註及逐趟選填的本機路標候選覆核 | 真機咪高峰、播放、讀屏焦點、候選保護及同層／跨層實測待驗。連續語音帶路及即時避障待接 |
-| 閱讀文字與菜單查價 | 開發分支加入 iPhone 本機拍攝／選圖、逐段讀出及找字詞，同圖切換菜單查價 | 告示、標籤、多欄閱序、缺價和收音取消待真機驗收。Android OCR 待接 |
+| 路線導航 → 錄製新路線／我的路線 | 用普通相機錄製，按類型／方向補記，保存及重開路線。資料齊備時可沿錄製方向逐點重認。開發分支已接通方向提示、更多標記、失敗紀錄、文字／iPhone 錄音備註及逐趟選填的本機路標候選覆核 | 真機咪高峰、播放、讀屏焦點、候選保護及同層／跨層實測待驗。連續語音帶路及即時避障待接。Android 錄製、加密保存、重啟後重開已在真機通過；Android 重行比對、錄音備註及路標候選未接或未驗 |
+| 閱讀文字與菜單查價 | 開發分支加入 iPhone 本機拍攝／選圖、逐段讀出及找字詞，同圖切換菜單查價 | 告示、標籤、多欄閱序、缺價和收音取消待真機驗收。Android 以 ML Kit 中文辨識經系統相機／相簿單張讀字及同圖菜單查價，真機基本操作已通過；Android 多頁掃描未接 |
 | 設定與使用教學 | 帳號管理、選填聯絡人、語言、粵語語速和使用教學。緊急聯絡由使用者啟動後交系統撥號 | 正式帳號刪除與跨帳號驗收另記。照片及個人模型功能依服務設定 |
 | 設定 → 開發測試 | 物件與測距（試驗）、診斷及合成路線樣例 | 合成樣例用於驗證流程。深度試驗限支援 iPhone，須站定操作 |
 
@@ -103,12 +103,12 @@ iPhone 在位置確認有效時可按「播放錄音備註」。錄音可播完�
 
 | 能力 | 現行行為及界線 |
 |---|---|
-| 普通相機 | 模型提供支援物件及畫面左／中／右，Vision 特徵和 OCR 提供路標候選。畫面沒有框時只反映暫未辨識到支援物件。ARKit 相對位移／轉向按需要另驗 |
+| 普通相機 | 模型提供支援物件及畫面左／中／右。路標候選由 iPhone Vision 特徵＋OCR，或 Android MobileNetV3-small 嵌入＋ML Kit 提供，兩者特徵不互通。畫面沒有框時只反映暫未辨識到支援物件。ARKit 相對位移／轉向按需要另驗 |
 | 選填深度 | 「設定 → 開發測試 → 物件與測距（試驗）」站定開始。ARKit 將同一幀的影像、深度信心及內參對位，從準星或框內可信區塊估計代表表面的徑向距離。無支援、移動、遮擋、過期或資料不穩定時不報米數，保留可確認名稱及重新對準／退出。幾何與取樣詳見[深度實作](../app/lib/depth/depth_session.dart) |
 | 單一相機與有效期 | 舊來源停止後才交接。依 session／generation／sequence 及捕捉時間丟棄過期結果。背景、取消、權限改變與重開須按任務核對。場景模式須重新開啟。辨識按自身前景／手動暫停狀態重新取幀 |
 | 語音 | 現有 App 語音協調以導航優先於一般環境。P4 目標再加入有效急需障礙／感知失效，再依次為當前轉彎／樓層及普通描述。每次只派發最新有效事件，按需收音先停止普通播報。旁白由系統控制，App 只協調自身輸出 |
 
-設計上，最新相機幀處理有效障礙資訊，間隔較長的關鍵幀處理路標／OCR。初步感知候選為每秒 5–10 次有效更新、端到端 p95 ≤500 ms，須用真機校準。精確米數、世界方位、近身風險與可通行性各需獨立證據。鳥瞰、地面／空間模型、短路徑與行走避障屬後續工作。[相機來源](../verification/codex-p2c-route-camera-20261105.json) · [生命週期](../verification/codex-camera-lifecycle-20261105.json)
+設計上，最新相機幀處理有效障礙資訊，間隔較長的關鍵幀處理路標／OCR。初步感知候選為每秒 5–10 次有效更新、端到端 p95 ≤500 ms，須用真機校準。Android Redmi／Android 16 實測約 2.5–2.7 fps（前處理約 20–25 ms、推理 240–360 ms），未達候選；iPhone 未有同口徑紀錄。精確米數、世界方位、近身風險與可通行性各需獨立證據。鳥瞰、地面／空間模型、短路徑與行走避障屬後續工作。[相機來源](../verification/codex-p2c-route-camera-20261105.json) · [生命週期](../verification/codex-camera-lifecycle-20261105.json)
 
 <a id="testing-decisions"></a>
 
@@ -141,6 +141,8 @@ iPhone 在位置確認有效時可按「播放錄音備註」。錄音可播完�
 
 工程裝機使用 Xcode、相容 Flutter／Dart、有效簽署及 iOS 15 或以上。分析／測試在 `app` 執行，工程運行可使用 `app/tool/run_iphone.sh`。私人場景測試由同一入口執行 `app/tool/run_iphone.sh --build-scene-trial` 建立 Profile 安裝包。先依[版本回退與交付規則](BACKEND-DESIGN.zh-HK.md#deployment-rollback)保存並核對遠端版本，再裝機。舊 App 讀取新路線前，先核 schema 相容性。
 
+Android（本倉庫）：專案路徑含空格，Flutter 原生建置須經無空格路徑（`subst P:` 或目錄聯接）。先載入 `.env.flutter.ps1`；`app` 內跑 `flutter analyze`／`flutter test`，`app/android` 內跑 `gradlew :app:testDebugUnitTest`（JVM 原生邏輯），再 `flutter build apk --debug`。同步上游後先跑 `scripts/apply_android_overlay.ps1 -Check`，再以 `scripts/verify_on_device.ps1` 覆蓋安裝（保留資料）及取截圖／日誌。宿主單元測試走 iOS 路線配置，Android 專屬分支須另以 `RoutePlatform.debugAndroid` 測試及真機核對。
+
 <a id="out-of-scope"></a>
 
 ## 首輪場地範圍
@@ -160,11 +162,11 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 
 | 階段 | 工作 | 有證據的現況 | 完成標準 | 下一步／依賴 |
 |---|---|---|---|---|
-| S0 工程基線與版本保存 | 來源、模型、資料相容與回退 | 1.12.0+30 有裝機及啟動收據。內置模型及映射與收據相符 | 來源、模型、相容資料及可回退版本均可追溯 | 回退前先核路線 schema 相容性 |
-| S1 App 核心功能 | 即時辨識、菜單、戶外步行、場景描述及讀屏 | 已有主要流程。截圖卡住未定位，場景與讀屏待複驗 | 逐任務驗可用內容、停止、取消及恢復 | 核對真機故障、語音起音及讀屏 |
+| S0 工程基線與版本保存 | 來源、模型、資料相容與回退 | iPhone `1.12.1+31` 有原位裝機、獨立核對及啟動收據，內置模型及映射與收據相符。Android 移植線（本倉庫 tag `v1.12.1+31-android-sync.5`）有 Redmi／Android 16 覆蓋安裝紀錄，未推送遠端 | 來源、模型、相容資料及可回退版本均可追溯 | 回退前先核路線 schema 相容性。Android 線推送並以遠端 tag 保存 |
+| S1 App 核心功能 | 即時辨識、菜單、戶外步行、場景描述及讀屏 | 已有主要流程。截圖卡住未定位，場景與讀屏待複驗。Android 即時辨識、閱讀文字／菜單查價、系統返回鍵已在真機通過基本操作；Android 戶外導航代理及 TalkBack 未驗 | 逐任務驗可用內容、停止、取消及恢復 | 核對真機故障、語音起音及讀屏 |
 | S2 照片收集與人工覆核 | 同意、私人相片、標註及清理 | 覆核 API 和工作台已有本機合成驗證，功能預設關閉 | 權限、撤回、全圖覆蓋、修訂及獨立覆核可追溯 | 確認角色、部署及真人案例 |
 | S3 私人訓練與模型更新 | 快照、worker、比較、registry 及回退 | iPhone 開發分支已有本機候選收集及覆核，補記憶及訓練閉環待接 | 相較共用模型或記憶補強有額外效益，預算、更新及回退可驗 | 先有核准資料及評估。付費 GPU 須有預算 |
-| S4 室內錄路與引導 | 普通相機、樓層、轉層、重認、障礙及語音 | 自動取樣、標記、加密路線及逐點重認已有。開發分支已接通方向提示、更多標記、失敗紀錄及文字／iPhone 錄音備註，行走感知待接 | 錄製、保存重開及另趟重行，分報未知、錯層、漏報及恢復 | 真機核對收音、播放、VoiceOver 及同層／跨層 |
+| S4 室內錄路與引導 | 普通相機、樓層、轉層、重認、障礙及語音 | 自動取樣、標記、加密路線及逐點重認已有。開發分支已接通方向提示、更多標記、失敗紀錄及文字／iPhone 錄音備註，行走感知待接。Android 錄製、加密保存及重開已在真機通過，重行比對及閾值未校準 | 錄製、保存重開及另趟重行，分報未知、錯層、漏報及恢復 | 真機核對收音、播放、VoiceOver／TalkBack 及同層／跨層 |
 | S5 圖示與設施理解 | B11、牌面 OCR 與箭嘴配對 | B11 最後有證據到第 22 輪，存取待核，未入 App | 正式 run、獨立留集、匯出及手機任務均通過 | 先核原 run 與 checkpoint |
 | S6 限定場地整合驗收 | 三地路線、讀屏與資源交接 | 整趟實地驗收待做 | 獨立趟次核對定位、提示、操作、時效及恢復 | 彩明商場、調景嶺非付費區、HKDI 與選定接駁分驗 |
 | S7 場地與平台擴充 | 更多場地、複雜路網與平台 | 擴充能力待實作及驗證 | 各功能有資料、相容性及獨立任務證據 | S6 通過後逐項擴展 |
@@ -174,12 +176,12 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 | 功能／階段 | 現況 | 方法與資料流 | 依賴及驗收 |
 |---|---|---|---|
 | F01 首頁、設定與教學／S1 | 已有 | `AppShell` 進入任務方申請權限，`AppSettings` 保存語言、語速及教學 | 現有分任務入口。驗首次拒權、恢復、大字、讀屏及切換資源 |
-| F02 即時物件辨識／S0–S1 | 試驗版 | 原生相機 → TFLite → 類別映射 → 框與有效摘要，顯示與播報各有門檻 | Dataset D01／D04／D08。驗模型載入、誤播／漏播、過期與恢復 |
+| F02 即時物件辨識／S0–S1 | 試驗版 | 原生相機 → TFLite → 類別映射 → 框與有效摘要。日常模式畫框＝播報門檻，開發者診斷頁可分開調。獨立 Open Images 評估（0.7）：垃圾桶、單車可靠；行人精確率 0.77；門不可靠；樓梯召回僅 0.04。[評估證據](../verification/android-oid-test-eval-20261123.json)Android 前處理以 `CameraPreprocess.kt` 對齊離線評估（JVM 逐像素對照） | Dataset D01／D04／D08。驗模型載入、誤播／漏播、過期與恢復 |
 | F03 語音與讀屏／S1–S4 | 部分已有 | `SpeechCoordinator` 仲裁導航和環境，讀屏／TTS 擇一路，取消時作廢舊結果 | 真機聽音、耳機／來電、讀屏、收音及重讀。空間方向待 F09–F10 |
 | F04 帳號與緊急聯絡／S1 | 已有，待實測 | Google 登入、本人 profile、選填聯絡人。按鈕交系統撥號 | Backend B01／B10。驗切帳號、重新認證、刪除及撥號狀態 |
 | F05 問題回報與抽樣／S2 | 部分已有，待接通 | 同意 → 相片與原預測 → 加密佇列 → 獨立回報及覆核。距離／文字另訂證據 | B02–B03／D02。先接認錯／漏認，驗撤回、無框及抽樣偏差 |
 | F06 戶外步行／S1 | iPhone 已接 | MapKit／Core Location 或 Android Places／Location 與 Routes 代理 → `NavigationController` → 路線及播報 | B11。驗定位新鮮度、偏離、相機交接及入口 |
-| F07 閱讀文字及菜單查價／S1 | 通用閱讀及同圖菜單切換已接入 iPhone 開發分支 | 沿用 iPhone 拍攝／選圖與本機 OCR。通用結果供分段讀出及找字詞，菜單模式沿用 `MenuDocument` 及文字／粵語查詢 | D06。驗日常文字的閱序、重拍、重讀與停止，同圖切換時再驗缺價、多價及誤配。Android 須另適配 |
+| F07 閱讀文字及菜單查價／S1 | 通用閱讀及同圖菜單切換已接入 iPhone 開發分支 | 沿用 iPhone 拍攝／選圖與本機 OCR。通用結果供分段讀出及找字詞，菜單模式沿用 `MenuDocument` 及文字／粵語查詢 | D06。驗日常文字的閱序、重拍、重讀與停止，同圖切換時再驗缺價、多價及誤配。Android 以 ML Kit 中文適配，回傳通用讀字區域；多頁掃描未接 |
 | F08 共用／私人模型更新／S3 | 待實作 | 本人 offer → 閒置下載、核 SHA／映射／相容性 → 原子切換或回退 | B04–B09／D07–D08。驗斷網、登出、容量及拒用版本。路標模型與索引須配套 |
 | F09 同幀相機與深度／S4 | 試驗 | 能力檢查後用單一 ARSession，對齊影像、深度、內參和預覽座標 | 量尺及框對位。覆蓋低光、反光、方向切換與相機互斥 |
 | F10 框內表面與幾何障礙／S4 | 距離試驗。幾何待實作 | 在框內試可信局部深度，按短時序穩定後輸出徑向距離。地面／世界座標待做 | D09。多人、玻璃、失效及不合格取樣保留未知 |
@@ -189,8 +191,8 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 | F14 已錄路線、場地圖與跨層／S4–S7 | 逐點重認已有，方向提示已接入開發分支，實地待驗 | 新觀察 → 固定路標／有向路段 → 確認樓層、出口及面向 → 顯示當前手動標記及適用的錄製方向 | B14／D09。驗同層／錯層／跨層／反向及中斷。場地擴展經獨立驗證 |
 | F15 扶手電梯方向與門推拉／S7 | 研究 | 同設備時序、幾何、入口標示及梯級運動交叉驗證。門推拉只讀可信標示 | D11。測相鄰設備、啟停、反射、移動及未知 |
 | F16 懸空／近身障礙／S7 | 研究 | 以可信深度、重力、通行範圍及相對運動判斷侵入情況 | D09／D11。驗頭部高度、細物、漏報、誤報及失效 |
-| F17 錄路與路標記憶／S1–S4 | 核心已裝機，更多設施、失敗紀錄及文字／iPhone 錄音備註已在開發分支 | 普通相機取樣 → 一按標記／必要確認 → 保存在本機加密版本。重行確認路標後可按需讀出文字及播放錄音 | B15。待驗 iPhone 收音、播放、VoiceOver、面板焦點及方向重行。Android 錄音備註待接 |
-| F18 裝置與登入擴展／S1–S7 | 裝置及登入待擴 | 無 LiDAR 保留基本流程。Android 接對應 adapter。新增登入維持本人 UID | B16。一般 iPhone／Android 真機、登入連結與切帳號 |
+| F17 錄路與路標記憶／S1–S4 | 核心已裝機，更多設施、失敗紀錄及文字／iPhone 錄音備註已在開發分支 | 普通相機取樣 → 一按標記／必要確認 → 保存在本機加密版本。重行確認路標後可按需讀出文字及播放錄音 | B15。待驗 iPhone 收音、播放、VoiceOver、面板焦點及方向重行。Android 錄製／保存／重開已接（CameraX 關鍵幀＋MobileNetV3-small 路標特徵），與 iPhone 特徵不相容；Android 錄音備註待接 |
+| F18 裝置與登入擴展／S1–S7 | Android 已接辨識、讀字、錄路相機及路標 adapter；深度、錄音備註、路標候選未接 | 無 LiDAR 保留基本流程。Android 其餘 adapter 逐項接入，經 overlay 腳本隨上游同步。新增登入維持本人 UID | B16。一般 iPhone／Android 真機、登入連結與切帳號 |
 | F19 空間音效／S4–S7 | 研究 | 有效方位與距離後，以原生空間音效產生提示，與讀屏／語音協調 | F09–F10。耳機、左右／前後、近遠及外界聲音負擔 |
 | F20 路口燈號及斑馬線／S7 | 研究 | 獨立資料、路口與燈號配對、時序驗證，只描述可靠觀測 | D13。驗錯燈、反光、閃爍、陌生路口及未知 |
 | F21 讀取電梯樓層／S5–S7 | 待實作 | 主動拍攝 → 顯示區 → OCR 及亮燈時序 → 讀出觀察結果 | D13。不同樓層格式、反光、LED 與相鄰按鈕，當前樓層另核 |
@@ -229,15 +231,17 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 
 2026 年 11 月 20 日按 App 入口、操作、驗收與功能依賴重整。2026 年 11 月 10 日版本的段落、舊版安裝及實驗可由 [Git 歷史](https://github.com/actiondarr/pathguide/tree/79a82d8/docs)、[Release 收據](../verification/release-receipts/)及[上次整理紀錄](../verification/docs-current-cleanup-20261110.json)追溯。
 
+<a id="android-fork-log"></a>
+
 ## 本倉庫 Android 維護紀錄（非上游內容）
 
 以下紀錄只屬本倉庫的 Android 移植工作；同步上游後由 `scripts/apply_android_overlay.ps1` 重套，不代表上游狀態。
 
-2026-10-23本倉庫同步（tag v1.8.0+15-android-sync.1，非上游版本）：本倉庫把 App 基線由 1.4.1+6 同步至上游 1.8.0+15（app／backend／docs／verification／dataset_pipeline／configs/planning 全量，保留我方 scripts／tests／data 與 configs/classes.json v6）。同步後重新套用三項本倉庫專屬的 Android 工作（上游到此版仍缺）：① `MenuPlugin.kt` 菜單 OCR 與菜單語音查詢（ML Kit 中文，契約與 iOS `MenuPlugin.swift` 一致）；② 快速設定磁貼 `PathGuideTileService` 與四語系 `app_name`／`tile_label`（manifest 由硬編碼改 `@string/app_name`）；③ 菜單頁的第三方語音廠商名稱改為平台感知（iOS=Apple、Android=Google），並把映射抽成可測純函數。另新增 4 個**非 macOS 平台守衛**：`captured_route_store_test`／`encrypted_route_store_test`／`route_journey_page_test`／`route_record_replay_test` 依賴 iOS Keychain，在 Windows 上必然以 `keyUnavailable` 失敗，改為整檔跳過並寫明原因（Mac 上照舊全跑）。門禁：457項Flutter（4項跳過）、444項Python（1項跳過）、analyze 0問題、Android debug APK 構建成功。**未做**：無 Android 真機、未跑 iOS 建置；上游此版自身仍在 prerelease 狀態，其驗收紀錄未宣稱本線已通過手機驗收。
+2026-11-07本倉庫同步（tag v1.8.0+15-android-sync.1，非上游版本）：本倉庫把 App 基線由 1.4.1+6 同步至上游 1.8.0+15（app／backend／docs／verification／dataset_pipeline／configs/planning 全量，保留我方 scripts／tests／data 與 configs/classes.json v6）。同步後重新套用三項本倉庫專屬的 Android 工作（上游到此版仍缺）：① `MenuPlugin.kt` 菜單 OCR 與菜單語音查詢（ML Kit 中文，契約與 iOS `MenuPlugin.swift` 一致）；② 快速設定磁貼 `PathGuideTileService` 與四語系 `app_name`／`tile_label`（manifest 由硬編碼改 `@string/app_name`）；③ 菜單頁的第三方語音廠商名稱改為平台感知（iOS=Apple、Android=Google），並把映射抽成可測純函數。另新增 4 個**非 macOS 平台守衛**：`captured_route_store_test`／`encrypted_route_store_test`／`route_journey_page_test`／`route_record_replay_test` 依賴 iOS Keychain，在 Windows 上必然以 `keyUnavailable` 失敗，改為整檔跳過並寫明原因（Mac 上照舊全跑）。門禁：457項Flutter（4項跳過）、444項Python（1項跳過）、analyze 0問題、Android debug APK 構建成功。**未做**：無 Android 真機、未跑 iOS 建置；上游此版自身仍在 prerelease 狀態，其驗收紀錄未宣稱本線已通過手機驗收。
 
-2026-10-23本倉庫工具化（不涉上游版本）：把「每次同步上游都要手工重套的 Android 工作」寫成 `scripts/apply_android_overlay.ps1`（冪等：新增檔已存在→跳過；已套用 marker→跳過；錨點找不到→報錯要人工看；行尾自動跟隨目標檔案的 CRLF／LF）。覆蓋範圍：9 個上游沒有的新增檔（`MenuPlugin.kt`／`PathGuideTileService.kt`／`ic_qs_tile.xml`／`file_paths.xml`／四語系 `strings.xml`／`menu_platform_test.dart`）＋ MainActivity／AndroidManifest／build.gradle.kts／menu_reader／menu_page／menu_ui_test 的編輯 ＋ 4 個路線記憶測試的非 macOS Keychain 守衛。並新增 `tests/test_android_overlay.py`（28 項靜態門禁，刻意不用子進程以免踩沙箱管道限制）把「腳本跑過」钉成不變量——因為忘了跑的三種後果（磁貼消失、菜單入口消失、40+ 條測試紅）都不會有人主動報錯。腳本存為 **UTF-8 with BOM**：Windows PowerShell 5.1 對無 BOM 的 UTF-8 會按 ANSI 解碼，中文錨點全部匹配不到，症狀是「跑完了但什麼都沒改」。實測：把 manifest 換回上游原版後 `-Check` 報 2 項待套用、跑一次後回到 32 項全就緒，且與已提交版本只差一行註解。
+2026-11-07本倉庫工具化（不涉上游版本）：把「每次同步上游都要手工重套的 Android 工作」寫成 `scripts/apply_android_overlay.ps1`（冪等：新增檔已存在→跳過；已套用 marker→跳過；錨點找不到→報錯要人工看；行尾自動跟隨目標檔案的 CRLF／LF）。覆蓋範圍：9 個上游沒有的新增檔（`MenuPlugin.kt`／`PathGuideTileService.kt`／`ic_qs_tile.xml`／`file_paths.xml`／四語系 `strings.xml`／`menu_platform_test.dart`）＋ MainActivity／AndroidManifest／build.gradle.kts／menu_reader／menu_page／menu_ui_test 的編輯 ＋ 4 個路線記憶測試的非 macOS Keychain 守衛。並新增 `tests/test_android_overlay.py`（28 項靜態門禁，刻意不用子進程以免踩沙箱管道限制）把「腳本跑過」钉成不變量——因為忘了跑的三種後果（磁貼消失、菜單入口消失、40+ 條測試紅）都不會有人主動報錯。腳本存為 **UTF-8 with BOM**：Windows PowerShell 5.1 對無 BOM 的 UTF-8 會按 ANSI 解碼，中文錨點全部匹配不到，症狀是「跑完了但什麼都沒改」。實測：把 manifest 換回上游原版後 `-Check` 報 2 項待套用、跑一次後回到 32 項全就緒，且與已提交版本只差一行註解。
 
-2026-10-23路線記憶的 Windows 相容修正（tag v1.8.0+15-android-sync.2）：查證後推翻了先前的「需 iOS Keychain」判斷，真正的兩個原因是 ① `encrypted_route_store._key()` 用 `f.path.endsWith('/.lock')` 判斷鎖檔，而 Windows 的 `File.path` 用反斜線 → 鎖檔被當成「有資料但沒金鑰」，每次開檔都 `RouteStoreFailure(keyUnavailable)`；② 有幾條測試刻意在 store 仍持有 `.lock` 時刪檔，Windows 回 `PathAccessException(errno 32)`（POSIX 允許刪除已打開的檔案）。① 屬真 bug，已改為用路徑末段判斷（`f.uri.pathSegments.last`），Android／iOS 原本就看不到此問題；② 屬平台語義差異，改為**只跳過那 8 條**並在 helper 註解寫明真正原因。同時撤掉先前 4 個整檔的假守衛：Flutter 通過數由 **457（4 檔跳過）** 升到 **512（8 條跳過）**。overlay 腳本第 8 節同步改寫（38 項），`tests/test_android_overlay.py` 改為斷言「鎖檔用路徑末段」與「8 條已包裝」。門禁：analyze 0、Flutter 512、pytest 475、Android debug APK 構建成功。**未做**：無 Android 真機、未跑 iOS 建置；Android 的路線**採集**（相機/地標插件）仍是上游 iOS-only，是下一步真正的差距。
+2026-11-08路線記憶的 Windows 相容修正（tag v1.8.0+15-android-sync.2）：查證後推翻了先前的「需 iOS Keychain」判斷，真正的兩個原因是 ① `encrypted_route_store._key()` 用 `f.path.endsWith('/.lock')` 判斷鎖檔，而 Windows 的 `File.path` 用反斜線 → 鎖檔被當成「有資料但沒金鑰」，每次開檔都 `RouteStoreFailure(keyUnavailable)`；② 有幾條測試刻意在 store 仍持有 `.lock` 時刪檔，Windows 回 `PathAccessException(errno 32)`（POSIX 允許刪除已打開的檔案）。① 屬真 bug，已改為用路徑末段判斷（`f.uri.pathSegments.last`），Android／iOS 原本就看不到此問題；② 屬平台語義差異，改為**只跳過那 8 條**並在 helper 註解寫明真正原因。同時撤掉先前 4 個整檔的假守衛：Flutter 通過數由 **457（4 檔跳過）** 升到 **512（8 條跳過）**。overlay 腳本第 8 節同步改寫（38 項），`tests/test_android_overlay.py` 改為斷言「鎖檔用路徑末段」與「8 條已包裝」。門禁：analyze 0、Flutter 512、pytest 475、Android debug APK 構建成功。**未做**：無 Android 真機、未跑 iOS 建置；Android 的路線**採集**（相機/地標插件）仍是上游 iOS-only，是下一步真正的差距。
 
 2026-11-22本倉庫同步（tag v1.12.1+31-android-sync.1，非上游版本）：以三方合併套用上游 1.8.0+15→1.12.1+31（82 個提交、143 個檔案：場景模式、路標私人改善、路線語音／文字備注、通用讀字與同圖菜單價錢、iOS 受保護路線寫入等）。衝突只有 `menu_page.dart`（不支援理由改按讀字／菜單分句，保留平台感知）與四份文件（上游整體重寫，改用上游版本再補回本節）。`MenuPlugin.kt` 支援 `includeGeneral`，回傳 `readingLines`，對齊上游通用讀字契約。Windows 相容：上游新增的 `route_learning_store` 帶著同款 `.lock` 判斷 bug，已修；另查出兩個 store 的孤兒清理用 `'/'` 拼 keep 路徑、Windows 上會刪掉要保留的紀錄，改按平台分隔符比對——之前在 Windows 跳過的 8 條測試真因是這個，跳過已撤銷、測試還原為上游原樣。overlay 腳本第 8 節改為釘住程式修正（-Check 32 項就緒）。門禁：analyze 0、Flutter 620（7 條場景模式開關跳過）、pytest 476、Android debug APK 構建成功。**未做**：無 Android 真機、未跑 iOS 建置、未推送；Android 仍缺 route_storage／route_camera／route_landmark／route_note_audio／depth 原生插件。
 
@@ -248,3 +252,5 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 2026-11-23本倉庫 Android 錄路與檢測前處理（tag v1.12.1+31-android-sync.4，Redmi／Android 16 真機）：① 按初始報告 4.10 節接通 Android 錄路（FR3）。新增 `RouteCameraPlugin.kt`（CameraX 預覽＋直立 JPEG 關鍵幀，來源誠實標 `camerax-back`／`android-elapsed-realtime`，非 realtime 時鐘回 `unknown_clock`）與 `RouteLandmarkPlugin.kt`（MediaPipe MobileNetV3-small 嵌入＋ML Kit 文字，載入時核對模型雜湊；與 iOS Vision 特徵不相容並如實回報）。Dart 新增 `route_platform_profile.dart`，相機來源、特徵版本與閾值、OCR 版本、儲存校驗、路線相容性及原生預覽改按平台取；宿主測試仍走 iOS 配置。Android 閾值 0.35／0.09／0.09 只是桌面粗測的暫定值，未經實地校準。真機：預覽、自動取樣加入路標、畫面不足時拒收、加密保存、強制停止重啟後以草稿重開均通過；真機重開時發現 `RouteDocument.compatible` 仍寫死 iOS 版本（宿主測試看不到），已修並加測試。重行比對、樓層確認、語音備注及路標學習（仍限 iOS）未驗收。② 檢測前處理：舊版以最近一點取樣及限幅範圍公式轉換全範圍相機 YUV；新增 `CameraPreprocess.kt`，與 `a10_evaluate.py`／iOS 一致（全範圍 BT.601、.5 取偶、半像素雙線性、114 填充）。首個 JVM 測試以 OpenCV 夾具逐像素對照：平均差 1.7e-8（舊版 0.148）。真機 Y 範圍 [0,255] 證實相機為全範圍；前處理 24.7 ms、推理 357 ms，每幀約 550 → 380 ms。誤認率尚未以 Android 管線在嚴格留集量度；全暗空白畫面仍出低分全屏「樓梯」框，顯示門檻 0.30 與播報 0.70 不一致仍待處理。門禁：analyze 0、Flutter 633（7 跳過）、JVM 4、pytest 493、APK 構建及裝機；overlay 第 11 節 27 段補丁已驗證逐字重現（-Check 90 項）。
 
 2026-11-23本倉庫日常辨識門檻統一（tag v1.12.1+31-android-sync.5，共享 Dart，iOS 日常模式同樣受影響，應提回上游）：日常模式原以固定 0.30 畫框、`speakThreshold`（預設 0.70）播報；真機全暗空白畫面出現不出聲的「樓梯 0.47」全屏框，看得見的測試者當成誤認，而讀屏使用者聽不到，畫面與語音不一致。現日常模式把播報門檻同時作為檢測門檻：畫出的框就是會播報的框；開發者診斷頁保留獨立畫框滑條（預設 0.30）。新增兩條測試（修正前以 0.30 推送而失敗）。真機對街拍影片：每幀 nativeDet＝det＝paint，speakMin 0.70，播報「行人」，無崩潰；亦見明顯行人未過 0.70 未框，屬模型召回限制。0.70 仍是未校準的舊預設，逐類門檻待以 Android 管線在嚴格留集校準。新增 `scripts/gen_overlay_section.py` 自動產生並驗證 overlay 補丁（第 12 節，-Check 99 項）。門禁：analyze 0、Flutter 635（7 跳過）、pytest 494、APK 構建及裝機。
+
+2026-11-23本倉庫文件校正與量度（tag v1.12.1+31-android-sync.6）：三份文件 S0–S7 表統一並更新至 iPhone 1.12.1+31 收據；正文補入 Android 現況、實測速度及建置測試流程；修正三條維護紀錄日期及「評估可重跑」說法；BACKEND 記跨平台路線遷移設計（未實作，前提為加密匯出／匯入）。即時辨識接入 `SpeechLatencyProbe`（原生處理＋Dart＋TTS 開始，每 10 次記 p50／p95；讀屏路線不計，真機數據待測）。獨立 Open Images 評估結果見 DATASET-REVIEW。門禁：analyze 0、Flutter 639（7 跳過）、pytest 496；overlay 第 13 節（-Check 106 項）。

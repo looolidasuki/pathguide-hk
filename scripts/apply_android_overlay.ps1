@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.12.1+31-android-sync.5'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.6'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -135,6 +135,8 @@ $overlayFiles = @(
     'app/lib/route_memory/route_camera_preview.dart',
     'app/lib/route_memory/route_platform_profile.dart',
     'app/test/route_android_profile_test.dart',
+    'app/lib/tts/speech_latency.dart',
+    'app/test/speech_latency_test.dart',
     'app/android/app/src/test/resources/camera_preprocess/cases.txt',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.expected_f32le',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.raw_rgb',
@@ -1469,21 +1471,7 @@ Patch-Overlay 'app/pubspec.yaml' 'pubspec.yaml: 錄路／前處理 1' `
 # 補丁由 scripts/gen_overlay_section.py 產生並驗證逐字重現。
 
 Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識畫框門檻＝播報門檻 1' `
-    (@(
-    'import ''../vision/model_manifest.dart'';',
-    '',
-    '/// 日常辨識只顯示會被播報的框：畫框與播報用同一門檻。',
-    '///',
-    '/// 2026-11-23 真機：日常模式固定 0.30 畫框、0.70 播報，空白暗畫面出現',
-    '/// 「樓梯 0.47」全屏框卻不出聲。看得見的測試者會把這些當成誤認，而依賴',
-    '/// 讀屏的使用者聽不到，畫面與語音資訊不一致。開發者診斷頁保留兩個獨立門檻。',
-    '@visibleForTesting',
-    'double detectionDisplayThreshold({',
-    '  required bool developerControls,',
-    '  required double developerThreshold,',
-    '  required double speakThreshold,',
-    '}) => developerControls ? developerThreshold : speakThreshold;'
-) -join $LF) `
+    '}) => developerControls ? developerThreshold : speakThreshold;' `
     'import ''../vision/model_manifest.dart'';' `
     (@(
     'import ''../vision/model_manifest.dart'';',
@@ -1690,6 +1678,82 @@ Patch-Overlay 'app/test/ios_demo_test.dart' 'ios_demo_test.dart: 2026-11-23 日�
     '      ),',
     '      0.70,',
     '    );'
+) -join $LF)
+
+# ================================================================ 13. 2026-11-23 Android 播報延遲量度
+#
+# 日常辨識接入 SpeechLatencyProbe（新增檔），記原生處理＋Dart＋TTS 開始的延遲。
+# 補丁由 scripts/gen_overlay_section.py 產生並驗證逐字重現。
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android 播報延遲量度 1' `
+    (@(
+    'import ''../vision/model_manifest.dart'';',
+    'import ''../tts/speech_latency.dart'';'
+) -join $LF) `
+    'import ''../vision/model_manifest.dart'';' `
+    (@(
+    'import ''../vision/model_manifest.dart'';',
+    'import ''../tts/speech_latency.dart'';'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android 播報延遲量度 2' `
+    (@(
+    '  late final FlutterTtsSpeaker _speaker;',
+    '',
+    '  /// 畫面→開始發聲的工程量度（App 語音路線），見 [SpeechLatencyProbe]。',
+    '  final _latency = SpeechLatencyProbe();'
+) -join $LF) `
+    '  late final FlutterTtsSpeaker _speaker;' `
+    (@(
+    '  late final FlutterTtsSpeaker _speaker;',
+    '',
+    '  /// 畫面→開始發聲的工程量度（App 語音路線），見 [SpeechLatencyProbe]。',
+    '  final _latency = SpeechLatencyProbe();'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android 播報延遲量度 3' `
+    (@(
+    '      onPlaybackEvent: (event) {',
+    '        if (event == TtsPlaybackEvent.started &&',
+    '            _voice.owner == SpeechChannel.environment) {',
+    '          _latency.started();',
+    '        }'
+) -join $LF) `
+    '      onPlaybackEvent: (event) {' `
+    (@(
+    '      onPlaybackEvent: (event) {',
+    '        if (event == TtsPlaybackEvent.started &&',
+    '            _voice.owner == SpeechChannel.environment) {',
+    '          _latency.started();',
+    '        }'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android 播報延遲量度 4' `
+    (@(
+    '  void _stopSpeech() {',
+    '    _latency.cancel();'
+) -join $LF) `
+    '  void _stopSpeech() {' `
+    (@(
+    '  void _stopSpeech() {',
+    '    _latency.cancel();'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android 播報延遲量度 5' `
+    (@(
+    '        _announcer.onFrame(frame.detections) != null) {',
+    '      // 讀屏路線沒有 TTS 開始回呼，不計入延遲量度。',
+    '      if (!_screenReader) {',
+    '        _latency.submitted(receivedAt: now, nativeMs: frame.inferenceMs);',
+    '      }'
+) -join $LF) `
+    '        _announcer.onFrame(frame.detections) != null) {' `
+    (@(
+    '        _announcer.onFrame(frame.detections) != null) {',
+    '      // 讀屏路線沒有 TTS 開始回呼，不計入延遲量度。',
+    '      if (!_screenReader) {',
+    '        _latency.submitted(receivedAt: now, nativeMs: frame.inferenceMs);',
+    '      }'
 ) -join $LF)
 
 # ================================================================ 結果

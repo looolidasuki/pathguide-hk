@@ -38,6 +38,7 @@ import '../photos/photo_ui.dart';
 import '../photos/photo_controller.dart';
 import '../photos/firebase_photos.dart';
 import '../vision/model_manifest.dart';
+import '../tts/speech_latency.dart';
 
 /// 日常辨識只顯示會被播報的框：畫框與播報用同一門檻。
 ///
@@ -91,6 +92,9 @@ class DemoPage extends StatefulWidget {
 
 class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
   late final FlutterTtsSpeaker _speaker;
+
+  /// 畫面→開始發聲的工程量度（App 語音路線），見 [SpeechLatencyProbe]。
+  final _latency = SpeechLatencyProbe();
   late final EnvironmentSpeaker _environmentSpeaker;
   late final Announcer _announcer;
   late final SpeechCoordinator _voice;
@@ -409,6 +413,10 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
       speechRate: widget.settings.speechSpeed.rate,
       language: widget.settings.language,
       onPlaybackEvent: (event) {
+        if (event == TtsPlaybackEvent.started &&
+            _voice.owner == SpeechChannel.environment) {
+          _latency.started();
+        }
         if (_voice.owner == SpeechChannel.scene &&
             _scene.speechOutputSubmitted) {
           _scene.playbackEvent(event.name);
@@ -744,6 +752,7 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
   }
 
   void _stopSpeech() {
+    _latency.cancel();
     _scene.interrupt();
     _announcer.enabled = false;
     final stopping = _voice.stop();
@@ -907,6 +916,10 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
     if (_announcer.enabled &&
         !_announcer.isSpeaking &&
         _announcer.onFrame(frame.detections) != null) {
+      // 讀屏路線沒有 TTS 開始回呼，不計入延遲量度。
+      if (!_screenReader) {
+        _latency.submitted(receivedAt: now, nativeMs: frame.inferenceMs);
+      }
       unawaited(
         _announcer.lastSpeech!.catchError((Object e) {
           if (!mounted) return;

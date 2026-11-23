@@ -48,6 +48,8 @@ OVERLAY_FILES = [
     APP / "lib/route_memory/route_platform_profile.dart",
     APP / "lib/route_memory/route_camera_preview.dart",
     APP / "test/route_android_profile_test.dart",
+    APP / "lib/tts/speech_latency.dart",
+    APP / "test/speech_latency_test.dart",
 ]
 
 # (档案, 说明, 该出现的「已套用」标记)
