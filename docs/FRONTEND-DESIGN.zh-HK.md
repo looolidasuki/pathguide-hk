@@ -199,7 +199,7 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 | F22 耳機頭部手勢／S7 | 研究 | 權限及相容檢查 → 姿態校準與門檻 → 可取消操作，保留按鈕 | D14。驗日常轉頭、斷線及不支援裝置 |
 | F23 鎖屏語音導航／S7 | 待實作 | 獨立設計背景定位、音訊會話及停止／恢復。明示攝影限制 | B12／D14。驗授權、耗電、舊事件與鎖屏恢復 |
 | F24 場景描述／S1 | 私人測試建置已補開關。1.12.0+30 未啟用 | 共用相機取當前 JPEG → 驗證首次／更新回覆 → 最新內容語音 | B17。單開關已裝機，先驗拒絕、內容、真實起音、轉向及讀屏 |
-| F25 本機路標候選及覆核／S3 | 已接 iPhone 開發分支；Android 已接（sync.9），未在真機驗 | 逐趟選填 → 重用位置比對及基本畫質檢查 → 加密候選 → 停止相機後人工覆核或刪除 | B15／D09。核對預設關閉、保存上限、到期、刪除、兩倍字體與真機 VoiceOver。Android 候選存於 App 私有目錄 route_learning_v1（allowBackup=false，無 iOS 檔案保護等級），待可重行路線實測收集、撤回、覆核及 TalkBack |
+| F25 本機路標候選及覆核／S3 | 已接 iPhone 開發分支；Android 已接（sync.9），真機只驗覆核頁開啟 | 逐趟選填 → 重用位置比對及基本畫質檢查 → 加密候選 → 停止相機後人工覆核或刪除 | B15／D09。核對預設關閉、保存上限、到期、刪除、兩倍字體與真機 VoiceOver。Android 候選存於 App 私有目錄 route_learning_v1（allowBackup=false，無 iOS 檔案保護等級），待可重行路線實測收集、撤回、覆核及 TalkBack |
 
 ## 維護與追溯
 
@@ -259,4 +259,4 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 
 2026-11-23本倉庫 Android 路標錄音備註（tag v1.12.1+31-android-sync.8）：新增 RouteNoteAudioPlugin.kt 對應 iOS 通道契約（start／finish／play／cancel，同一時間一個 owner；unavailable／permission／too_short／invalid／cancelled）。AudioRecord 依序試 16/44.1/48/22.05/8 kHz，取樣只存記憶體、達 10 秒或 1 MiB 自動停；RouteNoteWav.kt 產生與 Dart RouteAudioNote.fromBytes 一致的 44 位元組 PCM WAV。播放用 AudioTrack 靜態模式，播完（marker 或時長兜底）才回覆。onStop 或失去音訊焦點（不含閃避）即重設並以 cancelled 結束在途回覆。Dart 閘門以真實主機作業系統開放 Android。新增 4 條 JVM、3 條 Flutter 測試；overlay 第 15 節。門禁：analyze 0、Flutter 647（7 跳過）、JVM 8、APK 構建。同日真機（2609FRA74T）：16 kHz 收音、10 秒自動停、試聽播完、中途停止、HOME 中斷釋放咪高峰、保存後強制關閉重開仍可播放 10 秒，logcat 無崩潰；拒權（兩次提示均被按允許）、少於 0.25 秒、來電中斷及 TalkBack 未驗。
 
-2026-11-23本倉庫 Android 本機路標候選（tag v1.12.1+31-android-sync.9）：RouteLearningStore.platformOpener 統一 iOS／Android 閘門（Android 以真實主機作業系統判斷）。Android 沒有 iOS 的 route_storage 檔案保護通道，學習庫與路線庫一樣放在 App 私有目錄（route_learning_v1，allowBackup=false），金鑰仍由 flutter_secure_storage／Keystore 獨立保管；候選特徵沿用平台特徵版本（Android 為 MobileNetV3-small），不與 iPhone 候選互通。新增 3 條測試；overlay 第 16 節；gen_overlay_section.py 修正純刪除段無法產生「已套用」標記而死循環。門禁：analyze 0、Flutter 650（7 跳過）、APK 構建；手機已斷線，真機收集、撤回、覆核及 TalkBack 未驗（需先有可重行路線）。
+2026-11-23本倉庫 Android 本機路標候選（tag v1.12.1+31-android-sync.9）：RouteLearningStore.platformOpener 統一 iOS／Android 閘門（Android 以真實主機作業系統判斷）。Android 沒有 iOS 的 route_storage 檔案保護通道，學習庫與路線庫一樣放在 App 私有目錄（route_learning_v1，allowBackup=false），金鑰仍由 flutter_secure_storage／Keystore 獨立保管；候選特徵沿用平台特徵版本（Android 為 MobileNetV3-small），不與 iPhone 候選互通。新增 3 條測試；overlay 第 16 節；gen_overlay_section.py 修正純刪除段無法產生「已套用」標記而死循環。門禁：analyze 0、Flutter 650（7 跳過）、APK 構建；同日真機（2609FRA74T）：路線頁顯示「覆核路標候選」，覆核頁可開啟學習庫並列出「沒有未到期的候選」，無儲存錯誤；逐趟收集開關只在可重行路線出現，測試路線均為草稿，收集、撤回、覆核決定、刪路線清理及 TalkBack 未驗。
