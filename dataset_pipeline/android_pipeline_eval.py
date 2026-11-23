@@ -204,15 +204,42 @@ def read_names(yaml_path: Path):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument('--images', type=Path, required=True)
-    ap.add_argument('--labels', type=Path, required=True)
-    ap.add_argument('--dataset-yaml', type=Path, required=True)
+    ap.add_argument('--bundle', type=Path,
+                    help='export_strict_bundle.py 產生的評估包（逐圖標註覆蓋範圍）；與下三項擇一')
+    ap.add_argument('--images', type=Path)
+    ap.add_argument('--labels', type=Path)
+    ap.add_argument('--dataset-yaml', type=Path)
     ap.add_argument('--model', type=Path, default=Path('app/assets/models/detector.tflite'))
     ap.add_argument('--output', type=Path, required=True)
     args = ap.parse_args()
 
-    names = read_names(args.dataset_yaml)
-    coverage = sorted({DATASET_TO_MODEL[n] for n in names if n in DATASET_TO_MODEL})
+    # items: (影像路徑, 真值或 None, 該圖有標註的類別, 額外資訊)
+    if args.bundle:
+        items = []
+        for line in (args.bundle / 'records.jsonl').read_text(encoding='utf-8').splitlines():
+            r = json.loads(line)
+            path = args.bundle / 'images' / r['file']
+            if sha256(path) != r['sha256']:
+                raise SystemExit(f'評估包影像雜湊不符：{r["file"]}')
+            gts = [{'name': b['name'], 'xyxy': b['xyxy']} for b in r['boxes'] if b['name'] in MODEL_NAMES]
+            items.append((path, gts, set(r['coverage']), {'id': r['id'], 'source': r['source']}))
+        coverage = sorted({c for _, _, cov, _ in items for c in cov})
+        source_desc = {'bundle': str(args.bundle),
+                       'manifest_sha256': sha256(args.bundle / 'manifest.json'),
+                       'records_sha256': sha256(args.bundle / 'records.jsonl'),
+                       'coverage': 'per image (from bundle)'}
+        caveat = 'frozen strict set exported by export_strict_bundle.py'
+    else:
+        if not (args.images and args.labels and args.dataset_yaml):
+            raise SystemExit('需要 --bundle，或同時提供 --images --labels --dataset-yaml')
+        names = read_names(args.dataset_yaml)
+        coverage = sorted({DATASET_TO_MODEL[n] for n in names if n in DATASET_TO_MODEL})
+        paths = sorted(p for p in args.images.iterdir() if p.suffix.lower() in ('.jpg', '.jpeg', '.png'))
+        items = [(p, None, set(coverage), {}) for p in paths]
+        source_desc = {'images': str(args.images), 'labels': str(args.labels),
+                       'coverage': 'whole dataset (classes in dataset.yaml)'}
+        caveat = 'may overlap the model training data; compare pipelines relatively'
+
     interp = Interpreter(model_path=str(args.model), num_threads=4)
     interp.allocate_tensors()
     inp, out = interp.get_input_details()[0], interp.get_output_details()[0]
@@ -221,15 +248,15 @@ def main():
     pipelines = ['legacy', 'android', 'offline']
     totals = {p: {t: defaultdict(lambda: [0, 0, 0]) for t in THRESHOLDS} for p in pipelines}
     images = []
-    paths = sorted(p for p in args.images.iterdir() if p.suffix.lower() in ('.jpg', '.jpeg', '.png'))
-    for n, path in enumerate(paths, 1):
+    for n, (path, bundle_gts, image_coverage, extra) in enumerate(items, 1):
         bgr = cv2.imread(str(path))
         if bgr is None:
             continue
         rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
         h, w = rgb.shape[:2]
-        gts = load_labels(args.labels / (path.stem + '.txt'), names, w, h)
-        record = {'file': path.name, 'sha256': sha256(path), 'gt': gts}
+        gts = bundle_gts if bundle_gts is not None else load_labels(args.labels / (path.stem + '.txt'), names, w, h)
+        record = {'file': path.name, 'sha256': sha256(path), 'gt': gts,
+                  'coverage': sorted(image_coverage), **extra}
         for p in pipelines:
             frame, geo = prepare(rgb, p)
             tensor = frame.transpose(2, 0, 1)[None] if nchw else frame[None]
@@ -241,12 +268,12 @@ def main():
                      'xyxy': [float(x) for x in boxes[i]]} for i in keep if scores[i] >= 0.25]
             record[p] = dets
             for t in THRESHOLDS:
-                for name, (tp, fp, fn) in match(dets, gts, coverage, t).items():
+                for name, (tp, fp, fn) in match(dets, gts, image_coverage, t).items():
                     acc = totals[p][t][name]
                     acc[0] += tp; acc[1] += fp; acc[2] += fn
         images.append(record)
         if n % 20 == 0:
-            print(f'{n}/{len(paths)}', flush=True)
+            print(f'{n}/{len(items)}', flush=True)
 
     def table(acc):
         rows = {}
@@ -264,12 +291,11 @@ def main():
 
     result = {
         'model': {'path': str(args.model), 'sha256': sha256(args.model)},
-        'dataset': {'images': str(args.images), 'labels': str(args.labels),
-                    'count': len(images), 'covered_classes': coverage,
-                    'caveat': 'may overlap the model training data; compare pipelines relatively'},
+        'dataset': {**source_desc, 'count': len(images), 'covered_classes': coverage,
+                    'caveat': caveat},
         'method': {'camera': 'JFIF full-range BT.601 YUV420, 2x2 chroma mean',
                    'nms_iou': NMS_IOU, 'max_det': MAX_DET, 'match_iou': MATCH_IOU,
-                   'fp_counted_only_for_covered_classes': True},
+                   'fp_counted_only_for_classes_annotated_in_that_image': True},
         'thresholds': THRESHOLDS,
         'summary': {p: {str(t): table(totals[p][t]) for t in THRESHOLDS} for p in pipelines},
         'images': images,
