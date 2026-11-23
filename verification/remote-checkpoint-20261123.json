@@ -1,0 +1,113 @@
+{
+    "date":  "2026-11-23",
+    "type":  "remote-checkpoint",
+    "purpose":  "S0 gap closed: the Android port line and its nine rollback tags now exist on the fork remote, so the local-only history has an off-machine recovery point.",
+    "remote":  "https://github.com/looolidasuki/pathguide-hk.git",
+    "command":  [
+                    "git push -u origin merge/upstream-1.12.1-31",
+                    "git push origin v1.12.1+31-android-sync.1 .. v1.12.1+31-android-sync.9"
+                ],
+    "worktreeCleanBeforePush":  true,
+    "branch":  {
+                   "name":  "merge/upstream-1.12.1-31",
+                   "local":  "8229cf600d9864a34afb87942a071048cb2475b5",
+                   "remote":  "8229cf600d9864a34afb87942a071048cb2475b5",
+                   "match":  true
+               },
+    "tags":  [
+                 {
+                     "name":  "v1.12.1+31-android-sync.1",
+                     "local":  "fc7f7642851ed86f07aeb3124cb8d33db82cd5a9",
+                     "remote":  "fc7f7642851ed86f07aeb3124cb8d33db82cd5a9",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.2",
+                     "local":  "90d1e387ef683402ff0ae20cb0aad72329ac0a59",
+                     "remote":  "90d1e387ef683402ff0ae20cb0aad72329ac0a59",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.3",
+                     "local":  "5d19fc66352ec33b9fa4ab2f90e89b91171f93d6",
+                     "remote":  "5d19fc66352ec33b9fa4ab2f90e89b91171f93d6",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.4",
+                     "local":  "f928eb57ed9d547065a1abc57b9171391e0fa4c5",
+                     "remote":  "f928eb57ed9d547065a1abc57b9171391e0fa4c5",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.5",
+                     "local":  "92cb9b4a30009e39b58bcada4defe34c3ebb9cca",
+                     "remote":  "92cb9b4a30009e39b58bcada4defe34c3ebb9cca",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.6",
+                     "local":  "3c96c2243038d539a0efec171d1d80590607a144",
+                     "remote":  "3c96c2243038d539a0efec171d1d80590607a144",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.7",
+                     "local":  "9064500266b11b4bedb5b5a2888c52d61c8bacfa",
+                     "remote":  "9064500266b11b4bedb5b5a2888c52d61c8bacfa",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.8",
+                     "local":  "77ae3b7c0baf8bcde3d47a7e31e8abb225144103",
+                     "remote":  "77ae3b7c0baf8bcde3d47a7e31e8abb225144103",
+                     "match":  true
+                 },
+                 {
+                     "name":  "v1.12.1+31-android-sync.9",
+                     "local":  "dc32e1864f3eee7e98ae731edd11213cf4b2f5ca",
+                     "remote":  "dc32e1864f3eee7e98ae731edd11213cf4b2f5ca",
+                     "match":  true
+                 }
+             ],
+    "allSyncTagsMatch":  true,
+    "notPushedTags":  [
+                          {
+                              "name":  "v1.4.1+6-android-menu.1",
+                              "local":  "e60924c2311f27fa47b621d6b673b65906c50582",
+                              "pushed":  false,
+                              "ancestorOfHead":  true,
+                              "reason":  "confirmed scope was the nine v1.12.1+31 android-sync tags; commits are reachable from the pushed branch"
+                          },
+                          {
+                              "name":  "v1.4.1+6-merge",
+                              "local":  "c1c81624df6ba5a223d03a02464ce2d4a753585d",
+                              "pushed":  false,
+                              "ancestorOfHead":  true,
+                              "reason":  "confirmed scope was the nine v1.12.1+31 android-sync tags; commits are reachable from the pushed branch"
+                          },
+                          {
+                              "name":  "v1.8.0+15-android-sync.1",
+                              "local":  "1c234088d1b9f8cc6df269d1fc6c1563bbdfcc7c",
+                              "pushed":  false,
+                              "ancestorOfHead":  true,
+                              "reason":  "confirmed scope was the nine v1.12.1+31 android-sync tags; commits are reachable from the pushed branch"
+                          },
+                          {
+                              "name":  "v1.8.0+15-android-sync.2",
+                              "local":  "6001f869ef3e105bc1e0029f10628c761977ee4d",
+                              "pushed":  false,
+                              "ancestorOfHead":  true,
+                              "reason":  "confirmed scope was the nine v1.12.1+31 android-sync tags; commits are reachable from the pushed branch"
+                          }
+                      ],
+    "commitsAheadOfForkMaster":  40,
+    "unrelatedHistory":  {
+                             "note":  "the 1.12.1+31 upstream sync commit (fc7f764) has a single parent, so no merge base exists with actiondarr/pathguide (cd4f255); the Android line cannot be proposed there as a normal PR",
+                             "upstreamTip":  "cd4f2550a5ccf8c24c00d5a03294b6c92771af50",
+                             "mergeBase":  "(none)"
+                         },
+    "notDone":  [
+                    "no GitHub Release objects were created for these tags; they are source checkpoints with receipts, not phone builds"
+                ]
+}

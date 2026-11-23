@@ -162,7 +162,7 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 
 | 階段 | 工作 | 有證據的現況 | 完成標準 | 下一步／依賴 |
 |---|---|---|---|---|
-| S0 工程基線與版本保存 | 來源、模型、資料相容與回退 | iPhone `1.12.1+31` 有原位裝機、獨立核對及啟動收據，內置模型及映射與收據相符。Android 移植線（本倉庫 tag `v1.12.1+31-android-sync.5`）有 Redmi／Android 16 覆蓋安裝紀錄，未推送遠端 | 來源、模型、相容資料及可回退版本均可追溯 | 回退前先核路線 schema 相容性。Android 線推送並以遠端 tag 保存 |
+| S0 工程基線與版本保存 | 來源、模型、資料相容與回退 | iPhone `1.12.1+31` 有原位裝機、獨立核對及啟動收據，內置模型及映射與收據相符。Android 移植線最新 tag 為 `v1.12.1+31-android-sync.9`（Redmi／Android 16 覆蓋安裝）；分支 `merge/upstream-1.12.1-31` 與九個 android-sync tag 已推送 fork 遠端並逐條核對 SHA | 來源、模型、相容資料及可回退版本均可追溯 | 回退前先核路線 schema 相容性。遠端保存已完成；下一步為真機重行驗收、候選整趟覆核及效能量度 |
 | S1 App 核心功能 | 即時辨識、菜單、戶外步行、場景描述及讀屏 | 已有主要流程。截圖卡住未定位，場景與讀屏待複驗。Android 即時辨識、閱讀文字／菜單查價、系統返回鍵已在真機通過基本操作；Android 戶外導航代理及 TalkBack 未驗 | 逐任務驗可用內容、停止、取消及恢復 | 核對真機故障、語音起音及讀屏 |
 | S2 照片收集與人工覆核 | 同意、私人相片、標註及清理 | 覆核 API 和工作台已有本機合成驗證，功能預設關閉 | 權限、撤回、全圖覆蓋、修訂及獨立覆核可追溯 | 確認角色、部署及真人案例 |
 | S3 私人訓練與模型更新 | 快照、worker、比較、registry 及回退 | iPhone 開發分支已有本機候選收集及覆核，補記憶及訓練閉環待接 | 相較共用模型或記憶補強有額外效益，預算、更新及回退可驗 | 先有核准資料及評估。付費 GPU 須有預算 |
@@ -260,3 +260,5 @@ P0／P1 已有合成契約與本機儲存，P2 已有相機及觀察來源。P3 
 2026-11-23本倉庫 Android 路標錄音備註（tag v1.12.1+31-android-sync.8）：新增 RouteNoteAudioPlugin.kt 對應 iOS 通道契約（start／finish／play／cancel，同一時間一個 owner；unavailable／permission／too_short／invalid／cancelled）。AudioRecord 依序試 16/44.1/48/22.05/8 kHz，取樣只存記憶體、達 10 秒或 1 MiB 自動停；RouteNoteWav.kt 產生與 Dart RouteAudioNote.fromBytes 一致的 44 位元組 PCM WAV。播放用 AudioTrack 靜態模式，播完（marker 或時長兜底）才回覆。onStop 或失去音訊焦點（不含閃避）即重設並以 cancelled 結束在途回覆。Dart 閘門以真實主機作業系統開放 Android。新增 4 條 JVM、3 條 Flutter 測試；overlay 第 15 節。門禁：analyze 0、Flutter 647（7 跳過）、JVM 8、APK 構建。同日真機（2609FRA74T）：16 kHz 收音、10 秒自動停、試聽播完、中途停止、HOME 中斷釋放咪高峰、保存後強制關閉重開仍可播放 10 秒，logcat 無崩潰；拒權（兩次提示均被按允許）、少於 0.25 秒、來電中斷及 TalkBack 未驗。
 
 2026-11-23本倉庫 Android 本機路標候選（tag v1.12.1+31-android-sync.9）：RouteLearningStore.platformOpener 統一 iOS／Android 閘門（Android 以真實主機作業系統判斷）。Android 沒有 iOS 的 route_storage 檔案保護通道，學習庫與路線庫一樣放在 App 私有目錄（route_learning_v1，allowBackup=false），金鑰仍由 flutter_secure_storage／Keystore 獨立保管；候選特徵沿用平台特徵版本（Android 為 MobileNetV3-small），不與 iPhone 候選互通。新增 3 條測試；overlay 第 16 節；gen_overlay_section.py 修正純刪除段無法產生「已套用」標記而死循環。門禁：analyze 0、Flutter 650（7 跳過）、APK 構建；同日真機（2609FRA74T）：路線頁顯示「覆核路標候選」，覆核頁可開啟學習庫並列出「沒有未到期的候選」，無儲存錯誤；逐趟收集開關只在可重行路線出現，測試路線均為草稿，收集、撤回、覆核決定、刪路線清理及 TalkBack 未驗。
+
+2026-11-23本倉庫遠端保存（不涉程式與版本改動）：此前本線全部 40 個提交與九個 tag 只存在本機，硬碟故障即無回退點。現推送 fork `looolidasuki/pathguide-hk` 的分支 `merge/upstream-1.12.1-31`（`8229cf6`）及 `v1.12.1+31-android-sync.1`–`sync.9`，並以 `git ls-remote` 逐條核對本地與遠端 SHA，全部相符；收據 [remote-checkpoint-20261123](../verification/remote-checkpoint-20261123.json)。同時查證一項此前未記錄的事實：`fc7f764`（同步上游 1.12.1+31 的提交）只有一個父提交，本線與上游 `actiondarr/pathguide`（分支 `feature/cross-platform-navigation`，`cd4f255`）**沒有共同祖先**，`git merge-base` 為空，故 Android 線不能以正常 PR 形式提回上游，只能留在 fork。未做：未為此批 tag 建 GitHub Release（來源檢查點，不是手機交付版）；`v1.4.1+6-*` 與 `v1.8.0+15-android-sync.*` 四個舊 tag 仍未推送，其提交可由已推分支到達。真機重行驗收與效能量度尚未開始，S4／NFR 缺口不因本次推送而改變。
