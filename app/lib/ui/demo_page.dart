@@ -1,6 +1,7 @@
 import '../l10n/app_language.dart';
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 
 import '../scene/live_scene_controller.dart';
@@ -51,6 +52,29 @@ double detectionDisplayThreshold({
   required double developerThreshold,
   required double speakThreshold,
 }) => developerControls ? developerThreshold : speakThreshold;
+
+/// 日常模式的逐類最低分數（以項目類別 id 為鍵），與播報門檻取較高者。
+///
+/// 2026-11-23 獨立 Open Images test 評估（verification/android-oid-test-eval-20261123.json）：
+/// 行人在 0.70 的精確率 0.77，0.80 為 0.87；全類誤認 82 → 39，召回 0.220 → 0.177。
+/// 其他可評類別在 0.70 已足夠（垃圾桶 1.00、單車 0.92）；門及未評類別維持播報門檻。
+const Map<int, double> kDailyClassMinScore = <int, double>{6: 0.80};
+
+/// 日常模式只保留達到逐類門檻的偵測；畫框、播報及文字摘要共用同一結果。
+/// 開發者診斷頁原樣輸出，以便比較。
+@visibleForTesting
+List<Detection> dailyDetections(
+  List<Detection> detections, {
+  required bool developerControls,
+  required double speakThreshold,
+}) {
+  if (developerControls) return detections;
+  return [
+    for (final d in detections)
+      if (d.score >= math.max(speakThreshold, kDailyClassMinScore[d.id] ?? 0))
+        d,
+  ];
+}
 
 /// 界面可切换的检测来源种类。
 ///
@@ -913,9 +937,14 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
         !_controlsOpen &&
         !_reading &&
         _pendingStatusAnnouncement == null;
+    final detections = dailyDetections(
+      frame.detections,
+      developerControls: widget.developerControls,
+      speakThreshold: widget.settings.speakThreshold,
+    );
     if (_announcer.enabled &&
         !_announcer.isSpeaking &&
-        _announcer.onFrame(frame.detections) != null) {
+        _announcer.onFrame(detections) != null) {
       // 讀屏路線沒有 TTS 開始回呼，不計入延遲量度。
       if (!_screenReader) {
         _latency.submitted(receivedAt: now, nativeMs: frame.inferenceMs);
@@ -933,9 +962,9 @@ class _DemoPageState extends State<DemoPage> with WidgetsBindingObserver {
     }
 
     setState(() {
-      _detections = frame.detections;
+      _detections = detections;
       _readback = resultSummary(
-        frame.detections,
+        detections,
         minScore: widget.settings.speakThreshold,
         simulated: _mode == SourceMode.mock,
       );

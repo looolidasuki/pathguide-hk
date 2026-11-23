@@ -50,6 +50,7 @@ OVERLAY_FILES = [
     APP / "test/route_android_profile_test.dart",
     APP / "lib/tts/speech_latency.dart",
     APP / "test/speech_latency_test.dart",
+    APP / "test/daily_detection_threshold_test.dart",
 ]
 
 # (档案, 说明, 该出现的「已套用」标记)
@@ -153,6 +154,11 @@ PATCH_MARKERS = [
         APP / "lib/ui/demo_page.dart",
         "日常辨識畫框門檻等於播報門檻（不再出現不出聲的低分框）",
         "}) => developerControls ? developerThreshold : speakThreshold;",
+    ),
+    (
+        APP / "lib/ui/demo_page.dart",
+        "日常辨識行人門檻 0.80（獨立評估依據）",
+        "const Map<int, double> kDailyClassMinScore = <int, double>{6: 0.80};",
     ),
     (
         APP / "test/menu_ui_test.dart",

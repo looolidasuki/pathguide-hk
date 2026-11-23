@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-23",
+  "appVersion": "1.12.1+31",
+  "tag": "v1.12.1+31-android-sync.7",
+  "type": "shared-ui-policy",
+  "previousCheckpoint": {"tag": "v1.12.1+31-android-sync.6", "appVersion": "1.12.1+31"},
+  "decision": "user chose a 0.80 pedestrian threshold for daily recognition after the independent evaluation",
+  "evidence": "verification/android-oid-test-eval-20261123.json (person precision 0.77 at 0.70, 0.87 at 0.80; simulated all-class FP 82 -> 39, recall 0.220 -> 0.177)",
+  "change": {
+    "file": "app/lib/ui/demo_page.dart",
+    "behaviour": "daily mode keeps a detection only if score >= max(speakThreshold, kDailyClassMinScore[class]); kDailyClassMinScore = {6 (pedestrian): 0.80}; drawing, announcing and the text summary share the filtered list; developer diagnostics are unfiltered",
+    "native": "native detector threshold unchanged (speakThreshold, default 0.70) because other classes still use it",
+    "platforms": "shared Dart; iOS daily recognition changes the same way"
+  },
+  "tests": {
+    "new": "app/test/daily_detection_threshold_test.dart (5 tests)",
+    "flutterTestsPassed": 644, "flutterTestsSkipped": 7,
+    "pythonTestsPassed": 498, "pythonTestsSkipped": 1,
+    "flutterAnalyze": "No issues found",
+    "androidDebugApkBuilt": true,
+    "deviceInstalled": false
+  },
+  "overlayScript": "section 14 generated and verified byte-for-byte from sync.4 and sync.6; section 13 patch 5 marker switched to a stable single line after section 14 changed its block; -Check reports 111 items ready",
+  "notVerified": ["device check (phone not connected)", "door not suspended; stairs recall gap unaffected by thresholds"]
+}

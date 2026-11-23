@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.12.1+31-android-sync.6'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.7'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -137,6 +137,7 @@ $overlayFiles = @(
     'app/test/route_android_profile_test.dart',
     'app/lib/tts/speech_latency.dart',
     'app/test/speech_latency_test.dart',
+    'app/test/daily_detection_threshold_test.dart',
     'app/android/app/src/test/resources/camera_preprocess/cases.txt',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.expected_f32le',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.raw_rgb',
@@ -1740,13 +1741,7 @@ Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android �
 ) -join $LF)
 
 Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android 播報延遲量度 5' `
-    (@(
-    '        _announcer.onFrame(frame.detections) != null) {',
-    '      // 讀屏路線沒有 TTS 開始回呼，不計入延遲量度。',
-    '      if (!_screenReader) {',
-    '        _latency.submitted(receivedAt: now, nativeMs: frame.inferenceMs);',
-    '      }'
-) -join $LF) `
+    '_latency.submitted(receivedAt: now, nativeMs: frame.inferenceMs);' `
     '        _announcer.onFrame(frame.detections) != null) {' `
     (@(
     '        _announcer.onFrame(frame.detections) != null) {',
@@ -1754,6 +1749,128 @@ Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 Android �
     '      if (!_screenReader) {',
     '        _latency.submitted(receivedAt: now, nativeMs: frame.inferenceMs);',
     '      }'
+) -join $LF)
+
+# ================================================================ 14. 2026-11-23 日常辨識行人門檻 0.80
+#
+# 依獨立 Open Images 評估，日常模式行人須達 0.80（與播報門檻取較高者），畫框、播報、摘要共用。
+# 測試見 daily_detection_threshold_test（新增檔）。
+# 補丁由 scripts/gen_overlay_section.py 產生並驗證逐字重現。
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識行人門檻 0.80 1' `
+    (@(
+    'import ''dart:async'';',
+    'import ''dart:math'' as math;'
+) -join $LF) `
+    'import ''dart:async'';' `
+    (@(
+    'import ''dart:async'';',
+    'import ''dart:math'' as math;'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識行人門檻 0.80 2' `
+    (@(
+    '}) => developerControls ? developerThreshold : speakThreshold;',
+    '',
+    '/// 日常模式的逐類最低分數（以項目類別 id 為鍵），與播報門檻取較高者。',
+    '///',
+    '/// 2026-11-23 獨立 Open Images test 評估（verification/android-oid-test-eval-20261123.json）：',
+    '/// 行人在 0.70 的精確率 0.77，0.80 為 0.87；全類誤認 82 → 39，召回 0.220 → 0.177。',
+    '/// 其他可評類別在 0.70 已足夠（垃圾桶 1.00、單車 0.92）；門及未評類別維持播報門檻。',
+    'const Map<int, double> kDailyClassMinScore = <int, double>{6: 0.80};',
+    '',
+    '/// 日常模式只保留達到逐類門檻的偵測；畫框、播報及文字摘要共用同一結果。',
+    '/// 開發者診斷頁原樣輸出，以便比較。',
+    '@visibleForTesting',
+    'List<Detection> dailyDetections(',
+    '  List<Detection> detections, {',
+    '  required bool developerControls,',
+    '  required double speakThreshold,',
+    '}) {',
+    '  if (developerControls) return detections;',
+    '  return [',
+    '    for (final d in detections)',
+    '      if (d.score >= math.max(speakThreshold, kDailyClassMinScore[d.id] ?? 0))',
+    '        d,',
+    '  ];',
+    '}'
+) -join $LF) `
+    '}) => developerControls ? developerThreshold : speakThreshold;' `
+    (@(
+    '}) => developerControls ? developerThreshold : speakThreshold;',
+    '',
+    '/// 日常模式的逐類最低分數（以項目類別 id 為鍵），與播報門檻取較高者。',
+    '///',
+    '/// 2026-11-23 獨立 Open Images test 評估（verification/android-oid-test-eval-20261123.json）：',
+    '/// 行人在 0.70 的精確率 0.77，0.80 為 0.87；全類誤認 82 → 39，召回 0.220 → 0.177。',
+    '/// 其他可評類別在 0.70 已足夠（垃圾桶 1.00、單車 0.92）；門及未評類別維持播報門檻。',
+    'const Map<int, double> kDailyClassMinScore = <int, double>{6: 0.80};',
+    '',
+    '/// 日常模式只保留達到逐類門檻的偵測；畫框、播報及文字摘要共用同一結果。',
+    '/// 開發者診斷頁原樣輸出，以便比較。',
+    '@visibleForTesting',
+    'List<Detection> dailyDetections(',
+    '  List<Detection> detections, {',
+    '  required bool developerControls,',
+    '  required double speakThreshold,',
+    '}) {',
+    '  if (developerControls) return detections;',
+    '  return [',
+    '    for (final d in detections)',
+    '      if (d.score >= math.max(speakThreshold, kDailyClassMinScore[d.id] ?? 0))',
+    '        d,',
+    '  ];',
+    '}'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識行人門檻 0.80 3' `
+    (@(
+    '        _pendingStatusAnnouncement == null;',
+    '    final detections = dailyDetections(',
+    '      frame.detections,',
+    '      developerControls: widget.developerControls,',
+    '      speakThreshold: widget.settings.speakThreshold,',
+    '    );',
+    '    if (_announcer.enabled &&',
+    '        !_announcer.isSpeaking &&',
+    '        _announcer.onFrame(detections) != null) {'
+) -join $LF) `
+    (@(
+    '        _pendingStatusAnnouncement == null;',
+    '    if (_announcer.enabled &&',
+    '        !_announcer.isSpeaking &&',
+    '        _announcer.onFrame(frame.detections) != null) {'
+) -join $LF) `
+    (@(
+    '        _pendingStatusAnnouncement == null;',
+    '    final detections = dailyDetections(',
+    '      frame.detections,',
+    '      developerControls: widget.developerControls,',
+    '      speakThreshold: widget.settings.speakThreshold,',
+    '    );',
+    '    if (_announcer.enabled &&',
+    '        !_announcer.isSpeaking &&',
+    '        _announcer.onFrame(detections) != null) {'
+) -join $LF)
+
+Patch-Overlay 'app/lib/ui/demo_page.dart' 'demo_page.dart: 2026-11-23 日常辨識行人門檻 0.80 4' `
+    (@(
+    '    setState(() {',
+    '      _detections = detections;',
+    '      _readback = resultSummary(',
+    '        detections,'
+) -join $LF) `
+    (@(
+    '    setState(() {',
+    '      _detections = frame.detections;',
+    '      _readback = resultSummary(',
+    '        frame.detections,'
+) -join $LF) `
+    (@(
+    '    setState(() {',
+    '      _detections = detections;',
+    '      _readback = resultSummary(',
+    '        detections,'
 ) -join $LF)
 
 # ================================================================ 結果
