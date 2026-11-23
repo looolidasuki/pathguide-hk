@@ -57,13 +57,21 @@ def patches(rel: str):
     a, b = before.split('\n'), after.split('\n')
     sim, result = before, []
     for i1, i2, j1, j2 in grouped(a, b):
-        ctx = 1
+        # 純刪除時替換文字只剩上文，必然已在檔內，「已套用」標記永不成立；
+        # 故刪除段同時帶下文一行，令替換文字（上文＋下文相連）在修改前不存在。
+        # 上文用盡（改動貼近檔首）時改為加長下文。
+        base_post = 1 if j1 == j2 else 0
+        step = 1
         while True:
-            anchor = '\n'.join(a[i1 - ctx:i2])
-            repl = '\n'.join(a[i1 - ctx:i1] + b[j1:j2])
+            ctx = min(step, i1)
+            post = base_post + (step - ctx)
+            if i2 + post > len(a) or (ctx == 0 and post == 0):
+                raise SystemExit(f'{rel}: 第 {i1 + 1} 行附近找不到唯一錨點／標記，已中止')
+            anchor = '\n'.join(a[i1 - ctx:i2 + post])
+            repl = '\n'.join(a[i1 - ctx:i1] + b[j1:j2] + a[i2:i2 + post])
             if before.count(anchor) == 1 and sim.count(anchor) == 1 and repl not in sim:
                 break
-            ctx += 1
+            step += 1
         sim = sim.replace(anchor, repl)
         result.append((anchor, repl))
     if sim != after:

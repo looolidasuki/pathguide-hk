@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 
 import '../settings/app_settings.dart';
 import 'encrypted_route_store.dart';
@@ -59,9 +58,7 @@ class _RouteLibraryScreenState extends State<RouteLibraryScreen>
       RouteLibraryController(
         DeviceRouteLibrary(
           await EncryptedRouteStore.open(),
-          openLearningStore: defaultTargetPlatform == TargetPlatform.iOS
-              ? RouteLearningStore.open
-              : null,
+          openLearningStore: RouteLearningStore.platformOpener,
         ),
       );
   @override

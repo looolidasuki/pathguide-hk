@@ -48,7 +48,7 @@
 [CmdletBinding()]
 param(
     [switch]$Check,
-    [string]$SourceRef = 'v1.12.1+31-android-sync.8'
+    [string]$SourceRef = 'v1.12.1+31-android-sync.9'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -142,6 +142,7 @@ $overlayFiles = @(
     'app/android/app/src/main/kotlin/hk/pathguide/pathguide/RouteNoteAudioPlugin.kt',
     'app/android/app/src/test/kotlin/hk/pathguide/pathguide/RouteNoteWavTest.kt',
     'app/test/route_note_audio_android_test.dart',
+    'app/test/route_learning_android_test.dart',
     'app/android/app/src/test/resources/camera_preprocess/cases.txt',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.expected_f32le',
     'app/android/app/src/test/resources/camera_preprocess/down_r0.raw_rgb',
@@ -1935,6 +1936,210 @@ Patch-Overlay 'app/lib/route_memory/route_audio_note_dialog.dart' 'route_audio_n
     '  static bool get supported =>',
     '      !kIsWeb &&',
     '      (defaultTargetPlatform == TargetPlatform.iOS || RoutePlatform.isAndroid);'
+) -join $LF)
+
+# ================================================================ 16. 2026-11-23 Android 本機路標候選（學習庫）
+#
+# RouteLearningStore.platformOpener 統一 iOS／Android 閘門；Android 存於 App 私有目錄 route_learning_v1（allowBackup=false），不經 route_storage 通道。
+# 金鑰仍由 flutter_secure_storage（Android Keystore）保管，與路線庫分開。
+# 補丁由 scripts/gen_overlay_section.py 產生並驗證逐字重現。
+
+Patch-Overlay 'app/lib/route_memory/route_learning_store.dart' 'route_learning_store.dart: 2026-11-23 Android 本機路標候選（學習庫） 1' `
+    (@(
+    'import ''dart:math'';',
+    '',
+    'import ''package:crypto/crypto.dart'';',
+    'import ''package:cryptography/cryptography.dart'';',
+    'import ''package:flutter/foundation.dart'';',
+    'import ''package:path_provider/path_provider.dart'';',
+    '',
+    'import ''encrypted_route_store.dart'';',
+    'import ''route_file_policy.dart'';',
+    'import ''route_platform_profile.dart'';'
+) -join $LF) `
+    (@(
+    'import ''dart:math'';',
+    'import ''dart:typed_data'';',
+    '',
+    'import ''package:crypto/crypto.dart'';',
+    'import ''package:cryptography/cryptography.dart'';',
+    '',
+    'import ''encrypted_route_store.dart'';',
+    'import ''route_file_policy.dart'';'
+) -join $LF) `
+    (@(
+    'import ''dart:math'';',
+    '',
+    'import ''package:crypto/crypto.dart'';',
+    'import ''package:cryptography/cryptography.dart'';',
+    'import ''package:flutter/foundation.dart'';',
+    'import ''package:path_provider/path_provider.dart'';',
+    '',
+    'import ''encrypted_route_store.dart'';',
+    'import ''route_file_policy.dart'';',
+    'import ''route_platform_profile.dart'';'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_learning_store.dart' 'route_learning_store.dart: 2026-11-23 Android 本機路標候選（學習庫） 2' `
+    (@(
+    '  }) async {',
+    '    // iOS：原生 route_storage 通道負責檔案保護及備份排除。',
+    '    // Android：與路線庫相同放在 App 私有目錄（allowBackup=false），',
+    '    // 沒有 route_storage 通道。',
+    '    final policy = root == null && !RoutePlatform.isAndroid',
+    '        ? await RouteFilePolicy.open(learning: true)',
+    '        : null;',
+    '    final base =',
+    '        root ??',
+    '        (policy == null ? await getApplicationSupportDirectory() : null);',
+    '    final dir =',
+    '        policy?.directory ??',
+    '        await Directory(''${base!.path}/route_learning_v1'')'
+) -join $LF) `
+    (@(
+    '  }) async {',
+    '    final policy = root == null',
+    '        ? await RouteFilePolicy.open(learning: true)',
+    '        : null;',
+    '    final dir =',
+    '        policy?.directory ??',
+    '        await Directory(''${root!.path}/route_learning_v1'')'
+) -join $LF) `
+    (@(
+    '  }) async {',
+    '    // iOS：原生 route_storage 通道負責檔案保護及備份排除。',
+    '    // Android：與路線庫相同放在 App 私有目錄（allowBackup=false），',
+    '    // 沒有 route_storage 通道。',
+    '    final policy = root == null && !RoutePlatform.isAndroid',
+    '        ? await RouteFilePolicy.open(learning: true)',
+    '        : null;',
+    '    final base =',
+    '        root ??',
+    '        (policy == null ? await getApplicationSupportDirectory() : null);',
+    '    final dir =',
+    '        policy?.directory ??',
+    '        await Directory(''${base!.path}/route_learning_v1'')'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_learning_store.dart' 'route_learning_store.dart: 2026-11-23 Android 本機路標候選（學習庫） 3' `
+    (@(
+    '    );',
+    '  }',
+    '',
+    '  /// 本機路標候選只在有原生支援的平台開放（iOS；Android 以 Platform 判斷，',
+    '  /// 主機測試的 defaultTargetPlatform 不會誤開）。其他平台回傳 null。',
+    '  static Future<RouteLearningStore> Function()? get platformOpener =>',
+    '      !kIsWeb &&',
+    '          (defaultTargetPlatform == TargetPlatform.iOS ||',
+    '              RoutePlatform.isAndroid)',
+    '      ? RouteLearningStore.open',
+    '      : null;'
+) -join $LF) `
+    (@(
+    '    );',
+    '  }'
+) -join $LF) `
+    (@(
+    '    );',
+    '  }',
+    '',
+    '  /// 本機路標候選只在有原生支援的平台開放（iOS；Android 以 Platform 判斷，',
+    '  /// 主機測試的 defaultTargetPlatform 不會誤開）。其他平台回傳 null。',
+    '  static Future<RouteLearningStore> Function()? get platformOpener =>',
+    '      !kIsWeb &&',
+    '          (defaultTargetPlatform == TargetPlatform.iOS ||',
+    '              RoutePlatform.isAndroid)',
+    '      ? RouteLearningStore.open',
+    '      : null;'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_learning_store.dart' 'route_learning_store.dart: 2026-11-23 Android 本機路標候選（學習庫） 4' `
+    (@(
+    '          //   Windows 的 path 用反斜線，鎖檔會被誤判成「有資料但沒有金鑰」。',
+    '          if (await directory.list().any(',
+    '            (e) =>',
+    '                e.uri.pathSegments.where((s) => s.isNotEmpty).last != ''.lock'',',
+    '          )) {'
+) -join $LF) `
+    (@(
+    '          //   Windows 的 path 用反斜線，鎖檔會被誤判成「有資料但沒有金鑰」。',
+    '          if (await directory.list().any((e) =>',
+    '              e.uri.pathSegments.where((s) => s.isNotEmpty).last != ''.lock'')) {'
+) -join $LF) `
+    (@(
+    '          //   Windows 的 path 用反斜線，鎖檔會被誤判成「有資料但沒有金鑰」。',
+    '          if (await directory.list().any(',
+    '            (e) =>',
+    '                e.uri.pathSegments.where((s) => s.isNotEmpty).last != ''.lock'',',
+    '          )) {'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_journey_page.dart' 'route_journey_page.dart: 2026-11-23 Android 本機路標候選（學習庫） 1' `
+    (@(
+    'import ''dart:async'';',
+    '',
+    'import ''package:flutter/material.dart'';'
+) -join $LF) `
+    (@(
+    'import ''dart:async'';',
+    '',
+    'import ''package:flutter/foundation.dart'';',
+    'import ''package:flutter/material.dart'';'
+) -join $LF) `
+    (@(
+    'import ''dart:async'';',
+    '',
+    'import ''package:flutter/material.dart'';'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_journey_page.dart' 'route_journey_page.dart: 2026-11-23 Android 本機路標候選（學習庫） 2' `
+    (@(
+    '                  store: s,',
+    '                  openLearningStore: RouteLearningStore.platformOpener,'
+) -join $LF) `
+    (@(
+    '                  store: s,',
+    '                  openLearningStore: defaultTargetPlatform == TargetPlatform.iOS',
+    '                      ? RouteLearningStore.open',
+    '                      : null,'
+) -join $LF) `
+    (@(
+    '                  store: s,',
+    '                  openLearningStore: RouteLearningStore.platformOpener,'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_library_screen.dart' 'route_library_screen.dart: 2026-11-23 Android 本機路標候選（學習庫） 1' `
+    (@(
+    'import ''package:flutter/material.dart'';',
+    '',
+    'import ''../settings/app_settings.dart'';'
+) -join $LF) `
+    (@(
+    'import ''package:flutter/material.dart'';',
+    'import ''package:flutter/foundation.dart'';',
+    '',
+    'import ''../settings/app_settings.dart'';'
+) -join $LF) `
+    (@(
+    'import ''package:flutter/material.dart'';',
+    '',
+    'import ''../settings/app_settings.dart'';'
+) -join $LF)
+
+Patch-Overlay 'app/lib/route_memory/route_library_screen.dart' 'route_library_screen.dart: 2026-11-23 Android 本機路標候選（學習庫） 2' `
+    (@(
+    '          await EncryptedRouteStore.open(),',
+    '          openLearningStore: RouteLearningStore.platformOpener,'
+) -join $LF) `
+    (@(
+    '          await EncryptedRouteStore.open(),',
+    '          openLearningStore: defaultTargetPlatform == TargetPlatform.iOS',
+    '              ? RouteLearningStore.open',
+    '              : null,'
+) -join $LF) `
+    (@(
+    '          await EncryptedRouteStore.open(),',
+    '          openLearningStore: RouteLearningStore.platformOpener,'
 ) -join $LF)
 
 # ================================================================ 結果

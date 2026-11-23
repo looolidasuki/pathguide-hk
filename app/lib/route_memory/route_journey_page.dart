@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -120,9 +119,7 @@ class _RouteJourneyPageState extends State<RouteJourneyPage>
               EncryptedRouteStore.open().then(
                 (s) => RecordedRouteController(
                   store: s,
-                  openLearningStore: defaultTargetPlatform == TargetPlatform.iOS
-                      ? RouteLearningStore.open
-                      : null,
+                  openLearningStore: RouteLearningStore.platformOpener,
                 ),
               ));
       if (!mounted) {

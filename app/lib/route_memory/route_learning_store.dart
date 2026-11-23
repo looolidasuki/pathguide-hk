@@ -1,13 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:cryptography/cryptography.dart';
+import 'package:flutter/foundation.dart';
+import 'package:path_provider/path_provider.dart';
 
 import 'encrypted_route_store.dart';
 import 'route_file_policy.dart';
+import 'route_platform_profile.dart';
 
 /// Local evidence only. Verification does not authorize training or alter routes.
 enum LearningReview { pending, verified, needsInformation, rejected }
@@ -63,12 +65,18 @@ class RouteLearningStore {
     DateTime Function()? clock,
     Future<void> Function()? checkpoint,
   }) async {
-    final policy = root == null
+    // iOS：原生 route_storage 通道負責檔案保護及備份排除。
+    // Android：與路線庫相同放在 App 私有目錄（allowBackup=false），
+    // 沒有 route_storage 通道。
+    final policy = root == null && !RoutePlatform.isAndroid
         ? await RouteFilePolicy.open(learning: true)
         : null;
+    final base =
+        root ??
+        (policy == null ? await getApplicationSupportDirectory() : null);
     final dir =
         policy?.directory ??
-        await Directory('${root!.path}/route_learning_v1')
+        await Directory('${base!.path}/route_learning_v1')
             .create(recursive: true);
     return RouteLearningStore._(
       Directory(await dir.resolveSymbolicLinks()),
@@ -78,6 +86,15 @@ class RouteLearningStore {
       checkpoint,
     );
   }
+
+  /// 本機路標候選只在有原生支援的平台開放（iOS；Android 以 Platform 判斷，
+  /// 主機測試的 defaultTargetPlatform 不會誤開）。其他平台回傳 null。
+  static Future<RouteLearningStore> Function()? get platformOpener =>
+      !kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              RoutePlatform.isAndroid)
+      ? RouteLearningStore.open
+      : null;
 
   Never _fail(String code) => throw LearningStoreFailure(code);
   void _valid(bool value) {
@@ -96,8 +113,10 @@ class RouteLearningStore {
         if (key == null) {
           // ★ 用路徑的**最後一段**判斷，不要比對 '/.lock'（同 encrypted_route_store）：
           //   Windows 的 path 用反斜線，鎖檔會被誤判成「有資料但沒有金鑰」。
-          if (await directory.list().any((e) =>
-              e.uri.pathSegments.where((s) => s.isNotEmpty).last != '.lock')) {
+          if (await directory.list().any(
+            (e) =>
+                e.uri.pathSegments.where((s) => s.isNotEmpty).last != '.lock',
+          )) {
             _fail('keyUnavailable');
           }
           key = [for (var i = 0; i < 32; i++) Random.secure().nextInt(256)];
